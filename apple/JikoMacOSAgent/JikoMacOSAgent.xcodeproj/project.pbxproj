@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		014A28502E9FC44900DB88E2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 014A28362E9FC44800DB88E2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 014A283D2E9FC44800DB88E2;
+			remoteInfo = JikoMacOSAgent;
+		};
+		014A285A2E9FC44900DB88E2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 014A28362E9FC44800DB88E2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 014A283D2E9FC44800DB88E2;
+			remoteInfo = JikoMacOSAgent;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		014A283E2E9FC44800DB88E2 /* JikoMacOSAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JikoMacOSAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		014A284F2E9FC44900DB88E2 /* JikoMacOSAgentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoMacOSAgentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		014A28592E9FC44900DB88E2 /* JikoMacOSAgentUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoMacOSAgentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		014A28402E9FC44800DB88E2 /* JikoMacOSAgent */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JikoMacOSAgent;
+			sourceTree = "<group>";
+		};
+		014A28522E9FC44900DB88E2 /* JikoMacOSAgentTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JikoMacOSAgentTests;
+			sourceTree = "<group>";
+		};
+		014A285C2E9FC44900DB88E2 /* JikoMacOSAgentUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JikoMacOSAgentUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		014A283B2E9FC44800DB88E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A284C2E9FC44900DB88E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A28562E9FC44900DB88E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		014A28352E9FC44800DB88E2 = {
+			isa = PBXGroup;
+			children = (
+				014A28402E9FC44800DB88E2 /* JikoMacOSAgent */,
+				014A28522E9FC44900DB88E2 /* JikoMacOSAgentTests */,
+				014A285C2E9FC44900DB88E2 /* JikoMacOSAgentUITests */,
+				014A283F2E9FC44800DB88E2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		014A283F2E9FC44800DB88E2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				014A283E2E9FC44800DB88E2 /* JikoMacOSAgent.app */,
+				014A284F2E9FC44900DB88E2 /* JikoMacOSAgentTests.xctest */,
+				014A28592E9FC44900DB88E2 /* JikoMacOSAgentUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		014A283D2E9FC44800DB88E2 /* JikoMacOSAgent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 014A28632E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgent" */;
+			buildPhases = (
+				014A283A2E9FC44800DB88E2 /* Sources */,
+				014A283B2E9FC44800DB88E2 /* Frameworks */,
+				014A283C2E9FC44800DB88E2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				014A28402E9FC44800DB88E2 /* JikoMacOSAgent */,
+			);
+			name = JikoMacOSAgent;
+			packageProductDependencies = (
+			);
+			productName = JikoMacOSAgent;
+			productReference = 014A283E2E9FC44800DB88E2 /* JikoMacOSAgent.app */;
+			productType = "com.apple.product-type.application";
+		};
+		014A284E2E9FC44900DB88E2 /* JikoMacOSAgentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 014A28662E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgentTests" */;
+			buildPhases = (
+				014A284B2E9FC44900DB88E2 /* Sources */,
+				014A284C2E9FC44900DB88E2 /* Frameworks */,
+				014A284D2E9FC44900DB88E2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				014A28512E9FC44900DB88E2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				014A28522E9FC44900DB88E2 /* JikoMacOSAgentTests */,
+			);
+			name = JikoMacOSAgentTests;
+			packageProductDependencies = (
+			);
+			productName = JikoMacOSAgentTests;
+			productReference = 014A284F2E9FC44900DB88E2 /* JikoMacOSAgentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		014A28582E9FC44900DB88E2 /* JikoMacOSAgentUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 014A28692E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgentUITests" */;
+			buildPhases = (
+				014A28552E9FC44900DB88E2 /* Sources */,
+				014A28562E9FC44900DB88E2 /* Frameworks */,
+				014A28572E9FC44900DB88E2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				014A285B2E9FC44900DB88E2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				014A285C2E9FC44900DB88E2 /* JikoMacOSAgentUITests */,
+			);
+			name = JikoMacOSAgentUITests;
+			packageProductDependencies = (
+			);
+			productName = JikoMacOSAgentUITests;
+			productReference = 014A28592E9FC44900DB88E2 /* JikoMacOSAgentUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		014A28362E9FC44800DB88E2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					014A283D2E9FC44800DB88E2 = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					014A284E2E9FC44900DB88E2 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 014A283D2E9FC44800DB88E2;
+					};
+					014A28582E9FC44900DB88E2 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 014A283D2E9FC44800DB88E2;
+					};
+				};
+			};
+			buildConfigurationList = 014A28392E9FC44800DB88E2 /* Build configuration list for PBXProject "JikoMacOSAgent" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 014A28352E9FC44800DB88E2;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 014A283F2E9FC44800DB88E2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				014A283D2E9FC44800DB88E2 /* JikoMacOSAgent */,
+				014A284E2E9FC44900DB88E2 /* JikoMacOSAgentTests */,
+				014A28582E9FC44900DB88E2 /* JikoMacOSAgentUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		014A283C2E9FC44800DB88E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A284D2E9FC44900DB88E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A28572E9FC44900DB88E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		014A283A2E9FC44800DB88E2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A284B2E9FC44900DB88E2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		014A28552E9FC44900DB88E2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		014A28512E9FC44900DB88E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 014A283D2E9FC44800DB88E2 /* JikoMacOSAgent */;
+			targetProxy = 014A28502E9FC44900DB88E2 /* PBXContainerItemProxy */;
+		};
+		014A285B2E9FC44900DB88E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 014A283D2E9FC44800DB88E2 /* JikoMacOSAgent */;
+			targetProxy = 014A285A2E9FC44900DB88E2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		014A28612E9FC44900DB88E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		014A28622E9FC44900DB88E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		014A28642E9FC44900DB88E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JikoMacOSAgent/JikoMacOSAgent.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"JikoMacOSAgent/Preview Content\"";
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		014A28652E9FC44900DB88E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JikoMacOSAgent/JikoMacOSAgent.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"JikoMacOSAgent/Preview Content\"";
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		014A28672E9FC44900DB88E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgentTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoMacOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoMacOSAgent";
+			};
+			name = Debug;
+		};
+		014A28682E9FC44900DB88E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgentTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoMacOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoMacOSAgent";
+			};
+			name = Release;
+		};
+		014A286A2E9FC44900DB88E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgentUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = JikoMacOSAgent;
+			};
+			name = Debug;
+		};
+		014A286B2E9FC44900DB88E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UZ7YK2F2PH;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoMacOSAgentUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = JikoMacOSAgent;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		014A28392E9FC44800DB88E2 /* Build configuration list for PBXProject "JikoMacOSAgent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				014A28612E9FC44900DB88E2 /* Debug */,
+				014A28622E9FC44900DB88E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		014A28632E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				014A28642E9FC44900DB88E2 /* Debug */,
+				014A28652E9FC44900DB88E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		014A28662E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				014A28672E9FC44900DB88E2 /* Debug */,
+				014A28682E9FC44900DB88E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		014A28692E9FC44900DB88E2 /* Build configuration list for PBXNativeTarget "JikoMacOSAgentUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				014A286A2E9FC44900DB88E2 /* Debug */,
+				014A286B2E9FC44900DB88E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 014A28362E9FC44800DB88E2 /* Project object */;
+}
