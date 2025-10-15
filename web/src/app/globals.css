@@ -1,26 +1,149 @@
+/* CSS variables for cursor tracking */
+:root {
+  --cursor-x: 0px;
+  --cursor-y: 0px;
+}
 @import "tailwindcss";
 
+/* Define global CSS variables for colors and fonts */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff; /* light background */
+  --foreground: #2c2c2ccc; /* dark text */
+  --accent: #1f5818;     /* cornflower blue accent */
+  --secondary: #FF69B4;  /* pink secondary */
+  --font-sans: 'Montserrat', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-cursive: 'Italianno', cursive;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Remove dark mode overrides since we want light mode by default */
 body {
+  /* background: #ffffff; */
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
+  z-index: 0;
+}
+
+/* Accent utility class */
+.accent {
+  color: var(--accent);
+}
+.secondary {
+  color: var(--secondary);
+}
+
+/* Example for accent background highlights */
+.bg-accent {
+  background-color: var(--accent);
+}
+
+/* Cursor highlight */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+
+  /* two linear gradients layered */
+  background:
+    /* gradient 1: white → accent, angle based on cursor */
+    linear-gradient(
+      135deg,
+      /* calc(((var(--cursor-x, 50%) * 0.5)+(var(--cursor-y, 50%) * 0.5)) * 3.6deg + 90deg), */
+      var(--background) -100%, 
+      #00000000 calc(50% + (var(--cursor-x, 50%) - 50%) * 0.25 + (var(--cursor-y, 50%) - 50%) * 0.25),
+      /* #00000000 calc(60% + (var(--cursor-x, 50%) - 50%) * 0.5 + (var(--cursor-y, 50%) - 50%) * 0.5), */
+      var(--accent) 200%
+    );
+    /* Gradient 2 (vertical) */
+    /* linear-gradient( */
+      /* 180deg,  */
+      /* calc( (var(--cursor-x)) * 3.6deg ), */
+      /* var(--accent) -100%,  */
+      /* #00000000 calc(40% + (var(--cursor-x, 50%) - 50%) * 0.1 + (var(--cursor-y, 50%) - 50%) * 0.3), */
+      /* #00000000 calc(60% + (var(--cursor-x, 50%) - 50%) * 0.1 + (var(--cursor-y, 50%) - 50%) * 0.3), */
+      /* var(--accent) 200% */
+    /* ); */
+  /* background-color: #ffffff;*/ /* Optional base layer for depth */
+  /* background-blend-mode: darken;*/ /* Adjust as needed */
+  transition: background 0.1s;
+}
+
+/* Button styles remain the same */
+.button {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--x,50%) var(--y,50%), oklch(0 0 0 / 0.15) 0%, rgba(0,0,0,0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.button:hover::after {
+  opacity: 1;
+}
+
+.button-dark {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button-dark:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.button-dark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--x,50%) var(--y,50%), oklch(0 0 0 / 0.3) 0%, rgba(0,0,0,0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.button-dark:hover::after {
+  opacity: 1;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.bob {
+  animation: bob 1.5s ease-in-out infinite;
+}
+
+html {
+  scroll-behavior: smooth;
 }

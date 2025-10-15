@@ -1,0 +1,126 @@
+import {useGLTF, Stage, PresentationControls, Environment} from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { AmbientLight, MeshStandardMaterial } from "three";
+
+function Model(props){
+  const {scene} = useGLTF("/lotus_flower.glb");
+  scene.traverse((child: any) => {
+  if (child.isMesh) {
+    child.material = new MeshStandardMaterial({
+      color: 0x111111, // very dark
+      metalness: 1,
+      roughness: 1,
+    });
+  }
+});
+  return <primitive object={scene} {...props} />  
+}
+
+function useCursor() {
+  const [cursorX, setCursorX] = useState(50); // start at center
+  const [cursorY, setCursorY] = useState(50); // start at center
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorX((e.clientX / window.innerWidth) * 100);
+      setCursorY((e.clientY / window.innerHeight) * 100);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+  return {cursorX, cursorY};
+}
+
+export default function LotusFlower() {
+  const {cursorX, cursorY} = useCursor();
+  return (
+    // <div className="lotus-flower-container w-full h-full">
+    <div className="w-screen h-80 overflow-hidden mx-auto pr-12">
+      <Canvas
+        dpr={[1, 2]}
+        shadows
+        camera={{
+          fov: 10, // field of view
+          near: 0.1,
+          far: 10,
+          position: [-0.1, 0.2, 1.2], // x, y, z camera position
+        }}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "block",
+        }}
+      >
+        {/* smoother load */}
+        <Suspense fallback={null}>
+          
+          {/* ambient & directional lights */}
+          <ambientLight intensity={0.1} />
+          {/* <directionalLight
+            castShadow
+            position={[5, 5, 5]}
+            intensity={1}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+          /> */}
+          {/* <pointLight position={[2, 3, 2]} intensity={0.5} /> */}
+          {/* <spotLight
+            position={[0, 5, 10]}
+            angle={0.8}
+            penumbra={0.1}
+            intensity={0.6}
+            castShadow
+          /> */}
+
+          {/* environment lighting preset */}
+          <Environment preset="sunset" background={false} />
+
+          {/* stage wrapper handles shadow + light baking */}
+          <Stage
+            intensity={1.5}
+            // contactShadow={{
+            //   opacity: 0.4,
+            //   blur: 2,
+            // }}
+            adjustCamera={false}
+            // environment="city"
+          >
+            <Model scale={0.1} />
+          </Stage>
+          <CursorFollow cursorX={cursorX} cursorY={cursorY} />
+        </Suspense>
+      </Canvas>
+    </div> 
+    // </div>
+  );
+}
+
+function CursorFollow({ cursorX, cursorY }: { cursorX: number; cursorY: number }) {
+  const { camera, scene } = useThree();
+  const ambientRef = useRef<AmbientLight>(null!);
+  useFrame(() => {
+    // Map cursorX and cursorY from [0, 100] to [-0.5, 0.5]
+    const x = (cursorX / 100) - 0.5;
+    const y = (cursorY / 100) - 0.5;
+    // Update camera position based on cursor
+    camera.position.x = -0.1 + x * -0.5; // Adjust multiplier for sensitivity
+    camera.position.y = 0.2 + y * 0.1; // Adjust multiplier for sensitivity
+    camera.lookAt(0, 0, 0); // Always look at the center
+    camera.updateProjectionMatrix();
+
+    const distanceFromCenter = Math.sqrt(x * x + y * y); // 0 at center, max ~0.7 at corners
+    const intensity = 0.1 + (1 - Math.min(distanceFromCenter, 1)) * 0.9;
+
+    // Either find existing ambient light or create one dynamically
+    let light: AmbientLight | undefined = ambientRef.current;
+    if (!light) {
+      light = new AmbientLight(0xffffff, intensity);
+      scene.add(light);
+      ambientRef.current = light;
+    } else {
+      light.intensity = intensity;
+    }
+  });
+  return null;
+}
