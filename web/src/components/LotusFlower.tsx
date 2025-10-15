@@ -1,13 +1,18 @@
-import {useGLTF, Stage, PresentationControls, Environment} from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { AmbientLight, MeshStandardMaterial } from "three";
+"use client";
 
-function Model(props){
-  const {scene} = useGLTF("/lotus_flower.glb");
-  scene.traverse((child: any) => {
-  if (child.isMesh) {
-    child.material = new MeshStandardMaterial({
+import {useGLTF, Stage, Environment} from "@react-three/drei";
+import { Canvas, ThreeElements, useFrame, useThree } from "@react-three/fiber";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { AmbientLight, Mesh, MeshStandardMaterial, Object3D} from "three";
+
+type ModelProps = ThreeElements["primitive"]
+
+function Model({src, ...props}: {src: string} & Omit<ModelProps, "object">) {
+  const {scene} = useGLTF(src);
+  scene.traverse((child: Object3D) => {
+  if ((child as Mesh).isMesh) {
+    const mesh = child as Mesh;
+    mesh.material = new MeshStandardMaterial({
       color: 0x111111, // very dark
       metalness: 1,
       roughness: 1,
@@ -86,7 +91,7 @@ export default function LotusFlower() {
             adjustCamera={false}
             // environment="city"
           >
-            <Model scale={0.1} />
+            <Model src="/lotus_flower.glb" scale={0.1} />
           </Stage>
           <CursorFollow cursorX={cursorX} cursorY={cursorY} />
         </Suspense>

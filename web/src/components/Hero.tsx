@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import ReactiveButton from "./common/ReactiveButton";
-import LotusFlower from "./LotusFlower";
 
 export default function Hero() {
   const [isAppleDevice, setIsAppleDevice] = useState(false);
@@ -16,7 +15,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="flex flex-col items-center justify-center min-h-screen px-6">
+    <section className="flex flex-col items-center justify-center px-6">
       
       {/* Main Heading */}
       <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-center leading-none mb-2">
@@ -47,11 +46,6 @@ export default function Hero() {
       <p className="text-xs text-gray-400 text-center mt-4 mb-12">
         By continuing, you agree to our Terms and Privacy.
       </p>
-
-      {/* Lotus Flower Placeholder */}
-      {/* <div className="w-full max-w-md h-48 flex items-center justify-center text-gray-400"> */}
-        <LotusFlower />
-      {/* </div> */}
 
     </section>
   );

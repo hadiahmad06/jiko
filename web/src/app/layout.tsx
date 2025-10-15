@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat, Italianno } from "next/font/google";
 import "./globals.css";
+import LotusFlower from "@/components/LotusFlower";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
   title: "Jiko",
   description: "No more excuses. Jiko holds you accountable.",
   keywords: [],
-  viewport: "width=device-width, initial-scale=1.0",
+  // viewport: "width=device-width, initial-scale=1.0",
   authors: [{name: "Hadi Ahmad"}]
 };
 
@@ -41,7 +43,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${italiano.variable} antialiased`}
       >
-        {children}
+        <div className="text-foreground min-h-screen font-sans flex flex-col justify-between">
+          <Navbar />
+          {children}
+          <LotusFlower />
+          <div className="h-24"/>
+         </div>
       </body>
     </html>
   );
