@@ -61,7 +61,7 @@ export default function LotusFlower() {
       className="w-screen h-80 overflow-hidden mx-auto md:pr-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: loaded ? 1 : 0 }}
-      transition={{ duration: 1 }}
+      transition={{ duration: 1.25, delay: 0.25 }}
     >
       <Canvas
         dpr={[1, 2]}

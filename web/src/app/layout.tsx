@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Montserrat, Italianno } from "next/font/google";
 import "./globals.css";
 import LotusFlower from "@/components/LotusFlower";
 import Navbar from "@/components/Navbar";
+import CursorHandler from "@/components/CursorHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,39 @@ export const metadata: Metadata = {
   title: "Jiko",
   description: "No more excuses. Jiko holds you accountable.",
   keywords: [],
-  // viewport: "width=device-width, initial-scale=1.0",
-  authors: [{name: "Hadi Ahmad"}]
+  openGraph: {
+    title: "Jiko",
+    description: "No more excuses. Jiko holds you accountable.",
+    url: "https://jiko.life",
+    siteName: "Jiko",
+    images: [
+      {
+        url: "images/metadata/og-image.png",
+        width: 3438,
+        height: 2056,
+        alt: "Jiko — No more excuses."
+      }
+    ],
+    locale: "en_US",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jiko",
+    description: "No more excuses. Jiko holds you accountable.",
+    creator: "@hadiahmad06",
+    site: "@hadiahmad06",
+    images: ["images/metadata/og-image.png"]
+  },
+  metadataBase: new URL("https://jiko.life"),
+  icons: {
+    icon: "images/metadata/favicon.ico",
+    apple: "images/metadata/apple-touch-icon.png",
+    shortcut: "images/metadata/favicon-32x32.png"
+  },
+  alternates: {
+    canonical: "https://jiko.life"
+  }
 };
 
 export default function RootLayout({
@@ -46,7 +78,9 @@ export default function RootLayout({
         <div className="text-foreground min-h-screen font-sans flex flex-col justify-between">
           <Navbar />
           <div className="h-8"/>
-          {children}
+          <CursorHandler>
+            {children}
+           </CursorHandler>
           <LotusFlower />
           <div className="h-24"/>
          </div>

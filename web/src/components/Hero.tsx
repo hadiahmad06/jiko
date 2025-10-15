@@ -80,7 +80,7 @@ export default function Hero() {
       <ReactiveButton className="bg-black text-background font-bold px-18 py-3 rounded-12 border-2 border-black">
         <div className="flex flex-row items-center justify-center gap-3 ">
             <Image
-            src={isAppleDevice ? "/imessage.png" : "/altmessage.png"}
+            src={isAppleDevice ? "/images/imessage.png" : "/images/altmessage.png"}
             alt="Message Icon"
             width={24}
             height={24}

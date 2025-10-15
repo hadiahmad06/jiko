@@ -10,7 +10,7 @@ export default function Contact() {
       {/* Profile Image */}
       <div className="w-32 h-32 bg-gray-300 rounded-full mb-4 flex items-center justify-center">
         <Image
-          src="/hadi.jpeg"
+          src="/images/hadi.jpeg"
           alt="Hadi Ahmad"
           width={128}
           height={128}
