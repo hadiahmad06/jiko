@@ -3,9 +3,33 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import ReactiveButton from "./common/ReactiveButton";
+import { motion, AnimatePresence } from "framer-motion";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+}
 
 export default function Hero() {
+  const isMobile = useIsMobile()
   const [isAppleDevice, setIsAppleDevice] = useState(false);
+  const [phrases] = useState([
+    "done waiting.",
+    "tired of your excuses.",
+    "ready for change.",
+    "here to help."
+  ]);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
@@ -14,14 +38,38 @@ export default function Hero() {
     }
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % phrases.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [phrases.length]);
+
   return (
     <section className="flex flex-col items-center justify-center px-6">
       
       {/* Main Heading */}
-      <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-center leading-none mb-2">
-        <span className="italic">Jiko</span> <br />
-        <span className="text-3xl sm:text-4xl md: text-5xl">is tired of your excuses.</span>
-      </h1>
+      {isMobile ? (
+      <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl font-bold leading-none whitespace-nowrap text-center w-full">
+        <span className="inline-block text-center"><span className="italic">{"Jiko "}</span>{"is "}{phrases[3]}</span>
+      </h1>) : (
+      <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl font-bold leading-none whitespace-nowrap flex justify-center items-center w-full">
+        <span className="pr-2 w-5/12 text-right"><span className="italic">{"Jiko "}</span>{"is "}</span>
+        <span className="pl-2 relative inline-block w-7/12 text-left">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={index}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-block align-baseline"
+            >
+              {phrases[index]}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      </h1>)}
 
       {/* Subheading */}
       <p className="text-gray-500 text-center mb-8">

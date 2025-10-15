@@ -45,6 +45,7 @@ export default function RootLayout({
       >
         <div className="text-foreground min-h-screen font-sans flex flex-col justify-between">
           <Navbar />
+          <div className="h-8"/>
           {children}
           <LotusFlower />
           <div className="h-24"/>

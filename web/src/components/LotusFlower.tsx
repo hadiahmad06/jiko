@@ -1,9 +1,13 @@
 "use client";
 
-import {useGLTF, Stage, Environment} from "@react-three/drei";
+import {useGLTF, Stage, Environment, useProgress} from "@react-three/drei";
 import { Canvas, ThreeElements, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useState } from "react";
+// import { extend } from "@react-three/fiber";
 import { AmbientLight, Mesh, MeshStandardMaterial, Object3D} from "three";
+import { motion } from "framer-motion";
+// import Hero from "./Hero";
+// extend({ Hero })
 
 type ModelProps = ThreeElements["primitive"]
 
@@ -36,16 +40,34 @@ function useCursor() {
   return {cursorX, cursorY};
 }
 
+function useMobileFov(): number {
+  const [fov, setFov] = useState(10); // default
+
+  useEffect(() => {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches; // matches Tailwind 'md' breakpoint
+    setFov(isMobile ? 12 : 10);
+  }, []);
+
+  return fov;
+}
+
 export default function LotusFlower() {
   const {cursorX, cursorY} = useCursor();
+  const fov = useMobileFov();
+  const { loaded } = useProgress();
+
   return (
-    // <div className="lotus-flower-container w-full h-full">
-    <div className="w-screen h-80 overflow-hidden mx-auto pr-12">
+    <motion.div
+      className="w-screen h-80 overflow-hidden mx-auto md:pr-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: loaded ? 1 : 0 }}
+      transition={{ duration: 1 }}
+    >
       <Canvas
         dpr={[1, 2]}
         shadows
         camera={{
-          fov: 10, // field of view
+          fov: fov, // field of view
           near: 0.1,
           far: 10,
           position: [-0.1, 0.2, 1.2], // x, y, z camera position
@@ -96,8 +118,7 @@ export default function LotusFlower() {
           <CursorFollow cursorX={cursorX} cursorY={cursorY} />
         </Suspense>
       </Canvas>
-    </div> 
-    // </div>
+    </motion.div>
   );
 }
 
