@@ -8,71 +8,58 @@
 import SwiftUI
 import Cocoa
 
-class JikoMenu: NSObject, NSMenuDelegate {
-  @Published var quitClicksRemaining: Int = 3
-  var menu: NSMenu!
+struct JikoMenu: View {
+  @EnvironmentObject var observer: AppSwitchObserver
   
-//  static let quitTitles: [String] = [
-//    "(Quit) Jiko will remember this", "(Quit) bitch ass", "(Quit) are we serious bruh"
-//  ]
-  
-  
-  func constructMenu() -> NSMenu {
-    let menu = NSMenu()
-    menu.delegate = self
-    menu.autoenablesItems = false
-    
-    // Jiko Status
-    let status = NSMenuItem(title: "Jiko is running!", action: nil, keyEquivalent: "")
-    menu.addItem(status)
-    
-    // Version + Build
-    let versionRow = NSMenuItem(title: "Version ? (Build ?)", action: nil, keyEquivalent: "")
-    if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-       let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-        versionRow.title = "Version \(version) (Build \(build))"
+  var body: some View {
+    VStack(alignment: .leading, spacing: 5) {
+      
+      // Status
+      HStack {
+        Text("Jiko is running!")
+          .bold()
+          .foregroundColor(.green)
+        Image(systemName: "apple.meditate")
+          .resizable()
+          .frame(width: 18, height: 18)
+          .foregroundColor(.green)
+      }
+      
+      // Version / Build
+      if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+        Text("Version \(version) (Build \(build))")
+      } else {
+        Text("Version ? (Build ?)")
+      }
+      
+      Divider()
+      
+      Text("Active: \(observer.currentApp?.localizedName ?? "N/A")")
+        .bold()
+      Text("Screen Time: N/A")
+        .bold()
+      
+      Divider()
+      
+      Button("Quit") {
+        NSApp.terminate(nil)
+      }
+      .keyboardShortcut(.init("q"), modifiers: .command)
+      .padding(.top, 4)
     }
-    menu.addItem(versionRow)
-    
-    //------------------------------------------------------------
-    menu.addItem(NSMenuItem.separator())
-    
-    // Currently Focused App
-    let focusedAppRow = NSMenuItem(title: "Active: N/A", action: nil, keyEquivalent: "")
-    focusedAppRow.title = "Not supported yet"
-    menu.addItem(focusedAppRow)
-    
-    // Today's Screen Time Duration
-    let screenTimeRow = NSMenuItem(title: "Screen Time: ...", action: nil, keyEquivalent: "")
-    screenTimeRow.title = "Not supported yet"
-    menu.addItem(screenTimeRow)
-    
-    //------------------------------------------------------------
-    menu.addItem(NSMenuItem.separator())
-    
-    // Actions
-    
-    let quit = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
-    quit.tag = 67
-    quit.target = self
-    menu.addItem(quit)
-    
-    self.menu = menu
-    return menu
+    .padding(8)
   }
-  
-  @objc func dummyAction() {
-    print("Dummy Action triggered")
+}
+
+#Preview {
+  VStack {
+      Text("Previewing MenuBarExtra contents")
+      Divider()
+      JikoMenu()
+          .environmentObject(AppSwitchObserver())
+          .buttonStyle(.accessoryBar)
   }
-   
-  @objc func quit() {
-//    if self.quitClicksRemaining > 0 {
-//      self.quitClicksRemaining -= 1
-//      if let quitRow = menu.item(withTag: 67) {
-//        quitRow.title = JikoMenu.quitTitles[quitClicksRemaining]
-//      }
-//      return
-//    }
-    NSApp.terminate(nil)
-  }
+  .frame(width: 200)
+  .padding()
 }

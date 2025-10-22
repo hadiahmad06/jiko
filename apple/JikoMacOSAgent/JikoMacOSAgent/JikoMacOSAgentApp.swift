@@ -9,11 +9,13 @@ import SwiftUI
 
 @main
 struct JikoMacOSAgentApp: App {
-  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+//  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+  @StateObject var observer = AppSwitchObserver()
 
   var body: some Scene {
-    Settings {
-      EmptyView() // optional settings window
+    MenuBarExtra("Jiko", systemImage: "apple.meditate") {
+      JikoMenu()
+        .environmentObject(observer)
     }
   }
 }
