@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { CurrentActivitySchema } from './CurrentActivity.js';
-import { PlatformSchema } from './Platform.js';
+import { CurrentActivitySchema } from './CurrentActivity';
+import { PlatformSchema } from './Platform';
 
 // AppUsageUpdate extended with currentActivity
 export const AppUsageUpdateSchema = z.object({

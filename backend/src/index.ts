@@ -1,6 +1,6 @@
 import express from 'express';
-import updateRouter from './routes/update.js';
-import authRouter from './routes/auth.js';
+import updateRouter from './routes/update';
+import authRouter from './routes/auth';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,4 +12,8 @@ app.use(express.json());
 app.use('/', updateRouter);
 app.use('/', authRouter);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}

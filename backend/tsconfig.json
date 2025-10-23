@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src",
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "target": "ES2020",
     "esModuleInterop": true,
+    "allowJs": true,
     "strict": true,
-    "types": ["node"],
+    "types": ["node", "jest"],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -17,7 +19,10 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "*": ["*"]
+    }
   },
   "include": ["**/*.ts"]
 }

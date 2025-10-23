@@ -1,6 +1,6 @@
-import type { AppUsageUpdate } from './types/AppUsageUpdate.js';
-import type { Platform } from './types/Platform.js';
-import type { User } from './types/User.js';
+import type { AppUsageUpdate } from './types/AppUsageUpdate';
+import type { Platform } from './types/Platform';
+import type { User } from './types/User';
 
 class UserManager {
   private cachedUsers: Record<string, User> = {};
