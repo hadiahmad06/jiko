@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { AppUsageUpdate } from './AppUsageUpdate';
-import { AppUsageUpdateSchema } from './AppUsageUpdate';
-import type { Platform } from './Platform';
-import { PlatformSchema } from './Platform';
+import type { AppUsageUpdate } from './AppUsageUpdate.js';
+import { AppUsageUpdateSchema } from './AppUsageUpdate.js';
+import type { Platform } from './Platform.js';
+import { PlatformSchema } from './Platform.js';
 
 // ---------------------------
 // User Zod schema

@@ -1,6 +1,10 @@
-import type { AppUsageUpdate } from './types/AppUsageUpdate';
-import type { Platform } from './types/Platform';
-import type { User } from './types/User';
+import type { AppUsageUpdate } from './types/AppUsageUpdate.js';
+import type { Platform } from './types/Platform.js';
+import type { User } from './types/User.js';
+import { ddbDocClient } from './ddbClient.js';
+import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+
+const TABLE_NAME = 'AppUsage';
 
 class UserManager {
   private cachedUsers: Record<string, User> = {};
@@ -9,18 +13,14 @@ class UserManager {
    * Updates app usage for a user. Adds the user if missing,
    * and overwrites previous usage for the given platform.
    */
-  updateAppUsage(userId: string, update: AppUsageUpdate) {
+  async updateAppUsage(userId: string, update: AppUsageUpdate) {
     const timestamp = update.timestamp ?? new Date().toISOString();
 
-    // Add user if missing
+    // Check cached user
     if (!this.cachedUsers[userId]) {
       this.cachedUsers[userId] = { uuid: userId, phoneNumber: '', appUsage: {} };
     }
-
     const user = this.cachedUsers[userId];
-
-    // Initialize appUsage if missing
-    user.appUsage = user.appUsage ?? {};
 
     // Overwrite the previous usage for the given platform
     const platformKey = update.platform as Platform;
@@ -31,6 +31,22 @@ class UserManager {
       deviceId: update.deviceId,
     };
 
+    // Save/update in DynamoDB
+    try {
+      await ddbDocClient.send(new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          PK: userId,
+          SK: platformKey,
+          timestamp,
+          deviceId: update.deviceId,
+          currentActivity: update.currentActivity ?? [],
+        },
+      }));
+    } catch (err) {
+      console.error('Error updating DynamoDB AppUsage:', err);
+    }
+
     if (process.env.NODE_ENV === 'test') {
       console.log(
         `Updated platform "${update.platform}" for user "${userId}" at ${timestamp}`
@@ -39,8 +55,28 @@ class UserManager {
   }
 
   // Optional: get user data
-  getUserData(userId: string): User {
-    return this.cachedUsers[userId] ?? { uuid: userId, phoneNumber: '', appUsage: {} };
+  async getUserData(userId: string): Promise<User> {
+    if (!this.cachedUsers[userId]) {
+      this.cachedUsers[userId] = { uuid: userId, phoneNumber: '', appUsage: {} };
+    }
+    const user = this.cachedUsers[userId];
+
+    // Fetch latest appUsage from DynamoDB
+    for (const platform of Object.keys(user.appUsage) as Platform[]) {
+      try {
+        const res = await ddbDocClient.send(new GetCommand({
+          TableName: TABLE_NAME,
+          Key: { PK: userId, SK: platform },
+        }));
+        if (res.Item) {
+          user.appUsage[platform] = res.Item as any;
+        }
+      } catch (err) {
+        console.error('Error reading DynamoDB AppUsage:', err);
+      }
+    }
+
+    return user;
   }
 
   // Optional: get all cached users

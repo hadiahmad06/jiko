@@ -1,4 +1,4 @@
-const { createDefaultPreset } = require("ts-jest");
+// const { createDefaultPreset } = require("ts-jest");
 
 // const tsJestTransformCfg = createDefaultPreset().transform;
 
@@ -11,7 +11,12 @@ module.exports = {
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       useESM: true, // move the ESM flag here
-      tsconfig: 'tsconfig.json',
+      tsconfig: 'tsconfig.jest.json',
     }],
+  },
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    // This regex maps imports without extensions to their corresponding TypeScript files
+    "^@/(.+?)\\.js$": "<rootDir>/src/$1.ts",
   },
 };

@@ -1,28 +1,29 @@
 {
   "compilerOptions": {
     "baseUrl": "./src",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "target": "ES2020",
     "esModuleInterop": true,
-    "allowJs": true,
     "strict": true,
-    "types": ["node", "jest"],
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": false,
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "types": ["node", "jest"],
     "paths": {
-      "*": ["*"]
+      "@/*": ["*"]
     }
   },
-  "include": ["**/*.ts"]
+  "include": ["src/**/*"]
 }
