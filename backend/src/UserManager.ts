@@ -31,9 +31,11 @@ class UserManager {
       deviceId: update.deviceId,
     };
 
-    console.log(
-      `Updated platform "${update.platform}" for user "${userId}" at ${timestamp}`
-    );
+    if (process.env.NODE_ENV === 'test') {
+      console.log(
+        `Updated platform "${update.platform}" for user "${userId}" at ${timestamp}`
+      );
+    }
   }
 
   // Optional: get user data
