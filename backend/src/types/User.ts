@@ -9,8 +9,8 @@ import { PlatformSchema } from './Platform.js';
 // ---------------------------
 export const UserSchema = z.object({
   uuid: z.string(),
-  passwordHash: z.string(),
   phoneNumber: z.string(),
+  passwordHash: z.string().optional(),
   email: z.string().optional(),
   username: z.string().optional(),
   isActive: z.boolean().default(true),

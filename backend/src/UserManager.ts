@@ -52,18 +52,38 @@ class UserManager {
   }
 
   // move to /login endpoint after integrating redis
-  async getUser(userId: string): Promise<User | undefined> {
-    let user = this.cachedUsers[userId];
+  async getUser(lookup: UserLookup | string): Promise<User | undefined> {
+    let user: User | undefined;
+    
+    // normalize for simple id lookup
+    if (typeof lookup === 'string') {
+      lookup = { userId: lookup };
+    }
+
+    // check cache first
+    if (lookup.userId && this.cachedUsers[lookup.userId]) {
+      return this.cachedUsers[lookup.userId];
+    }
 
     // Fetch user from DynamoDB
     try {
+      let key: Record<string, string> = {};
+      if (lookup.userId) key.PK = lookup.userId;
+      else if (lookup.phoneNumber) key.phoneNumber = lookup.phoneNumber;
+      else if (lookup.email) key.email = lookup.email;
+      else if (lookup.username) key.username = lookup.username;
+      else return undefined;
+
       const res = await getDdbDocClient().send(new GetCommand({
         TableName: USERS_TABLE_NAME,
-        Key: { PK: userId },
+        Key: key,
       }));
+
       if (res.Item) {
         user = res.Item as User;
-        this.cachedUsers[userId] = user;
+
+        // Cache by UUID if available
+        if (user.uuid) this.cachedUsers[user.uuid] = user;
       }
     } catch (err) {
       console.error('Error reading DynamoDB Users:', err);
@@ -99,5 +119,13 @@ class UserManager {
   }
 
 }
+
+export type UserLookup = 
+  {
+    userId?: string;
+    username?: string;
+    email?: string;
+    phoneNumber?: string;
+  };
 
 export default new UserManager();

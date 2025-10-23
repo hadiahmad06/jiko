@@ -12,20 +12,25 @@ const SALT_ROUNDS = 12;
 // POST /signup
 router.post('/', async (req, res) => {
   try {
-    // 1️⃣ Validate input with Zod
-    const { phoneNumber } = UserSchema.pick({ phoneNumber: true }).parse(req.body);
-    const { password, email, username, displayName, nickname } = req.body;
-    if (typeof password !== 'string' || password.length < 8) {
+    // 1 Validate inputs
+    const { phoneNumber, password, email, username, displayName, nickname, otp } = req.body;
+    if (!phoneNumber || typeof phoneNumber !== 'string') {
+        return res.status(400).json({ error: 'No phone number provided'})
+    }
+    if (password && (typeof password !== 'string' || password.length < 8)) {
       return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    } else if (otp) {
+      // TODO: Validate OTP here
+      return res.status(500).json({ error: 'OTP validation not implemented' });
     }
 
-    // 2️⃣ Generate uuid for user
+    // 2 Generate uuid for user
     const uuid = crypto.randomUUID();
 
-    // 3️⃣ Hash password
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    // 3 Hash password
+    const passwordHash = password ? await bcrypt.hash(password, SALT_ROUNDS) : undefined;
 
-    // 4️⃣ Create user object
+    // 4 Create user object
     const newUser: User = UserSchema.parse({
       uuid,
       phoneNumber,
@@ -37,13 +42,13 @@ router.post('/', async (req, res) => {
       appUsage: {},  // start empty
     });
 
-    // 5️⃣ Save user in UserManager
+    // 5 Save user in UserManager
     const { success, message } = await UserManager.addUser(newUser);
     if (!success) {
       return res.status(500).json({ error: message || 'Failed to create user' });
     }
 
-    // 6️⃣ Create JWT
+    // 6 Create JWT
     const token = jwt.sign(
       { userId: uuid },
       process.env.JWT_SECRET!,

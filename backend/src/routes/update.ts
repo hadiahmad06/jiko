@@ -21,7 +21,7 @@ router.post('/', authMiddleware, (req, res) => {
 
   userManager.updateAppUsage(userId, update);
 
-  res.json({ status: 'updated', update });
+  return res.status(200).json({ status: 'updated', update });
 });
 
 export default router;

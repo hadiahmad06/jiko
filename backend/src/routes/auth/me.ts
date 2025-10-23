@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-router.get('/me', async (req, res) => {
+router.get('/', async (req, res) => {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
 
@@ -12,7 +12,14 @@ router.get('/me', async (req, res) => {
   if (!token) return res.status(401).json({ error: 'Missing token' });
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    // Verify JWT
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET missing");
+      return res.status(500).json({ error: 'Server misconfiguration' });
+    }
+    const payload = jwt.verify(token, secret) as { userId: string };
+
     const user = await UserManager.getUser(payload.userId);
 
     if (!user) return res.status(404).json({ error: 'User not found' });

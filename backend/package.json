@@ -14,9 +14,9 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.914.0",
+    "@aws-sdk/client-sns": "^3.915.0",
     "@aws-sdk/lib-dynamodb": "^3.914.0",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.9.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -28,6 +28,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.9.1",
     "@types/supertest": "^6.0.3",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",

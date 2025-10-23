@@ -22,8 +22,8 @@
     "moduleDetection": "force",
     "types": ["node", "jest"],
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts"]
 }

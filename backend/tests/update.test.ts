@@ -1,15 +1,13 @@
 import request from 'supertest';
 import app from '../src/index'; // or wherever you create your Express app
+import jwt from 'jsonwebtoken';
 
 describe('Auth API', () => {
   it('should allow posting an app usage update', async () => {
-    // first, get a JWT token
-    const loginRes = await request(app)
-      .post('/login')
-      .send({ userId: 'user-123' });
-    const token = loginRes.body.token;
+    // first, login with mock user to get real JWT token
+    const JWT_SECRET = process.env.JWT_SECRET || 'testsecret';
+    const token = jwt.sign({ userId: 'user-123' }, JWT_SECRET, { expiresIn: '1h' });
 
-    // construct update payload
     const updatePayload = {
       timestamp: "2025-10-22T12:01:30Z",
       platform: "ios",
@@ -25,18 +23,10 @@ describe('Auth API', () => {
       ]
     };
 
-    // console.log('[TEST DEBUG] Sending update payload:', updatePayload);
-
     const res = await request(app)
       .post('/update')
       .set('Authorization', `Bearer ${token}`)
       .send(updatePayload);
-
-    if (res.status === 401 || res.status === 400) {
-      // console.error('[TEST DEBUG] Error response from /update:', res.status, res.body);
-    } else {
-      // console.log('[TEST DEBUG] Response from /update:', res.body);
-    }
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('updated');
