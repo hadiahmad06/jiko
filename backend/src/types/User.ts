@@ -9,9 +9,15 @@ import { PlatformSchema } from './Platform.js';
 // ---------------------------
 export const UserSchema = z.object({
   uuid: z.string(),
+  passwordHash: z.string(),
   phoneNumber: z.string(),
   email: z.string().optional(),
   username: z.string().optional(),
+  isActive: z.boolean().default(true),
+  createdAt: z.string().default(() => new Date().toISOString()),
+  updatedAt: z.string().default(() => new Date().toISOString()),
+  displayName: z.string().optional(),
+  nickname: z.string().optional(),
   appUsage: z.partialRecord(PlatformSchema, AppUsageUpdateSchema)
   .optional()
   .transform((val) => val ?? {} as Record<Platform, AppUsageUpdate>),
