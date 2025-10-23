@@ -1,22 +1,37 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-const REGION = process.env.AWS_REGION || 'us-east-1'; // choose your region
+const REGION = process.env.AWS_REGION || 'us-east-2'; // choose your region
 
-// Create the low-level DynamoDB client
-const ddbClient = new DynamoDBClient({
-  region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+let ddbClient: DynamoDBClient | undefined;
+let ddbDocClient: DynamoDBDocumentClient | undefined;
 
-// Wrap it with the DocumentClient for easy JSON-style access
-const ddbDocClient = DynamoDBDocumentClient.from(ddbClient, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-  },
-});
+// Create the low-level DynamoDB client if it doesn't exist
+function getDdbClient(): DynamoDBClient {
+  if (!ddbClient) {
+    ddbClient = new DynamoDBClient({
+      region: REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+    })
+  }
+  return ddbClient;
+}
 
-export { ddbClient, ddbDocClient };
+// Create the DynamoDB Document client if it doesn't exist
+function getDdbDocClient(): DynamoDBDocumentClient {
+  if (!ddbDocClient) {
+    const client = getDdbClient();
+    ddbDocClient = DynamoDBDocumentClient.from(getDdbClient(), {
+      marshallOptions: {
+        removeUndefinedValues: true,
+      },
+    });
+  }
+  return ddbDocClient;
+}
+
+
+export { getDdbClient, getDdbDocClient };

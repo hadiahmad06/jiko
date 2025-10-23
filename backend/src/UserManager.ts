@@ -1,7 +1,7 @@
 import type { AppUsageUpdate } from './types/AppUsageUpdate.js';
 import type { Platform } from './types/Platform.js';
 import type { User } from './types/User.js';
-import { ddbDocClient } from './ddbClient.js';
+import { getDdbDocClient } from './ddbClient.js';
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const TABLE_NAME = 'AppUsage';
@@ -33,7 +33,7 @@ class UserManager {
 
     // Save/update in DynamoDB
     try {
-      await ddbDocClient.send(new PutCommand({
+      await getDdbDocClient().send(new PutCommand({
         TableName: TABLE_NAME,
         Item: {
           PK: userId,
@@ -64,7 +64,7 @@ class UserManager {
     // Fetch latest appUsage from DynamoDB
     for (const platform of Object.keys(user.appUsage) as Platform[]) {
       try {
-        const res = await ddbDocClient.send(new GetCommand({
+        const res = await getDdbDocClient().send(new GetCommand({
           TableName: TABLE_NAME,
           Key: { PK: userId, SK: platform },
         }));
