@@ -1,13 +1,11 @@
 import { z } from 'zod';
-import type { AppUsageUpdate } from './AppUsageUpdate.js';
-import { AppUsageUpdateSchema } from './AppUsageUpdate.js';
-import type { Platform } from './Platform.js';
-import { PlatformSchema } from './Platform.js';
+import type { AppUsageUpdateT } from '../appUsage/AppUsageUpdate.js';
+import { AppUsageUpdate } from '../appUsage/AppUsageUpdate.js';
+import type { PlatformT } from '../device/Platform.js';
+import { Platform } from '../device/Platform.js';
 
-// ---------------------------
-// User Zod schema
-// ---------------------------
-export const UserSchema = z.object({
+// USERS table schema
+export const User = z.object({
   uuid: z.string(),
   phoneNumber: z.string(),
   passwordHash: z.string().optional(),
@@ -18,13 +16,12 @@ export const UserSchema = z.object({
   updatedAt: z.string().default(() => new Date().toISOString()),
   displayName: z.string().optional(),
   nickname: z.string().optional(),
-  appUsage: z.partialRecord(PlatformSchema, AppUsageUpdateSchema)
+  appUsage: z.partialRecord(Platform, AppUsageUpdate)
   .optional()
-  .transform((val) => val ?? {} as Record<Platform, AppUsageUpdate>),
+  .transform((val) => val ?? {} as Record<PlatformT, AppUsageUpdateT>),
 });
 
-// TypeScript type inferred from schema
-export type User = z.infer<typeof UserSchema>;
+export type UserT = z.infer<typeof User>;
 
 // ---------------------------
 // example usage

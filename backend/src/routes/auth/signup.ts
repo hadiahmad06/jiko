@@ -3,7 +3,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { UserSchema, type User } from '../../types/User.js';
+import { User, type UserT } from '../../types/user/User.js';
 import UserManager from '../../UserManager.js';
 
 const router = express.Router();
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
     const passwordHash = password ? await bcrypt.hash(password, SALT_ROUNDS) : undefined;
 
     // 4 Create user object
-    const newUser: User = UserSchema.parse({
+    const newUser: UserT = User.parse({
       uuid,
       phoneNumber,
       email,

@@ -1,6 +1,6 @@
-import type { AppUsageUpdate } from './types/AppUsageUpdate.js';
-import type { Platform } from './types/Platform.js';
-import type { User } from './types/User.js';
+import type { AppUsageUpdateT } from './types/appUsage/AppUsageUpdate.js';
+import type { PlatformT } from './types/device/Platform.js';
+import type { UserT } from './types/user/User.js';
 import { getDdbDocClient } from './ddbClient.js';
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
@@ -8,19 +8,19 @@ import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 const USERS_TABLE_NAME = 'Users';
 
 class UserManager {
-  private cachedUsers: Record<string, User> = {};
+  private cachedUsers: Record<string, UserT> = {};
 
   /**
    * Updates app usage for a user. Adds the user if missing,
    * and overwrites previous usage for the given platform.
    */
-  async updateAppUsage(userId: string, update: AppUsageUpdate): Promise<void> {
+  async updateAppUsage(userId: string, update: AppUsageUpdateT): Promise<void> {
     const timestamp = update.timestamp ?? new Date().toISOString();
     const user = await this.getUser(userId);
     if (!user) { return; }
 
     // Overwrite the previous usage for the given platform
-    const platformKey = update.platform as Platform;
+    const platformKey = update.platform as PlatformT;
     user.appUsage[platformKey] = {
       timestamp,
       platform: update.platform,
@@ -52,8 +52,8 @@ class UserManager {
   }
 
   // move to /login endpoint after integrating redis
-  async getUser(lookup: UserLookup | string): Promise<User | undefined> {
-    let user: User | undefined;
+  async getUser(lookup: UserLookup | string): Promise<UserT | undefined> {
+    let user: UserT | undefined;
     
     // normalize for simple id lookup
     if (typeof lookup === 'string') {
@@ -80,7 +80,7 @@ class UserManager {
       }));
 
       if (res.Item) {
-        user = res.Item as User;
+        user = res.Item as UserT;
 
         // Cache by UUID if available
         if (user.uuid) this.cachedUsers[user.uuid] = user;
@@ -93,11 +93,11 @@ class UserManager {
   }
 
   // Optional: get all cached users
-  getAllUsers(): Record<string, User> {
+  getAllUsers(): Record<string, UserT> {
     return this.cachedUsers;
   }
 
-  async addUser(user: User): Promise<{ success: boolean, message?: string }> {
+  async addUser(user: UserT): Promise<{ success: boolean, message?: string }> {
     this.cachedUsers[user.uuid] = user;
 
     const { uuid, appUsage, ...rest } = user;

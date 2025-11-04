@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import userManager from '../UserManager.js';
-import { AppUsageUpdateSchema } from '../types/AppUsageUpdate.js';
+import { AppUsageUpdate } from '../types/appUsage/AppUsageUpdate.js';
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.post('/', authMiddleware, (req, res) => {
     return res.status(401).json({ error: 'Unauthorized: missing user ID' });
   }
 
-  const parseResult = AppUsageUpdateSchema.safeParse(req.body);
+  const parseResult = AppUsageUpdate.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({ error: parseResult.error.format() });
   }
