@@ -1,22 +1,39 @@
 import express from 'express';
-import updateRouter from './routes/update.js';
-import loginRouter from './routes/auth/login.js';
-import signupRouter from './routes/auth/signup.js';
-import refreshRouter from './routes/auth/refresh.js';
-import meRouter from './routes/auth/me.js';
+import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
-dotenv.config();
 
+dotenv.config();
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 
-app.use('/update', updateRouter);
-app.use('/auth/login', loginRouter);
-app.use('/auth/signup', signupRouter);
-app.use('/auth/me', meRouter);
-app.use('/auth/refresh', refreshRouter);
+const routesPath = path.join(__dirname, 'routes');
+
+// recursive function to find all router files
+function registerRoutes(dir: string, baseRoute = '') {
+  fs.readdirSync(dir).forEach((file) => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      registerRoutes(fullPath, `${baseRoute}/${file}`);
+    } else if (stat.isFile() && (file.endsWith('.js') || file.endsWith('.ts'))) {
+      const route = require(fullPath).default;
+      if (route && route.stack) { // make sure it’s an express router
+        let routePath = baseRoute;
+        if (file !== 'index.js' && file !== 'index.ts') {
+          routePath += `/${file.replace(/\.(js|ts)$/, '')}`;
+        }
+        app.use(routePath, route);
+        console.log(`Registered route: ${routePath}`);
+      }
+    }
+  });
+}
+
+registerRoutes(routesPath);
 
 export default app;
 

@@ -24,12 +24,15 @@ classDiagram
     %% Activities
     class ActivitiesAPI {
         <<REST API>>
-        +GET /activities
-        +POST /activities
+        %% Hot endpoints (frequently used)
+        +GET /activities                    %% common, consider Redis caching
+        +POST /activities/:id/entries       %% main write path
+        +POST /activities                   %% create activity
+
+        %% Rare endpoints
         +GET /activities/:id
         +PUT /activities/:id
         +DELETE /activities/:id
-        +POST /activities/:id/entries
     }
 
     %% Obligations
@@ -40,7 +43,6 @@ classDiagram
         +GET /obligations/:id
         +PUT /obligations/:id
         +DELETE /obligations/:id
-        +POST /obligations/:id/events
     }
 
     %% Notifications
