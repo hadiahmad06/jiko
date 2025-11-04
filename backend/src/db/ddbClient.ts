@@ -1,30 +1,38 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-const REGION = process.env.AWS_REGION || 'us-east-2'; // choose your region
+const REGION = process.env.AWS_REGION || 'us-east-2';
 const IS_OFFLINE = process.env.IS_OFFLINE === 'true';
 
 let ddbClient: DynamoDBClient | undefined;
 let ddbDocClient: DynamoDBDocumentClient | undefined;
 
-// Create the low-level DynamoDB client if it doesn't exist
 function getDdbClient(): DynamoDBClient {
   if (!ddbClient) {
-    ddbClient = new DynamoDBClient({
+    const clientConfig: any = {
       region: REGION,
-      credentials: {
+    };
+
+    if (IS_OFFLINE) {
+      clientConfig.endpoint = 'http://localhost:8000'; // local docker instance
+      clientConfig.credentials = {
+        accessKeyId: 'fakeAccessKeyId',
+        secretAccessKey: 'fakeSecretAccessKey',
+      };
+    } else {
+      clientConfig.credentials = {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    })
+      };
+    }
+
+    ddbClient = new DynamoDBClient(clientConfig);
   }
   return ddbClient;
 }
 
-// Create the DynamoDB Document client if it doesn't exist
 function getDdbDocClient(): DynamoDBDocumentClient {
   if (!ddbDocClient) {
-    const client = getDdbClient();
     ddbDocClient = DynamoDBDocumentClient.from(getDdbClient(), {
       marshallOptions: {
         removeUndefinedValues: true,

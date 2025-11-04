@@ -1,5 +1,5 @@
 import type { UserT } from '../types/user/User.js';
-import { getDdbDocClient } from '../ddbClient.js';
+import { getDdbDocClient } from '../db/ddbClient.js';
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const USERS_TABLE_NAME = 'Users';
