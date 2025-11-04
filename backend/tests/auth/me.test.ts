@@ -1,9 +1,9 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import UserManager from '../../src/UserManager';
+import UserManager from '../../src/data/UserManager';
 import app from '../../src/index'; // path to Express app
 
-jest.mock('../../src/UserManager');
+jest.mock('../../src/data/UserManager');
 const mockedGetUser = UserManager.getUser as jest.Mock;
 
 describe('Auth API - /auth/me', () => {

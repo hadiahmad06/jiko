@@ -2,8 +2,8 @@ import request from 'supertest';
 import app from '../../src/index'; // path to your Express app
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import UserManager from '../../src/UserManager';
-import type { UserLookup } from '../../src/UserManager';
+import UserManager from '../../src/data/UserManager';
+import type { UserLookup } from '../../src/services/UserRepository';
 
 describe('Auth API - /auth/login', () => {
   const testUser = {

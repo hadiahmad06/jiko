@@ -2,6 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 const REGION = process.env.AWS_REGION || 'us-east-2'; // choose your region
+const IS_OFFLINE = process.env.IS_OFFLINE === 'true';
 
 let ddbClient: DynamoDBClient | undefined;
 let ddbDocClient: DynamoDBDocumentClient | undefined;

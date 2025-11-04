@@ -2,8 +2,8 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import UserManager from '../../UserManager.js';
-import type { UserLookup } from '../../UserManager.js';
+import { type UserLookup } from '../../services/UserRepository.js';
+import UserManager from '../../data/UserManager.js';
 
 const router = Router();
 
@@ -39,16 +39,20 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT
+    // Generate JWT and refresh token
     const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error("JWT_SECRET missing");
+    const refreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!secret || !refreshSecret) {
+      console.error("JWT secrets missing");
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
+
     const token = jwt.sign({ userId: user.uuid }, secret, { expiresIn: '1d' });
+    const refreshToken = jwt.sign({ userId: user.uuid }, refreshSecret, { expiresIn: '7d' });
 
     res.json({
       token,
+      refreshToken,
       phoneNumber: user.phoneNumber,
       email: user.email,
       username: user.username,

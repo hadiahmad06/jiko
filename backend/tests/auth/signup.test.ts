@@ -1,10 +1,8 @@
-
-
 import request from 'supertest';
 import app from '../../src/index';
-import UserManager from '../../src/UserManager';
+import UserManager from '../../src/data/UserManager';
 
-jest.mock('../../src/UserManager');
+jest.mock('../../src/data/UserManager');
 const mockedAddUser = UserManager.addUser as jest.Mock;
 
 beforeEach(() => {

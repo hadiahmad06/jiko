@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import UserManager from '../../UserManager.js';
+import UserManager from '../../data/UserManager.js';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
