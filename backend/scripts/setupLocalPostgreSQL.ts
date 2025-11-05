@@ -92,10 +92,12 @@ async function createTables() {
   await client.query(`
     CREATE TABLE IF NOT EXISTS activity_entries (
       id UUID PRIMARY KEY,
+      user_id UUID REFERENCES users(id),
       activity_id UUID REFERENCES activities(id),
       start_time TIMESTAMP NOT NULL,
       end_time TIMESTAMP,
       note TEXT,
+      is_user_logged BOOLEAN DEFAULT FALSE,
       confidence_score FLOAT,
       duration_minutes INT GENERATED ALWAYS AS (CAST(EXTRACT(EPOCH FROM (end_time - start_time)) / 60 AS INT)) STORED
     );

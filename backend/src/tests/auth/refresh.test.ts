@@ -1,6 +1,6 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import app from '../../src/index'; // path to Express app
+import app from '../../index'; // path to Express app
 
 describe('POST /auth/refresh', () => {
   const refreshSecret = 'test_refresh_secret';

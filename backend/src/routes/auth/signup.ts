@@ -9,8 +9,8 @@ import UserManager from '../../data/UserManager.js';
 const router = express.Router();
 const SALT_ROUNDS = 12;
 
-// POST /signup
-router.post('/', async (req, res) => {
+// POST /auth/signup
+router.post('/auth/signup', async (req, res) => {
   try {
     // 1 Validate inputs
     const { phoneNumber, password, email, username, displayName, nickname, otp } = req.body;

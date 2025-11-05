@@ -108,10 +108,12 @@ erDiagram
 
     ACTIVITY_ENTRIES:::postgres {
         uuid id PK
+        uuid user_id FK
         uuid activity_id FK
         datetime start_time
         datetime end_time
         string note
+        boolean is_user_logged
         float confidence_score
         int duration_minutes
     }

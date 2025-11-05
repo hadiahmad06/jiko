@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../src/index'; // or wherever you create your Express app
+import app from '../index'; // or wherever you create your Express app
 import jwt from 'jsonwebtoken';
 
 describe('Auth API', () => {

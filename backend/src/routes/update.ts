@@ -5,7 +5,8 @@ import { AppUsageUpdate } from '../types/appUsage/AppUsageUpdate.js';
 
 const router = Router();
 
-router.post('/', authMiddleware, (req, res) => {
+// POST /update - update user's app usage data
+router.post('/update', authMiddleware, (req, res) => {
   const userId = req.userId; // now set by middleware
 
   if (!userId) {

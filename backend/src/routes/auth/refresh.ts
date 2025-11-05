@@ -4,7 +4,8 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
-router.post('/', async (req, res) => {
+// POST /auth/refresh
+router.post('/auth/refresh', async (req, res) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {

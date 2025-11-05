@@ -91,7 +91,7 @@ classDiagram
     }
 
     %% Relationships
-    AuthAPI --|> UsersAPI : "Authenticates user operations"
+    %% AuthAPI --|> UsersAPI : "Authenticates user operations"
     AuthAPI --|> ObligationsAPI : "Protects obligation actions"
     AuthAPI --|> NotificationsAPI : "Controls notification access"
     AuthAPI --|> ActivitiesAPI : "Restricts activity management"

@@ -17,6 +17,7 @@
     "@aws-sdk/client-dynamodb": "^3.914.0",
     "@aws-sdk/client-sns": "^3.915.0",
     "@aws-sdk/lib-dynamodb": "^3.914.0",
+    "@aws-sdk/rds-signer": "^3.922.0",
     "@types/express": "^5.0.3",
     "bcrypt": "^6.0.0",
     "dockerode": "^4.0.9",

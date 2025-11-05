@@ -7,7 +7,8 @@ import UserManager from '../../data/UserManager.js';
 
 const router = Router();
 
-router.post('/', async (req, res) => {
+// POST /auth/login
+router.post('/auth/login', async (req, res) => {
   const { userId, username, email, phoneNumber, password, otp } = req.body;
 
   if (!password && !otp) {

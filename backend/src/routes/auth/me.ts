@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+// GET /auth/me
+router.get('/auth/me', async (req, res) => {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
 

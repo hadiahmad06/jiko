@@ -15,7 +15,7 @@ const router = Router();
 //   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 // }
 
-router.post('/', async (req, res) => {
+router.post('/auth/request-otp', async (req, res) => {
   // const { phoneNumber } = req.body;
   // if (!phoneNumber) return res.status(400).json({ error: 'Missing phoneNumber' });
   //
