@@ -5,7 +5,41 @@ import { ActivityQuery } from 'services/ActivityRepository.js';
 
 const router = Router();
 
-// GET /activities/:id/entries - fetch entries for a specific activity
+/**
+ * @swagger
+ * /activities/{id}/entries:
+ *   get:
+ *     summary: Fetch activity entries
+ *     description: Retrieve entries for a specific activity by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the activity
+ *         schema:
+ *           type: string
+ *       - in: header
+ *         name: userId
+ *         description: ID of the authenticated user
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Activity entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *       400:
+ *         description: Missing parameters
+ *       404:
+ *         description: Entries not found
+ *       500:
+ *         description: Server error
+ */
 router.get('/activities/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -30,7 +64,37 @@ router.get('/activities/:id/entries', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /activities/:id/entries - create a new entry for a specific activity
+/**
+ * @swagger
+ * /activities/{id}/entries:
+ *   post:
+ *     summary: Create activity entry
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: header
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Activity entry data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Created entry
+ *       404:
+ *         description: Could not create entry
+ */
 router.post('/activities/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,7 +113,30 @@ router.post('/activities/:id/entries', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /activities/:id/entries - deletes an entry for a specific activity
+/**
+ * @swagger
+ * /activities/{id}/entries:
+ *   delete:
+ *     summary: Delete activity entry
+ *     parameters:`
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: header
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deletion result
+ *       404:
+ *         description: Entry not found
+ */
 router.delete('/activities/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
