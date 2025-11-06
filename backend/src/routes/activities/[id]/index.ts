@@ -5,7 +5,7 @@ import { Router, Request, Response } from 'express';
 const router = Router();
 
 // GET /activities/:id - fetch a specific activity
-router.get('/activities/:id ', authMiddleware, async (req, res) => {
+router.get('/activities/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId;
@@ -26,7 +26,7 @@ router.get('/activities/:id ', authMiddleware, async (req, res) => {
 });
 
 // PUT /activities/:id - update a specific activity
-router.put('/activities/:id ', authMiddleware, async (req, res) => {
+router.put('/activities/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId;
@@ -45,7 +45,7 @@ router.put('/activities/:id ', authMiddleware, async (req, res) => {
 });
 
 // DELETE /activities/:id - delete a specific activity
-router.delete('/activities/:id ', authMiddleware, async (req, res) => {
+router.delete('/activities/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId;

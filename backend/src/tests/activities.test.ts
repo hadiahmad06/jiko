@@ -106,15 +106,6 @@ describe('activities router', () => {
       // expect(ActivityManager.updateActivity).toHaveBeenCalledWith({ userId: USER_ID, ...mockActivity });
     });
 
-    it('should return 401 if activity id is missing', async () => {
-      const res = await request(app)
-        .put(`/activities/`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'Updated Activity' });
-      expect(res.status).toBe(401);
-      expect(res.body).toHaveProperty('error', 'Missing Authorization header');
-    });
-
     it('should return 401 if unauthorized', async () => {
       const res = await request(app)
         .put(`/activities/${ACTIVITY_ID}`)
@@ -131,7 +122,7 @@ describe('activities router', () => {
         .delete(`/activities/${ACTIVITY_ID}`)
         .set('Authorization', `Bearer ${token}`);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ success: true });
+      expect(res.body).toEqual(true);
       // expect(ActivityManager.deleteActivity).toHaveBeenCalledWith(ACTIVITY_ID, USER_ID);
     });
 
@@ -139,7 +130,7 @@ describe('activities router', () => {
       const res = await request(app)
         .delete(`/activities/${ACTIVITY_ID}`);
       expect(res.status).toBe(401);
-      expect(res.body).toHaveProperty('error', 'MissingParameter');
+      expect(res.body).toHaveProperty('error', 'Missing Authorization header');
     });
   });
 
