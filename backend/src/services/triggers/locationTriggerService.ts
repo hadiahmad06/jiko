@@ -7,8 +7,14 @@ import { executeActions } from "./execute";
 
 
 // Check location triggers for a given user at specified latitude and longitude
-// TODO: batch processing for multiple users/locations
-export async function checkLocationTriggers(user_id: string, latitude: number, longitude: number) {
+// TODO: batch processing for multiple users/locations, when needed for performance
+export async function checkLocationTriggers(userLocations: { user_id: string; latitude: number; longitude: number }[]) {
+  for (const loc of userLocations) {
+    await checkLocationTriggersUnbatched(loc.user_id, loc.latitude, loc.longitude);
+  }
+}
+
+export async function checkLocationTriggersUnbatched(user_id: string, latitude: number, longitude: number) {
   const psql = await getPsqlClient();
 
   // length 6: ~1.2km x 0.6km area

@@ -64,8 +64,9 @@ class ActivityRepository {
     return result.rowCount !== null && result.rowCount > 0;
   }
 
-  async addActivityEntry(entry: ActivityEntryT): Promise<ActivityEntryT> {
+  async addEntry(entry: ActivityEntryT): Promise<ActivityEntryT> {
     const client = await getPsqlClient();
+
     // Ensure entry.activity_id belongs to userId
     const activityRes = await client.query(
       'SELECT 1 FROM activities WHERE id = $1 AND user_id = $2',
@@ -75,21 +76,63 @@ class ActivityRepository {
       throw new Error('Activity does not belong to user');
     }
     const res = await client.query(
-      `INSERT INTO activity_entries (id, activity_id, start_time, note, is_user_logged)
+      `INSERT INTO activity_entries (id, activity_id, start_time, end_time, note, logged_by)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
       [
         entry.id,
         entry.activity_id,
         entry.start_time,
+        entry.end_time,
         entry.notes,
-        entry.is_user_logged
+        entry.logged_by,
+        entry.confidence_score
       ]
     );
     return res.rows[0];
   }
+  
+  async updateEntry(data: PartialActivityWithIds): Promise<ActivityEntryT> {
+    const client = await getPsqlClient();
 
-  async getActivityEntries(
+    // Exclude id, user_id, activity_id, created_at, updated_at from updatable fields
+    const { id, user_id, activity_id, created_at, updated_at, ...fieldsToUpdate } = data;
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    // Build SET clause dynamically
+    for (const [key, value] of Object.entries(fieldsToUpdate)) {
+      if (value !== undefined) {
+        setClauses.push(`${key} = $${idx}`);
+        values.push(value);
+        idx++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      throw new Error('No fields provided to update');
+    }
+
+    // Add id and user_id for WHERE clause
+    values.push(id);
+    values.push(user_id);
+    const setQuery = setClauses.join(', ');
+    const query = `
+      UPDATE activity_entries
+      SET ${setQuery}
+      WHERE id = $${idx} AND user_id = $${idx + 1}
+      RETURNING *
+    `;
+    const res = await client.query(query, values);
+    if (res.rows.length === 0) {
+      throw new Error('Activity entry not found or not updated');
+    }
+
+    return res.rows[0];
+  }
+
+  async getEntriesForActivity(
     id: string,
     options: Omit<ActivityQuery, 'activityIds'>,
     userId: string
@@ -159,6 +202,8 @@ class ActivityRepository {
     return result.rowCount !== null && result.rowCount > 0;
   }
 }
+
+export type PartialActivityWithIds = Partial<ActivityEntryT> & Required<Pick<ActivityEntryT, "id" | "user_id">>;
 
 export type ActivityQuery = {
     activityIds?: string[];

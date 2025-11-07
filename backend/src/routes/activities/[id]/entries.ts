@@ -103,7 +103,7 @@ router.post('/activities/:id/entries', authMiddleware, async (req, res) => {
     if (!id) { return res.status(400).json({ error: 'MissingParameter', message: 'Activity id is required.' }); }
     if (!userId) { return res.status(400).json({ error: 'MissingParameter', message: 'User id is required.' }); }
 
-    const newEntry = await ActivityManager.addActivityEntry({ activityId: id, userId, ...req.body });
+    const newEntry = await ActivityManager.addEntry({ activityId: id, userId, ...req.body });
 
     if (!newEntry) { return res.status(404).json({ error: 'NotFound', message: `Could not create entry for activity id ${id}.` }); }
     res.json(newEntry);
@@ -117,7 +117,7 @@ router.post('/activities/:id/entries', authMiddleware, async (req, res) => {
  * @swagger
  * /activities/{id}/entries:
  *   delete:
- *     summary: Delete activity entry
+ *     summary: Delete entry
  *     parameters:`
  *       - in: path
  *         name: id

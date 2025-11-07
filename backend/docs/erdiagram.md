@@ -103,7 +103,8 @@ erDiagram
         datetime start_time
         datetime end_time
         string note
-        boolean is_user_logged
+        string logged_by "user, system, trigger"
+        string ended_by "user, system, trigger"
         float confidence_score
         int duration_minutes
     }

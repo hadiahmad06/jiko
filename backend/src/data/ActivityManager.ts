@@ -1,5 +1,5 @@
 import { ActivityT } from "types/activity/Activity.js";
-import ActivityRepository, { ActivityQuery } from "../services/ActivityRepository.js";
+import ActivityRepository, { ActivityQuery, PartialActivityWithIds } from "../services/ActivityRepository.js";
 import { ActivityEntryT } from "types/activity/ActivityEntry.js";
 
 //TODO: add caching if necessary, using redis or simple dictionary cache or sm
@@ -36,12 +36,17 @@ class ActivityManager {
     options: Omit<ActivityQuery, 'activityIds'>,
     user_id: string,
   ): Promise<ActivityEntryT[]> {
-    return ActivityRepository.getActivityEntries(id, options, user_id);
+    return ActivityRepository.getEntriesForActivity(id, options, user_id);
   }
 
   // POST /activities/:id/entries
-  async addActivityEntry(data: ActivityEntryT): Promise<ActivityEntryT> {
-    return ActivityRepository.addActivityEntry(data);
+  async addEntry(data: ActivityEntryT): Promise<ActivityEntryT> {
+    return ActivityRepository.addEntry(data);
+  }
+
+  // PUT /activities/:id/entries
+  async updateEntry(data: PartialActivityWithIds): Promise<ActivityEntryT> {
+    return ActivityRepository.updateEntry(data);
   }
 
   // DELETE /activities/:id/entries

@@ -1,5 +1,7 @@
 // src/services/triggers/execute.ts
 
+import ActivityManager from "data/ActivityManager";
+
 export async function executeActions(user_id: string, action_json: any) {
   for (const action of action_json) {
     await executeAction(user_id, action);
@@ -30,21 +32,43 @@ async function executeAction(user_id: string, action: any) {
   // implementation for executing any trigger's action_json
 
   let result: string = "";
+  const now = new Date();
 
   switch (action.type) {
     case 'notify_user':
       console.log(`Notifying user ${user_id} with message: ${action.params.message}`);
       // Implement notification logic here (e.g., send email, push notification, etc.)
       break;
-
+    
     case 'start_activity':
-      console.log(`Starting activity ${action.params.activity_id} for user ${user_id}`);
       // Implement activity start logic here
+      let res = await ActivityManager.addActivityEntry({
+        id: crypto.randomUUID(),
+        user_id: user_id,
+        activity_id: action.params.activity_id,
+        start_time: now,
+        created_at: now,
+        updated_at: now,
+        logged_by: "trigger"
+      });
+
+      result = res ? "success" : "failure";
       break;
 
     case 'stop_activity':
       console.log(`Stopping activity ${action.params.activity_id} for user ${user_id}`);
       // Implement activity stop logic here
+      res = await ActivityManager.updateActivityEntry({
+        id: crypto.randomUUID(),
+        user_id: user_id,
+        activity_id: action.params.activity_id,
+        start_time: now,
+        created_at: now,
+        updated_at: now,
+        logged_by: "trigger"
+      });
+
+      result = res ? "success" : "failure";
       break;
 
     default:
