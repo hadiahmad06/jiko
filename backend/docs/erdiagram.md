@@ -79,16 +79,6 @@ erDiagram
         datetime timestamp
     }
 
-    NOTIFICATION_TYPES:::dynamodb {
-        uuid id PK
-        string name
-    }
-
-    NOTIFICATIONS:::dynamodb {
-        uuid id PK, FK
-        uuid type_id FK
-    }
-
     MESSAGE_HISTORY:::dynamodb {
         uuid id PK
         uuid message_id FK
@@ -127,8 +117,9 @@ erDiagram
     DEADLINED_OBLIGATIONS ||--o| EVENTS : "extends"
     DEADLINED_OBLIGATIONS ||--o| TASKS : "extends"
     USERS ||--o{ MESSAGES : "has"
-    MESSAGES ||--o| NOTIFICATIONS : "extends"
-    NOTIFICATIONS }o--|| NOTIFICATION_TYPES : "used_by"
+    %%MESSAGES ||--o| NOTIFICATIONS : "extends"
+    %%NOTIFICATIONS ||--o| RECURRING_NOTIFICATIONS : "extends"
+    %%NOTIFICATIONS }o--|| NOTIFICATION_TYPES : "used_by"
     MESSAGES ||--o{ MESSAGE_HISTORY : "has"
     
     classDef postgres fill:#a448
@@ -159,32 +150,41 @@ erDiagram
     }
 
     SERVICES:::dynamodb {
-        string name PK
+        uuid id PK
+        string name
         string description
+        string auth_type "oauth, api_key, refresh_token"
+        string base_url
+        string icon_url
     }
 
-    EMAIL_INTEGRATIONS:::dynamodb {
+    INTEGRATIONS:::dynamodb {
         uuid user_id PK, FK
-        string service_name PK, FK
-        string integration_data
+        uuid service_id PK, FK
+        string access_token
+        string refresh_token
+        datetime last_synced
+        string sync_settings
     }
 
-    CALENDAR_INTEGRATIONS:::dynamodb {
+    LOCATIONS:::dynamodb {
+        uuid id PK
         uuid user_id PK, FK
-        string service_name PK, FK
-        string integration_data
+        string name
+        float latitude
+        float longitude
+        boolean is_active
+        datetime created_at
+        datetime updated_at
     }
+
+    LOCATION_TRIGGERS:::dynamodb
 
     DEVICE_TOKENS:::dynamodb {
         uuid user_id PK, FK
         string device_token PK
-        uuid device_type_id FK
+        string device_type "ios, macos"
         datetime last_active
-    }
-
-    DEVICES:::dynamodb {
-        string id PK
-        string name
     }
 
     CHATBOTS:::dynamodb {
@@ -205,18 +205,102 @@ erDiagram
         string description "for developers"
     }
     
-%%    USERS ||--o{ USER_CONTEXT : "owns"
+    USERS ||--o{ INTEGRATIONS : "owns"
     USERS ||--|| USER_PREFERENCES : "owns"
-    USERS ||--o{ EMAIL_INTEGRATIONS : "owns"
-    USERS ||--o{ CALENDAR_INTEGRATIONS : "owns"
     USERS ||--o{ DEVICE_TOKENS : "owns"
-    DEVICE_TOKENS }o--|| DEVICES : "used_by"
-    EMAIL_INTEGRATIONS }o--|| SERVICES : "used_by"
-    CALENDAR_INTEGRATIONS }o--|| SERVICES : "used_by"
+    SERVICES }o--|| INTEGRATIONS : "used_by"
 
+    USERS ||--o{ LOCATIONS : "owns"
     USERS ||--|| CHATBOTS : "has"
+
     CHATBOTS ||--o{ CHATBOT_SPEAKING_STYLE_WEIGHT : "has"
-    CHATBOT_SPEAKING_STYLE_WEIGHT }o--|| SPEAKING_STYLES : "used_in"
+    SPEAKING_STYLES }o--|| CHATBOT_SPEAKING_STYLE_WEIGHT : "used_by"
+
+    LOCATION_TRIGGERS }o--|| LOCATIONS : "uses"
+
+    classDef postgres fill:#a448
+    classDef dynamodb fill:#44a8
+```
+
+```mermaid
+erDiagram
+
+    LOCATIONS:::postgres
+    USERS:::postgres
+
+    %%ACTIONS:::dynamodb {
+    %%    uuid id PK
+    %%    uuid user_id FK
+    %%    json definition
+        %%string type "start_activity, end_activity, llm_call"
+        %%json edges "[{condition:'success', action_id:'act-2'}]"
+        %%json payload
+    %%}
+
+    %%CONDITIONS:::dynamodb {
+    %%    uuid id PK
+    %%    uuid user_id FK
+    %%    json definition
+    %%    %%string expression "health.getLast(heartrate) < 60"
+    %%}
+
+    %%NESTED_CONDITIONS:::dynamodb {
+    %%    uuid parent_cond_id FK
+    %%    string type "NOT, AND, OR, XOR"
+    %%    uuid l_cond_id FK
+    %%    uuid r_cond_id FK
+    %%}
+
+    TRIGGERS:::dynamodb {
+        uuid id PK
+        uuid user_id FK
+        json action_def
+        json condition_def
+        boolean enabled
+    %%    uuid action_id FK
+    %%    uuid condition_id FK 
+    }
+
+    SCHEDULED_TRIGGERS:::dynamodb {
+        uuid trigger_id PK, FK
+        datetime scheduled_at
+        string recurrence_rule "interval, etc"
+    }
+
+    LOCATION_TRIGGERS:::dynamodb {
+        uuid trigger_id PK, FK
+        uuid location_id FK
+        string event_type "enter/exit/both"
+        int radius
+    }
+
+    APP_USAGE_TRIGGERS:::dynamodb {
+        uuid trigger_id PK, FK
+        uuid bundleId FK "to be polished"
+        json event_type "open/close/both"
+    }
+
+    APP_USAGE_TRIGGERS:::dynamodb {
+        uuid trigger_id PK, FK
+        uuid bundleId FK "to be polished"
+        string event_type "open/close/both"
+    }
+
+    %%USERS ||--o{ ACTIONS : "owns"
+    %%USERS ||--o{ CONDITIONS : "owns"
+    USERS ||--o{ TRIGGERS : "owns"
+
+    %%ACTIONS ||--o{ TRIGGERS : "used_by"
+    %%CONDITIONS ||--o{ TRIGGERS : "used_by"
+    LOCATIONS ||--o{ LOCATION_TRIGGERS : "used_by"
+
+    TRIGGERS ||--o| LOCATION_TRIGGERS : "extends"
+    TRIGGERS ||--o| APP_USAGE_TRIGGERS : "extends"
+    TRIGGERS ||--o| SCHEDULED_TRIGGERS : "extends"
+
+    %%CONDITIONS ||--o| NESTED_CONDITIONS : "extends"
+    %%NESTED_CONDITIONS ||--o| NESTED_CONDITIONS : "uses"
+
 
     classDef postgres fill:#a448
     classDef dynamodb fill:#44a8
