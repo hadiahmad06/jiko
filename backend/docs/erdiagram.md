@@ -167,12 +167,13 @@ erDiagram
         string sync_settings
     }
 
-    LOCATIONS:::dynamodb {
+    LOCATIONS:::postgres {
         uuid id PK
-        uuid user_id PK, FK
+        uuid user_id FK
         string name
         float latitude
         float longitude
+        int radius
         boolean is_active
         datetime created_at
         datetime updated_at
@@ -254,9 +255,7 @@ erDiagram
     TRIGGERS:::dynamodb {
         uuid id PK
         uuid user_id FK
-        json action_def
-        json condition_def
-        boolean enabled
+        json action_json
     %%    uuid action_id FK
     %%    uuid condition_id FK 
     }
@@ -264,26 +263,28 @@ erDiagram
     SCHEDULED_TRIGGERS:::dynamodb {
         uuid trigger_id PK, FK
         datetime scheduled_at
-        string recurrence_rule "interval, etc"
+        json recurrence_rule "{interval: '7', unit: 'd'}"
+        boolean enabled "separate from triggers table so that they can be turned off individually"
     }
 
     LOCATION_TRIGGERS:::dynamodb {
         uuid trigger_id PK, FK
         uuid location_id FK
         string event_type "enter/exit/both"
-        int radius
+        boolean enabled
     }
 
     APP_USAGE_TRIGGERS:::dynamodb {
         uuid trigger_id PK, FK
         uuid bundleId FK "to be polished"
         json event_type "open/close/both"
+        boolean enabled
     }
 
-    APP_USAGE_TRIGGERS:::dynamodb {
+    HEALTH_TRIGGERS:::dynamodb {
         uuid trigger_id PK, FK
-        uuid bundleId FK "to be polished"
-        string event_type "open/close/both"
+        string event_type "step_count, heartrate"
+        boolean enabled
     }
 
     %%USERS ||--o{ ACTIONS : "owns"
