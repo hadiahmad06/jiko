@@ -7,9 +7,9 @@ export const Activity = z.object({
   user_id: z.uuid(),
   name: z.string(),
   description: z.string(),
-  created_at: z.date().default(() => new Date()),
-  updated_at: z.date().default(() => new Date()),
-});
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
+})
 
 export type ActivityT = z.infer<typeof Activity>;
 
@@ -17,7 +17,5 @@ export const ActivityExample: ActivityT = {
   id: crypto.randomUUID(),
   user_id: crypto.randomUUID(),
   name: 'Morning Workout',
-  description: 'A 60-minute full-body workout routine',
-  created_at: new Date('2025-11-04T08:00:00Z'),
-  updated_at: new Date('2025-11-04T09:00:00Z'),
+  description: 'A 60-minute full-body workout routine'
 };

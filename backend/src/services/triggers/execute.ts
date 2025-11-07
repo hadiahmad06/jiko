@@ -42,7 +42,7 @@ async function executeAction(user_id: string, action: any) {
     
     case 'start_activity':
       // Implement activity start logic here
-      let res = await ActivityManager.addActivityEntry({
+      let res = await ActivityManager.addEntry({
         id: crypto.randomUUID(),
         user_id: user_id,
         activity_id: action.params.activity_id,
@@ -58,13 +58,10 @@ async function executeAction(user_id: string, action: any) {
     case 'stop_activity':
       console.log(`Stopping activity ${action.params.activity_id} for user ${user_id}`);
       // Implement activity stop logic here
-      res = await ActivityManager.updateActivityEntry({
+      res = await ActivityManager.updateEntry({
         id: crypto.randomUUID(),
         user_id: user_id,
-        activity_id: action.params.activity_id,
-        start_time: now,
-        created_at: now,
-        updated_at: now,
+        end_time: now,
         logged_by: "trigger"
       });
 

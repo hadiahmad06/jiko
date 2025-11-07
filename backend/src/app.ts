@@ -30,6 +30,7 @@ const loadRouters = (dir: string) => {
 };
 
 
+
 // 👇 wrap in async IIFE so it works in both ESM + CommonJS
 (async () => {
   try {

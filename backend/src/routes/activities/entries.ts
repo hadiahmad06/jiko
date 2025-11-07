@@ -1,23 +1,47 @@
 import ActivityManager from '../../data/ActivityManager.js';
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.js';
 import { ActivityQuery, PartialActivityWithIds } from '../../services/ActivityRepository.js';
+import { ActivityEntry } from '../../types/activity/ActivityEntry.js';
 
 const router = Router();
 
+// POST /activities/entries - create a new activity entry
+router.post('/activities/entries', authMiddleware, async (req, res) => {
+  try {
+    // Get Auth
+    const userId = req.userId!;
+    if (!req.body)  return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
+
+    // Validate Body
+    const parsed = await ActivityEntry.safeParse({ userId, ...req.body });
+    if (!parsed.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: parsed.error.issues });
+
+    // Validate Insert
+    const newEntry = await ActivityManager.addEntry(parsed.data);
+    if (!newEntry.success) return res.status(newEntry.code).json(newEntry.details);
+
+    res.json(newEntry);
+  } catch (error) {
+    console.error(`Error creating entry for activity with id ${req.params.id}:`, error);
+    res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while creating activity entry.' });
+  }
+});
+
+// TODO: add tests
+// PATCH /activities/entries - update an activity entry
 router.patch('/activities/entries', authMiddleware, async (req, res) => {
   try {
     const { user_id, ...rest } = req.body;
-    const userId = req.userId;
+    const userId = req.userId!;
 
-    if (!rest)      return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
-    if (!userId)    return res.status(400).json({ error: 'MissingParameter', message: 'User id is required.' });
+    if (!rest) return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
 
-    const query = { userId, ...rest} as PartialActivityWithIds;
-    const entries = await ActivityManager.updateEntry(query);
-    if (!entries) {
-      return res.status(404).json({ error: 'NotFound', message: `FIX THIS ERROR LATER` });
-    }
+    const body = PartialActivityWithIds.safeParse({ userId, ...rest});
+    if (!body.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: body.error.issues });
+
+    const entries = await ActivityManager.updateEntry(body.data);
+    if (!entries.success) return res.status(entries.code).json(entries.details);
     res.json(entries);
   } catch (error) {
     console.error(`Error fetching entries for activity with id ${req.params.id}:`, error);
@@ -25,23 +49,40 @@ router.patch('/activities/entries', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /activities/entries - fetch entries for a specific activity
+// GET /activities/entries - fetch entries following a query
 router.get('/activities/entries', authMiddleware, async (req, res) => {
   try {
-    const options = req.query;
-    const userId = req.userId;
+    const userId = req.userId!
+    if (!req.query) return res.status(400).json({ error: 'MissingParameter', message: 'Options are required.' });
 
-    if (!userId) { return res.status(400).json({ error: 'MissingParameter', message: 'User id is required.' }); }
-    if (!options) { return res.status(400).json({ error: 'MissingParameter', message: 'Options are required.' }); }
+    const parsed = ActivityQuery.safeParse(req.query);
+    if (!parsed.success) return res.status(400).json({ error: 'InvalidQuery', message: 'Query parameters are invalid.', details: parsed.error.issues });
 
-    const query = options as Partial<ActivityQuery>;
-    const entries = await ActivityManager.getEntries(query, userId);
+    const entries = await ActivityManager.getEntries(parsed.data, userId);
     
-    if (!entries) { return res.status(404).json({ error: 'NotFound', message: `Entries not found.` }); }
+    if (!entries.success) return res.status(entries.code).json(entries.details);
     res.json(entries);
   } catch (error) {
     console.error(`Error fetching entries for activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while fetching activity entries.' });
+  }
+});
+
+// DELETE /activities/entries/:id
+router.delete('/activities/entries/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId!;
+
+    if (!id) { return res.status(400).json({ error: 'MissingParameter', message: 'Activity id is required.' }); }
+
+    const result = await ActivityManager.deleteEntry(id, userId);
+    if (!result) { return res.status(404).json({ error: 'NotFound', message: `Activity Entry with id ${id} not found for deletion.` }); }
+
+    res.json(result);
+  } catch (error) {
+    console.error(`Error deleting activity entry with id ${req.params.id}:`, error);
+    res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while deleting the activity entry.' });
   }
 });
 

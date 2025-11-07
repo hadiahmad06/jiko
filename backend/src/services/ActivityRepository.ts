@@ -1,27 +1,33 @@
-import { type ActivityT } from '../types/activity/Activity.js';
-import { type ActivityEntryT } from '../types/activity/ActivityEntry.js';
+import { Activity, type ActivityT } from '../types/activity/Activity.js';
+import { ActivityEntry, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
 import { getPsqlClient } from '../db/psqlClient.js';
+import { Result } from '../types/common.js';
+import { z, ZodArray } from "zod";
 
 class ActivityRepository {
-  async getActivities(userId: string): Promise<ActivityT[]> {
+
+  // * Activities CRUD Operations * //
+  async getActivities(userId: string): Promise<Result<ActivityT[]>> {
     const client = await getPsqlClient();
     const res = await client.query(
       'SELECT * FROM activities WHERE user_id = $1 ORDER BY created_at DESC',
       [userId]
     );
-    return res.rows;
+    if (!res.rows) return { success: false, code: 404, details: { error: 'Not Found', message: 'Failed to fetch activities' }, };
+    return { success: true, value: res.rows };
   }
 
-  async getActivity(activityId: string, userId: string): Promise<ActivityT | null> {
+  async getActivity(activityId: string, userId: string): Promise<Result<ActivityT>> {
     const client = await getPsqlClient();
     const res = await client.query(
       'SELECT * FROM activities WHERE id = $1 AND user_id = $2',
       [activityId, userId]
     );
-    return res.rows[0] || null;
+    if (!res.rows[0]) return { success: false, code: 404, details: { error: 'Not Found', message: 'Failed to fetch activity' }, };
+    return { success: true, value: res.rows[0] };
   }
 
-  async createActivity(activity: ActivityT): Promise<ActivityT> {
+  async createActivity(activity: ActivityT): Promise<Result<ActivityT>> {
     const client = await getPsqlClient();
     const res = await client.query(
       `INSERT INTO activities (id, user_id, name, description, created_at)
@@ -35,23 +41,46 @@ class ActivityRepository {
         activity.created_at,
       ]
     );
-    return res.rows[0];
+    if (!res.rows[0]) return { success: false, code: 500, details: { error: 'Internal Server Error', message: 'Failed to create activity' }, };
+    return { success: true, value: res.rows[0] };
   }
 
-  async updateActivity(activity: ActivityT): Promise<ActivityT> {
+  async updateActivity(data: PartialActivityWithIdsT): Promise<Result<ActivityT>> {
     const client = await getPsqlClient();
-    const res = await client.query(
-      `UPDATE activities SET name = $1, description = $2
-       WHERE id = $3 AND user_id = $4
-       RETURNING *`,
-      [
-        activity.name,
-        activity.description,
-        activity.id,
-        activity.user_id
-      ]
-    );
-    return res.rows[0];
+    
+    // Exclude id, user_id, created_at, updated_at from updatable fields
+    const { id, user_id, created_at, updated_at, ...fieldsToUpdate } = data;
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    // Build SET clause dynamically
+    for (const [key, value] of Object.entries(fieldsToUpdate)) {
+      if (value !== undefined) {
+        setClauses.push(`${key} = $${idx}`);
+        values.push(value);
+        idx++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return { success: false, code: 400, details: { error: 'Bad Request', message: 'Failed to update activity because no new fields were provided.' }, };
+    }
+
+    // Add id and user_id for WHERE clause
+    values.push(id);
+    values.push(user_id);
+    const setQuery = setClauses.join(', ');
+    const query = `
+      UPDATE activities
+      SET ${setQuery}
+      WHERE id = $${idx} AND user_id = $${idx + 1}
+      RETURNING *
+    `;
+    const res = await client.query(query, values);
+
+    if (!res.rows[0]) return { success: false, code: 404, details: { error: 'Not Found', message: 'Failed to update activity because it does not exist' }, };
+    return { success: true, value: res.rows[0] };
   }
 
   async deleteActivity(activityId: string, userId: string): Promise<Boolean> {
@@ -64,7 +93,8 @@ class ActivityRepository {
     return result.rowCount !== null && result.rowCount > 0;
   }
 
-  async addEntry(entry: ActivityEntryT): Promise<ActivityEntryT> {
+  // * Activity Entry CRUD Operations * //
+  async addEntry(entry: ActivityEntryT): Promise<Result<ActivityEntryT>> {
     const client = await getPsqlClient();
 
     // Ensure entry.activity_id belongs to userId
@@ -72,9 +102,12 @@ class ActivityRepository {
       'SELECT 1 FROM activities WHERE id = $1 AND user_id = $2',
       [entry.activity_id, entry.user_id]
     );
+
+    // If no such activity, return error
     if (activityRes.rowCount === 0) {
-      throw new Error('Activity does not belong to user');
+      return { success: false, code: 404, details: { error: 'Not Found', message: 'Failed to create entry because activity does not exist.' }, };
     }
+
     const res = await client.query(
       `INSERT INTO activity_entries (id, activity_id, start_time, end_time, note, logged_by)
        VALUES ($1, $2, $3, $4, $5)
@@ -89,10 +122,12 @@ class ActivityRepository {
         entry.confidence_score
       ]
     );
-    return res.rows[0];
+
+    if (!res.rows[0]) return { success: false, code: 500, details: { error: 'Internal Server Error', message: 'Failed to create activity entry.' }, };
+    return { success: true, value: res.rows[0] };
   }
   
-  async updateEntry(data: PartialActivityWithIds): Promise<ActivityEntryT> {
+  async updateEntry(data: PartialActivityEntryWithIdsT): Promise<Result<ActivityEntryT>> {
     const client = await getPsqlClient();
 
     // Exclude id, user_id, activity_id, created_at, updated_at from updatable fields
@@ -111,7 +146,7 @@ class ActivityRepository {
     }
 
     if (setClauses.length === 0) {
-      throw new Error('No fields provided to update');
+      return { success: false, code: 400, details: { error: 'Bad Request', message: 'Failed to update activity entry because no new fields were provided.' }, };
     }
 
     // Add id and user_id for WHERE clause
@@ -125,25 +160,19 @@ class ActivityRepository {
       RETURNING *
     `;
     const res = await client.query(query, values);
-    if (res.rows.length === 0) {
-      throw new Error('Activity entry not found or not updated');
-    }
 
-    return res.rows[0];
+    if (!res.rows[0]) return { success: false, code: 404, details: { error: 'Not Found', message: 'Failed to update activity entry beacuse entry does not exist.' }, };
+    return { success: true, value: res.rows[0] };
   }
 
-  async getEntriesForActivity(
-    id: string,
-    options: Omit<ActivityQuery, 'activityIds'>,
-    userId: string
-  ): Promise<ActivityEntryT[]> {
+  async getEntriesForActivity(id: string, 
+                              options: Omit<ActivityQueryT, 'activityIds'>, 
+                              userId: string): 
+  Promise<Result<ActivityEntryT[]>> {
     return this.getEntries({ activityIds:[id], ...options }, userId);
   }
 
-  async getEntries(
-    options: ActivityQuery,
-    userId: string
-  ): Promise<ActivityEntryT[]> {
+  async getEntries(options: ActivityQueryT, userId: string): Promise<Result<ActivityEntryT[]>> {
     const { activityIds, startDate, endDate, limit } = options;
     const client = await getPsqlClient();
 
@@ -188,10 +217,11 @@ class ActivityRepository {
     }
 
     const res = await client.query(query, values);
-    return res.rows;
+    if (!res.rows) return { success: false, code: 404, details: { error: 'Not Found', message: 'No rows matched query.' }, };
+    return { success: true, value: res.rows };
   }
 
-  async deleteActivityEntry(entryId: string, userId: string): Promise<Boolean> {
+  async deleteEntry(entryId: string, userId: string): Promise<Boolean> {
     const client = await getPsqlClient();
     // Only delete if the entry belongs to an activity owned by userId
     const result = await client.query(
@@ -199,17 +229,36 @@ class ActivityRepository {
        WHERE id = $1 AND user_id = $2`,
       [entryId, userId]
     );
+
     return result.rowCount !== null && result.rowCount > 0;
   }
 }
 
-export type PartialActivityWithIds = Partial<ActivityEntryT> & Required<Pick<ActivityEntryT, "id" | "user_id">>;
+export const PartialActivityWithIds = Activity
+  .partial()
+  .extend({
+    id: z.uuid(),
+    user_id: z.uuid()
+  });
 
-export type ActivityQuery = {
-    activityIds?: string[];
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-}
+export type PartialActivityWithIdsT = z.infer<typeof PartialActivityWithIds>;
+
+export const PartialActivityEntryWithIds = ActivityEntry
+  .partial()
+  .extend({
+    id: z.uuid(),
+    user_id: z.uuid()
+  });
+
+export type PartialActivityEntryWithIdsT = z.infer<typeof PartialActivityEntryWithIds>;
+
+export const ActivityQuery = z.object({
+  activityIds: z.array(z.uuid()).optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  limit: z.coerce.number().int().positive().optional()
+});
+
+export type ActivityQueryT = z.infer<typeof ActivityQuery>;
 
 export default new ActivityRepository();

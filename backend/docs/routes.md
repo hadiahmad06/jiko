@@ -11,28 +11,23 @@ classDiagram
         %% +DELETE /auth/logout
     }
 
-    %% User management
-    %% class UsersAPI {
-    %%    <<REST API>>
-    %%    +GET /users
-    %%    +POST /users
-    %%    +GET /users/:id
-    %%    +PUT /users/:id  
-    %%    +DELETE /users/:id
-    %%}
-
     %% Activities
     class ActivitiesAPI {
         <<REST API>>
-        %% Hot endpoints (frequently used)
-        +GET /activities                    %% common, consider Redis caching
-        +POST /activities/:id/entries       %% main write path
-        +POST /activities                   %% create activity
+        +POST /activities
+        +GET /activities
 
-        %% Rare endpoints
+        +POST /activities/entries
+        +PATCH /activities/entries
+        +GET /activities/entries
+        
+        +DELETE /activities/entries/:id
+
         +GET /activities/:id
-        +PUT /activities/:id
+        +PATCH /activities/:id
         +DELETE /activities/:id
+
+        +GET /activities/:id/entries
     }
 
     %% Obligations
