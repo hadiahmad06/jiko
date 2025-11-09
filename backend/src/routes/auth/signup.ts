@@ -15,13 +15,13 @@ router.post('/auth/signup', async (req, res) => {
     // 1 Validate inputs
     const { phone_number, password, email, username, display_name, nickname, otp } = req.body;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_+=\[\]{}|;:'",.<>/?]).{8,}$/;
-
+    
     if (!phone_number || typeof phone_number !== 'string') {
         return res.status(400).json({ error: 'No phone number provided'})
     }
     if (!password && !otp) {
       return res.status(400).json({ error: 'Neither password nor OTP were provided.'})
-    } else if (password && (typeof password !== 'string' || (!passwordRegex.test(password)))) {
+    } else if (password && (typeof password !== 'string' || !passwordRegex.test(password))) {
       return res.status(400).json({ error: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character' });
     } else if (otp) {
       // TODO: Validate OTP here
@@ -65,7 +65,7 @@ router.post('/auth/signup', async (req, res) => {
 
     res.status(201).json({
       message: 'User created',
-      userId: id,
+      user_id: id,
       token,
       refreshToken
     });

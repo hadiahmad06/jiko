@@ -8,7 +8,7 @@ import { Platform } from '../device/Platform.js';
 export const User = z.object({
   id: z.string(),
   phone_number: z.string(),
-  password_hash: z.string().optional(),
+  password_hash: z.string(),
   email: z.string().optional(),
   username: z.string().optional(),
   is_active: z.boolean().default(true),

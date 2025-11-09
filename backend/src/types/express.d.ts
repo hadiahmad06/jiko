@@ -3,6 +3,6 @@ import 'express';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    userId?: string; // add the userId property
+    uid?: string; // add the user_id property
   }
 }

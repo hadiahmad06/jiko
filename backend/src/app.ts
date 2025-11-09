@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import express, { Router } from 'express';
 import { fileURLToPath, pathToFileURL } from 'url';
-import control from './routes/activities/index.js';
+import control from './routes/activities.js';
 
 const injectRouters = async (dir: string, app: express.Application) => {
   const items = await fs.readdir(dir);
@@ -20,7 +20,7 @@ const injectRouters = async (dir: string, app: express.Application) => {
 
         if (router && typeof router === 'function' && 'stack' in router) {
           app.use(router);
-          console.log(`✅ Loaded router from ${fullPath}`);
+          // console.log(`✅ Loaded router from ${fullPath}`);
         } else {
           console.warn(`⚠️  Skipped non-router file: ${fullPath}`);
         }
@@ -55,7 +55,7 @@ const createApp = async () => {
 
   const routesDir = path.join(__dirname, 'routes');
   const injectedApp = await injectRouters(routesDir, app);
-  printRoutes(app.router.stack);
+  // printRoutes(app.router.stack);
 
   return injectedApp
 };

@@ -9,7 +9,7 @@ const router = Router();
 
 // POST /auth/login
 router.post('/auth/login', async (req, res) => {
-  const { userId, username, email, phoneNumber, password, otp } = req.body;
+  const { id, username, email, phone_number, password, otp } = req.body;
 
   if (!password && !otp) {
     return res.status(400).json({ error: 'Missing password and otp' });
@@ -25,8 +25,8 @@ router.post('/auth/login', async (req, res) => {
     const lookup: UserLookup = {};
     if (username) lookup.username = username;
     if (email) lookup.email = email;
-    if (phoneNumber) lookup.phone_number = phoneNumber;
-    if (userId) lookup.id = userId;
+    if (phone_number) lookup.phone_number = phone_number;
+    if (id) lookup.id = id;
 
     // Flexible getUser call
     const user = await UserManager.getUser(lookup);
@@ -35,7 +35,7 @@ router.post('/auth/login', async (req, res) => {
     }
 
     // Compare password with hashed password
-    const valid = await bcrypt.compare(password, user.password_hash!);
+    const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -48,16 +48,16 @@ router.post('/auth/login', async (req, res) => {
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '1d' });
-    const refreshToken = jwt.sign({ userId: user.id }, refreshSecret, { expiresIn: '7d' });
+    const token = jwt.sign({ user_id: user.id }, secret, { expiresIn: '1d' });
+    const refreshToken = jwt.sign({ user_id: user.id }, refreshSecret, { expiresIn: '7d' });
 
     res.json({
       token,
       refreshToken,
-      phoneNumber: user.phone_number,
+      phone_number: user.phone_number,
       email: user.email,
       username: user.username,
-      displayName: user.display_name,
+      display_name: user.display_name,
       nickname: user.nickname,
     });
 

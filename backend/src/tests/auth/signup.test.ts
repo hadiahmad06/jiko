@@ -28,10 +28,10 @@ describe('Auth API - /auth/signup', () => {
 
     const res = await request(app)
       .post('/auth/signup')
-      .send({ phoneNumber: '+11234567890', password: 'password123' });
+      .send({ phone_number: '+11234567890', password: 'Password123!' });
 
     expect(res.status).toBe(201);
-    expect(res.body.userId).toBeDefined();
+    expect(res.body.user_id).toBeDefined();
     expect(res.body.token).toBeDefined();
   });
 
@@ -41,23 +41,23 @@ describe('Auth API - /auth/signup', () => {
     const res = await request(app)
       .post('/auth/signup')
       .send({
-        phoneNumber: '+11234567890',
-        password: 'password123',
+        phone_number: '+11234567890',
+        password: 'Password123!',
         email: 'test@example.com',
         username: 'testuser',
-        displayName: 'Test User',
+        display_name: 'Test User',
         nickname: 'Tester'
       });
 
     expect(res.status).toBe(201);
-    expect(res.body.userId).toBeDefined();
+    expect(res.body.user_id).toBeDefined();
     expect(res.body.token).toBeDefined();
   });
 
   it('should fail signup with OTP (not implemented)', async () => {
     const res = await request(app)
       .post('/auth/signup')
-      .send({ phoneNumber: '+11234567890', otp: '123456' });
+      .send({ phone_number: '+11234567890', otp: '123456' });
 
     expect(res.status).toBe(500);
     expect(res.body.error).toBe('OTP validation not implemented');

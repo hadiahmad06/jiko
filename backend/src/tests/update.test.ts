@@ -15,13 +15,15 @@ const refreshSecret = 'test_refresh_secret';
 const accessSecret = 'test_access_secret';
 
 vi.mock('../data/UserManager', () => ({
-  updateAppUsage: vi.fn().mockResolvedValue(undefined),
+  default: {
+    updateAppUsage: vi.fn().mockResolvedValue(undefined),
+  }
 }));
 
 describe('Update API', () => {
   it('should allow posting an app usage update', async () => {
     // first, login with mock user to get real JWT token
-    const token = jwt.sign({ userId: 'user-123' }, accessSecret, { expiresIn: '1h' });
+    const token = jwt.sign({ user_id: 'user-123' }, accessSecret, { expiresIn: '1h' });
 
     const updatePayload = {
       timestamp: "2025-10-22T12:01:30Z",
