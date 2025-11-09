@@ -3,10 +3,10 @@ import crypto from "crypto";
 
 // ACTIVITIES table schema
 export const Activity = z.object({
-  id: z.uuid().default(() => crypto.randomUUID()),
+  id: z.uuid().optional().default(() => crypto.randomUUID()),
   user_id: z.uuid(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
 })

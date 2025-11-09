@@ -10,12 +10,14 @@ router.get('/activities/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId!;
-
+    const query = req.query;
+    
     if (!id) return res.status(400).json({ error: 'MissingParameter', message: 'Activity id is required.' });
-
-    const query = ActivityQuery.safeParse(req.query);
-    if (!query.success) return res.status(400).json({ error: 'InvalidQuery', message: 'Query parameters are invalid.', details: query.error.issues });
-    const entries = await ActivityManager.getActivityEntries(id, query.data, userId);
+    if (!query) return res.status(400).json({ error: 'InvalidQuery', message: 'Query is missing.'});
+    
+    const parsed = ActivityQuery.safeParse(query);
+    if (!parsed.success) return res.status(400).json({ error: 'InvalidQuery', message: 'Query parameters are invalid.', details: parsed.error.issues });
+    const entries = await ActivityManager.getActivityEntries(id, parsed.data, userId);
 
     if (!entries) {
       return res.status(404).json({ error: 'NotFound', message: `Entries for activity id ${id} not found.` });

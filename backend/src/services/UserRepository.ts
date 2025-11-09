@@ -4,8 +4,8 @@ import { getPsqlClient } from '../db/psqlClient.js';
 const USERS_TABLE_NAME = 'Users';
 
 export type UserLookup = {
-  userId?: string;
-  phoneNumber?: string;
+  id?: string;
+  phone_number?: string;
   email?: string;
   username?: string;
 };
@@ -16,8 +16,8 @@ class UserRepository {
     let query = '';
     let params: any[] = [];
 
-    if (lookup.userId)            { query = 'SELECT * FROM Users WHERE id = $1'; params = [lookup.userId]; }
-    else if (lookup.phoneNumber)  { query = 'SELECT * FROM Users WHERE phone_number = $1'; params = [lookup.phoneNumber]; }
+    if (lookup.id)            { query = 'SELECT * FROM Users WHERE id = $1'; params = [lookup.id]; }
+    else if (lookup.phone_number)  { query = 'SELECT * FROM Users WHERE phone_number = $1'; params = [lookup.phone_number]; }
     else if (lookup.email)        { query = 'SELECT * FROM Users WHERE email = $1'; params = [lookup.email]; }
     else if (lookup.username)     { query = 'SELECT * FROM Users WHERE username = $1'; params = [lookup.username]; }
     else return undefined;
@@ -34,9 +34,12 @@ class UserRepository {
   async addUser(user: UserT): Promise<{ success: boolean; message?: string }> {
     const client = await getPsqlClient();
 
-    const columns = [...Object.keys(user)];
-    const values = [...Object.values(user)];
+    const { appUsage, ...rest } = user
+
+    const columns = [...Object.keys(rest)];
+    const values = [...Object.values(rest)];
     const placeholders = values.map((_, i) => `$${i + 1}`);
+    console.log(columns)
 
     const query = `INSERT INTO users (${columns.join(',')}) VALUES (${placeholders.join(',')})`;
 

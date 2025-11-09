@@ -1,13 +1,20 @@
+import { vi } from 'vitest';
+
 import request from 'supertest';
 
-import app from '../index'; // path to Express app
+import createApp from '../app'; // path to Express app
 import ActivityManager from '../data/ActivityManager'; // Adjust path as needed
 import { ActivityExample } from '../types/activity/Activity';
 import { EntriesExamples } from '../types/activity/ActivityEntry';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../data/ActivityManager');
+let app: any;
 
+beforeAll(async () => {
+  app = await createApp();
+})
+
+vi.mock('../data/ActivityManager');
 describe('activities router', () => {
   const ACTIVITY_ID = ActivityExample.id;
   const USER_ID = ActivityExample.user_id;
@@ -32,19 +39,19 @@ describe('activities router', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // * Activities * //
   describe('POST /activities', () => {
     it('should create a new activity', async () => {
-      ActivityManager.createActivity = jest.fn().mockResolvedValue({ success: true, data: mockCreatedActivity });
+      ActivityManager.createActivity = vi.fn().mockResolvedValue({ success: true, data: mockCreatedActivity });
       const res = await request(app)
         .post(`/activities`)
         .set('Authorization', `Bearer ${token}`)
         .send(mockActivity);
-      expect(res.status).toBe(200);
-      // expect(res.body).toEqual(mockCreatedActivity); // i dont really care enough to fix this test right now
+      expect(res.status).toBe(201);
+      expect(res.body).toEqual(mockCreatedActivity); // i dont really care enough to fix this test right now
       // expect(ActivityManager.createActivity).toHaveBeenCalledWith({ ...mockActivity, userId: USER_ID });
     });
 
@@ -59,7 +66,7 @@ describe('activities router', () => {
 
   describe('GET /activities', () => {
     it('should return all activities for a user', async () => {
-      ActivityManager.getActivities = jest.fn().mockResolvedValue({ success: true, data: [mockActivity] });
+      ActivityManager.getActivities = vi.fn().mockResolvedValue({ success: true, data: [mockActivity] });
       const res = await request(app)
         .get(`/activities`)
         .set('Authorization', `Bearer ${token}`);
@@ -79,7 +86,7 @@ describe('activities router', () => {
   // * Activities + Entries * //
   describe('POST /activities/entries', () => {
     it('should create a new entry for the activity', async () => {
-      ActivityManager.addEntry = jest.fn().mockResolvedValue({ success: true, data: mockCreatedEntry });
+      ActivityManager.addEntry = vi.fn().mockResolvedValue({ success: true, data: mockCreatedEntry });
       const res = await request(app)
         .post(`/activities/entries`)
         .send(mockCreatedEntry)
@@ -100,7 +107,7 @@ describe('activities router', () => {
 
   describe('DELETE /activities/entries/:id', () => {
     it('should delete an entry for the activity', async () => {
-      ActivityManager.deleteEntry = jest.fn().mockResolvedValue(true);
+      ActivityManager.deleteEntry = vi.fn().mockResolvedValue(true);
       const res = await request(app)
         .delete(`/activities/entries/${ACTIVITY_ID}`)
         .set('Authorization', `Bearer ${token}`)
@@ -119,7 +126,17 @@ describe('activities router', () => {
 
   describe('GET /activities/entries', () => {
     it('should return all entries matching the filters', async () => {
-      ActivityManager.getEntries = jest.fn().mockResolvedValue({ success: false, details: {error: '', message: ''} });
+      ActivityManager.getEntries = vi.fn().mockResolvedValue({ success: false, details: {error: '', message: ''} });
+      // const printRoutes = (stack: any, prefix: any) => stack.forEach(layer => {
+      //   if (layer.route) {
+      //     const route = layer.route as any;
+      //     const methods = Object.keys(route.methods || {}).map(m => m.toUpperCase()).join(',');
+      //     console.log(`${methods} ${prefix}${route.path}`);
+      //   } else if (layer.name === 'router' && layer.handle?.stack) {
+      //     printRoutes(layer.handle.stack, prefix); // keep prefix as root
+      //   }
+      // });
+      // printRoutes(app.router.stack, '')
       const res = await request(app)
         .get(`/activities/entries`)
         .set('Authorization', `Bearer ${token}`)
@@ -139,7 +156,7 @@ describe('activities router', () => {
   // * Activities + ID * //
   describe('GET /activities/:id', () => {
     it('should return the activity', async () => {
-      ActivityManager.getActivity = jest.fn().mockResolvedValue({ success: true, data: mockActivity });
+      ActivityManager.getActivity = vi.fn().mockResolvedValue({ success: true, data: mockActivity });
       const res = await request(app)
         .get(`/activities/${ACTIVITY_ID}`)
         .set('Authorization', `Bearer ${token}`);
@@ -158,7 +175,7 @@ describe('activities router', () => {
 
   describe('PATCH /activities/:id', () => {
     it('should update and return the activity', async () => {
-      ActivityManager.updateActivity = jest.fn().mockResolvedValue({ success: true, data: mockUpdatedActivity });
+      ActivityManager.updateActivity = vi.fn().mockResolvedValue({ success: true, data: mockUpdatedActivity });
       const res = await request(app)
         .patch(`/activities/${ACTIVITY_ID}`)
         .set('Authorization', `Bearer ${token}`)
@@ -179,7 +196,7 @@ describe('activities router', () => {
 
   describe('DELETE /activities/:id', () => {
     it('should delete the activity', async () => {
-      ActivityManager.deleteActivity = jest.fn().mockResolvedValue(true);
+      ActivityManager.deleteActivity = vi.fn().mockResolvedValue(true);
       const res = await request(app)
         .delete(`/activities/${ACTIVITY_ID}`)
         .set('Authorization', `Bearer ${token}`);
@@ -199,7 +216,7 @@ describe('activities router', () => {
   // * Activities + ID + Entries * //
   describe('GET /activities/:id/entries', () => {
     it('should return activity entries', async () => {
-      ActivityManager.getActivityEntries = jest.fn().mockResolvedValue({ success: true, data: mockEntries });
+      ActivityManager.getActivityEntries = vi.fn().mockResolvedValue({ success: true, data: mockEntries });
       const res = await request(app)
         .get(`/activities/${ACTIVITY_ID}/entries`)
         .set('Authorization', `Bearer ${token}`);

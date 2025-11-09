@@ -1,12 +1,27 @@
+import { vi } from 'vitest';
 import request from 'supertest';
-import app from '../index'; // or wherever you create your Express app
+import createApp from '../app'; // or wherever you create your Express app
 import jwt from 'jsonwebtoken';
 
-describe('Auth API', () => {
+let app: any;
+
+beforeAll(async () => {
+  app = await createApp();
+  process.env.JWT_REFRESH_SECRET = refreshSecret;
+  process.env.JWT_SECRET = accessSecret;
+})
+
+const refreshSecret = 'test_refresh_secret';
+const accessSecret = 'test_access_secret';
+
+vi.mock('../data/UserManager', () => ({
+  updateAppUsage: vi.fn().mockResolvedValue(undefined),
+}));
+
+describe('Update API', () => {
   it('should allow posting an app usage update', async () => {
     // first, login with mock user to get real JWT token
-    const JWT_SECRET = process.env.JWT_SECRET || 'testsecret';
-    const token = jwt.sign({ userId: 'user-123' }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: 'user-123' }, accessSecret, { expiresIn: '1h' });
 
     const updatePayload = {
       timestamp: "2025-10-22T12:01:30Z",

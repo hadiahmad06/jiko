@@ -1,9 +1,22 @@
+import { vi } from 'vitest';
+
 import request from 'supertest';
-import app from '../../index';
+import createApp from '../../app';
 import UserManager from '../../data/UserManager';
 
-jest.mock('../../data/UserManager');
-const mockedAddUser = UserManager.addUser as jest.Mock;
+let app: any;
+
+const refreshSecret = 'test_refresh_secret';
+const accessSecret = 'test_access_secret';
+
+beforeAll(async () => {
+  app = await createApp();
+  process.env.JWT_REFRESH_SECRET = refreshSecret;
+  process.env.JWT_SECRET = accessSecret;
+})
+
+vi.mock('../../data/UserManager');
+const mockedAddUser = vi.mocked(UserManager.addUser);
 
 beforeEach(() => {
   mockedAddUser.mockReset();

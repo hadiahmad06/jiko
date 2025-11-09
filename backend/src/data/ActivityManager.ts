@@ -1,7 +1,7 @@
-import { ActivityT } from "types/activity/Activity.js";
+import { Activity, ActivityT } from "../types/activity/Activity.js";
 import ActivityRepository, { ActivityQueryT, PartialActivityEntryWithIdsT, PartialActivityWithIdsT } from "../services/ActivityRepository.js";
-import { ActivityEntryT } from "types/activity/ActivityEntry.js";
-import { Result } from "types/common.js";
+import { ActivityEntry, ActivityEntryT } from "../types/activity/ActivityEntry.js";
+import { Result } from "../types/common.js";
 
 //TODO: add caching if necessary, using redis or simple dictionary cache or sm
 
@@ -20,7 +20,7 @@ class ActivityManager {
 
   // POST /activities
   async createActivity(data: ActivityT): Promise<Result<ActivityT>> {
-    return ActivityRepository.createActivity(data);
+    return ActivityRepository.createActivity(Activity.parse(data));
   }
 
   // PUT /activities/:id
@@ -45,7 +45,7 @@ class ActivityManager {
 
   // POST /activities/:id/entries
   async addEntry(data: ActivityEntryT): Promise<Result<ActivityEntryT>> {
-    return ActivityRepository.addEntry(data);
+    return ActivityRepository.addEntry(ActivityEntry.parse(data));
   }
 
   // PATCH /activities/entries

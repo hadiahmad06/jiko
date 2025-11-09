@@ -1,11 +1,19 @@
+// server.ts
 import dotenv from 'dotenv';
-import app from './app.js';
+import createApp from './app.js';
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 
-export default app;
+console.log('IS_OFFLINE:', process.env.IS_OFFLINE);
+console.log('PORT:', process.env.PORT);
 
-if (process.env.NODE_ENV !== 'test') {
+(async () => {
+  const app = await createApp();
+//   if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}
+//   }
+})();
+
+
+

@@ -25,8 +25,8 @@ router.post('/auth/login', async (req, res) => {
     const lookup: UserLookup = {};
     if (username) lookup.username = username;
     if (email) lookup.email = email;
-    if (phoneNumber) lookup.phoneNumber = phoneNumber;
-    if (userId) lookup.userId = userId;
+    if (phoneNumber) lookup.phone_number = phoneNumber;
+    if (userId) lookup.id = userId;
 
     // Flexible getUser call
     const user = await UserManager.getUser(lookup);
@@ -35,7 +35,7 @@ router.post('/auth/login', async (req, res) => {
     }
 
     // Compare password with hashed password
-    const valid = await bcrypt.compare(password, user.passwordHash!);
+    const valid = await bcrypt.compare(password, user.password_hash!);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -48,16 +48,16 @@ router.post('/auth/login', async (req, res) => {
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    const token = jwt.sign({ userId: user.uuid }, secret, { expiresIn: '1d' });
-    const refreshToken = jwt.sign({ userId: user.uuid }, refreshSecret, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '1d' });
+    const refreshToken = jwt.sign({ userId: user.id }, refreshSecret, { expiresIn: '7d' });
 
     res.json({
       token,
       refreshToken,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user.phone_number,
       email: user.email,
       username: user.username,
-      displayName: user.displayName,
+      displayName: user.display_name,
       nickname: user.nickname,
     });
 

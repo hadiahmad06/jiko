@@ -1,22 +1,18 @@
 import { Client } from 'pg';
 import { Signer } from '@aws-sdk/rds-signer';
 
-const isOffline = process.env.IS_OFFLINE === 'true';
-const REGION = process.env.AWS_REGION || 'us-east-2';
-const RDS_HOST = process.env.RDS_HOST || '';
-const RDS_PORT = process.env.RDS_PORT ? Number(process.env.RDS_PORT) : 5432;
-const RDS_USER = process.env.RDS_USER || '';
-const RDS_DB_NAME = process.env.RDS_DB_NAME || '';
-
 let client : Client | null = null;
 
 async function getPsqlClient() {
+
+  const isOffline = process.env.IS_OFFLINE === 'true';
+
   if (!client) {
     if (isOffline) {
-      const client = new Client({
+      client = new Client({
         host: 'localhost',
         port: 5432,
-        database: 'postgres',
+        database: 'jiko',
         user: 'postgres',
         password: 'postgres',
       });
@@ -24,6 +20,13 @@ async function getPsqlClient() {
       console.log('Postgres client connected successfully (local Docker)');
       return client;
     } else {
+      
+      const REGION = process.env.AWS_REGION || 'us-east-2';
+      const RDS_HOST = process.env.RDS_HOST || '';
+      const RDS_PORT = process.env.RDS_PORT ? Number(process.env.RDS_PORT) : 5432;
+      const RDS_USER = process.env.RDS_USER || '';
+      const RDS_DB_NAME = process.env.RDS_DB_NAME || ''
+
       const signer = new Signer({
         region: REGION,
         hostname: RDS_HOST,

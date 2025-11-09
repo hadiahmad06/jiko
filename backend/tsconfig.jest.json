@@ -1,10 +1,10 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "module": "CommonJS", // Match Jest's defaults
-    "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
-    "outDir": "./dist/tests"
-  },
-  "include": ["tests"]
-}
+// {
+//   "extends": "./tsconfig.json",
+//   "compilerOptions": {
+//     "module": "CommonJS", // Match Jest's defaults
+//     "moduleResolution": "node",
+//     "allowImportingTsExtensions": false,
+//     "outDir": "./dist/tests"
+//   },
+//   "include": ["tests"]
+// }

@@ -8,16 +8,16 @@ class UserManager {
 
   async getUser(lookup: UserLookup | string): Promise<UserT | undefined> {
     if (typeof lookup === 'string') {
-      lookup = { userId: lookup };
+      lookup = { id: lookup };
     }
-    const userId = lookup.userId;
+    const userId = lookup.id;
     if (userId && this.cache[userId]) {
       return this.cache[userId];
     }
 
     const user = await UserRepository.getUser(lookup);
-    if (user?.uuid) {
-      this.cache[user.uuid] = user;
+    if (user?.id) {
+      this.cache[user.id] = user;
     }
     return user;
   }
@@ -25,14 +25,14 @@ class UserManager {
   async addUser(user: UserT) {
     const result = await UserRepository.addUser(user);
     if (result.success) {
-      this.cache[user.uuid] = user;
+      this.cache[user.id] = user;
     }
     return result;
   }
 
-  async updateAppUsage(userId: string, update: AppUsageUpdateT) {
+  async updateAppUsage(user_id: string, update: AppUsageUpdateT) {
     const timestamp = update.timestamp ?? new Date().toISOString();
-    const user = await this.getUser({ userId });
+    const user = await this.getUser({ id: user_id });
     if (!user) return;
 
     const platform = update.platform as PlatformT;

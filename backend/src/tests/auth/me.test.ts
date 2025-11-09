@@ -1,23 +1,43 @@
+import { vi } from 'vitest';
+
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import UserManager from '../../data/UserManager';
-import app from '../../index'; // path to Express app
+import createApp from '../../app'; // path to Express app
+import { UserT } from 'types/user/User';
 
-jest.mock('../../data/UserManager');
-const mockedGetUser = UserManager.getUser as jest.Mock;
+
+let app: any;
+
+beforeAll(async () => {
+  app = await createApp();
+  process.env.JWT_REFRESH_SECRET = refreshSecret;
+  process.env.JWT_SECRET = accessSecret;
+})
+
+const refreshSecret = 'test_refresh_secret';
+const accessSecret = 'test_access_secret';
+
+vi.mock('../../data/UserManager');
+const mockedGetUser = vi.mocked(UserManager.getUser);
 
 describe('Auth API - /auth/me', () => {
-  const testUser = {
-    uuid: 'user-123',
-    phoneNumber: '+11234567890',
+  const testUser: UserT = {
+    id: 'user-123',
+    phone_number: '+11234567890',
+    password_hash: '123321313',
     email: 'test@example.com',
     username: 'testuser',
-    displayName: 'Test User',
-    nickname: 'Tester'
+    display_name: 'Test User',
+    nickname: 'Tester',
+    is_active: true,
+    appUsage: {}
   };
 
-  const JWT_SECRET = process.env.JWT_SECRET || 'testsecret';
-  const token = jwt.sign({ userId: testUser.uuid }, JWT_SECRET, { expiresIn: '1h' });
+  beforeAll(() => {
+  });
+
+  const token = jwt.sign({ userId: testUser.id }, accessSecret, { expiresIn: '1h' });
 
   beforeEach(() => {
     mockedGetUser.mockReset();
@@ -32,10 +52,10 @@ describe('Auth API - /auth/me', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
-      phoneNumber: testUser.phoneNumber,
+      phoneNumber: testUser.phone_number,
       email: testUser.email,
       username: testUser.username,
-      displayName: testUser.displayName,
+      displayName: testUser.display_name,
       nickname: testUser.nickname
     });
   });

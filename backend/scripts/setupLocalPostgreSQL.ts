@@ -67,8 +67,8 @@ async function createTables() {
       id UUID PRIMARY KEY,
       phone_number TEXT UNIQUE NOT NULL,
       password_hash TEXT UNIQUE NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE,
+      username TEXT UNIQUE,
       is_active BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
@@ -97,7 +97,7 @@ async function createTables() {
       start_time TIMESTAMP NOT NULL,
       end_time TIMESTAMP,
       note TEXT,
-      is_user_logged BOOLEAN DEFAULT FALSE,
+      logged_by TEXT NOT NULL,
       confidence_score FLOAT,
       duration_minutes INT GENERATED ALWAYS AS (CAST(EXTRACT(EPOCH FROM (end_time - start_time)) / 60 AS INT)) STORED
     );

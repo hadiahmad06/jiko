@@ -26,10 +26,10 @@ router.get('/auth/me', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.json({
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user.phone_number,
       email: user.email,
       username: user.username,
-      displayName: user.displayName,
+      displayName: user.display_name,
       nickname: user.nickname,
     });
   } catch (err) {

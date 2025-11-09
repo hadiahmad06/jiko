@@ -6,15 +6,15 @@ import { Platform } from '../device/Platform.js';
 
 // USERS table schema
 export const User = z.object({
-  uuid: z.string(),
-  phoneNumber: z.string(),
-  passwordHash: z.string().optional(),
+  id: z.string(),
+  phone_number: z.string(),
+  password_hash: z.string().optional(),
   email: z.string().optional(),
   username: z.string().optional(),
-  isActive: z.boolean().default(true),
-  createdAt: z.string().default(() => new Date().toISOString()),
-  updatedAt: z.string().default(() => new Date().toISOString()),
-  displayName: z.string().optional(),
+  is_active: z.boolean().default(true),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  display_name: z.string().optional(),
   nickname: z.string().optional(),
   appUsage: z.partialRecord(Platform, AppUsageUpdate)
   .optional()
