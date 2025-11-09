@@ -71,15 +71,16 @@ router.post('/activities/entries', authMiddleware, async (req, res) => {
 // PATCH /activities/entries - update an activity entry
 router.patch('/activities/entries', authMiddleware, async (req, res) => {
   try {
-    const { user_id, ...rest } = req.body;
-    const userId = req.uid!;
+    const user_id = req.uid!;
+    const body = req.body;
+    delete body.user_id
 
-    if (!rest) return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
+    if (!body) return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
 
-    const body = PartialActivityWithIds.safeParse({ userId, ...rest});
-    if (!body.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: body.error.issues });
+    const parsed = PartialActivityWithIds.safeParse({ user_id, ...body});
+    if (!parsed.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: parsed.error.issues });
 
-    const entries = await ActivityManager.updateEntry(body.data);
+    const entries = await ActivityManager.updateEntry(parsed.data);
     if (!entries.success) return res.status(entries.code).json(entries.details);
     res.json(entries);
   } catch (error) {
@@ -109,7 +110,6 @@ router.get('/activities/entries', authMiddleware, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ error: 'InvalidQuery', message: 'Query parameters are invalid.', details: parsed.error.issues });
 
     const entries = await ActivityManager.getEntries(parsed.data, user_id);
-    console.log(entries)
     if (!entries.success) return res.status(entries.code).json(entries.details);
     res.json(entries);
   } catch (error) {
