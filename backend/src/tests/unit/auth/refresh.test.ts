@@ -1,6 +1,6 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import createApp from '../../app'; // path to Express app
+import createApp from '../../../app'; // path to Express app
 
 let app: any;
 

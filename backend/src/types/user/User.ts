@@ -5,24 +5,30 @@ import type { PlatformT } from '../device/Platform.js';
 import { Platform } from '../device/Platform.js';
 
 // USERS table schema
-export const User = z.object({
+// TODO: verify that nullable and optional modifiers are valid
+export const UserDB = z.object({
   id: z.string(),
   phone_number: z.string(),
   password_hash: z.string(),
-  email: z.string().optional(),
-  username: z.string().optional(),
+  email: z.string().nullable().optional(),
+  username: z.string().nullable().optional(),
   is_active: z.boolean().default(true),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-  display_name: z.string().optional(),
-  nickname: z.string().optional(),
-  appUsage: z.partialRecord(Platform, AppUsageUpdate)
-  .optional()
-  .transform((val) => val ?? {} as Record<PlatformT, AppUsageUpdateT>),
+  created_at: z.coerce.string().nullable().optional(),
+  updated_at: z.coerce.string().nullable().optional(),
+  display_name: z.string().nullable().optional(),
+  nickname: z.string().nullable().optional(),
+});
+
+export type UserDBT = z.infer<typeof UserDB>;
+
+export const User = UserDB.extend({
+  appUsage: z
+    .partialRecord(Platform, AppUsageUpdate)
+    .optional()
+    .transform((val) => val ?? {} as Record<PlatformT, AppUsageUpdateT>),
 });
 
 export type UserT = z.infer<typeof User>;
-
 // ---------------------------
 // example usage
 // ---------------------------

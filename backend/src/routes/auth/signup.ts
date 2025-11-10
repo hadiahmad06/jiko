@@ -47,9 +47,10 @@ router.post('/auth/signup', async (req, res) => {
     });
 
     // 5 Save user in UserManager
-    const { success, message } = await UserManager.addUser(newUser);
-    if (!success) {
-      return res.status(500).json({ error: message || 'Failed to create user' });
+    const result = await UserManager.addUser(newUser);
+    // console.log("signup route: ", result)
+    if (!result.success) {
+      return res.status(result.code).json(result.details);
     }
 
     // 6 Create JWT and refresh token

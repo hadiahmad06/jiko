@@ -23,16 +23,18 @@ router.post('/auth/login', async (req, res) => {
   try {
     // Determine lookup criteria
     const lookup: UserLookup = {};
-    if (username) lookup.username = username;
-    if (email) lookup.email = email;
-    if (phone_number) lookup.phone_number = phone_number;
     if (id) lookup.id = id;
-
-    // Flexible getUser call
-    const user = await UserManager.getUser(lookup);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    else if (phone_number) lookup.phone_number = phone_number;
+    else if (username) lookup.username = username;
+    else if (email) lookup.email = email;
+    else {
+      return res.status(400).json({ error: 'No user identifier provided.' });
     }
+    // Flexible getUser call
+    const result = await UserManager.getUser(lookup);
+    // console.log(result)
+    if (!result.success) return res.status(404).json({ error: 'User not found' });
+    const user = result.value
 
     // Compare password with hashed password
     const valid = await bcrypt.compare(password, user.password_hash);

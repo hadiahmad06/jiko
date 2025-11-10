@@ -2,10 +2,10 @@ import { vi } from 'vitest';
 
 import request from 'supertest';
 
-import createApp from '../app'; // path to Express app
-import ActivityManager from '../data/ActivityManager'; // Adjust path as needed
-import { ActivityExample } from '../types/activity/Activity';
-import { EntriesExamples } from '../types/activity/ActivityEntry';
+import createApp from '../../app'; // path to Express app
+import ActivityManager from '../../data/ActivityManager'; // Adjust path as needed
+import { ActivityExample } from '../../types/activity/Activity';
+import { EntriesExamples } from '../../types/activity/ActivityEntry';
 import jwt from 'jsonwebtoken';
 
 let app: any;

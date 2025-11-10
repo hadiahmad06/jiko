@@ -21,10 +21,10 @@ router.get('/auth/me', async (req, res) => {
     }
     const payload = jwt.verify(token, secret) as { userId: string };
 
-    const user = await UserManager.getUser(payload.userId);
+    const result = await UserManager.getUser(payload.userId);
+    if (!result.success) return res.status(404).json({ error: 'User not found' });
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
+    const user = result.value;
     res.json({
       phoneNumber: user.phone_number,
       email: user.email,

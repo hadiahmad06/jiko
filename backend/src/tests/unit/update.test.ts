@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import request from 'supertest';
-import createApp from '../app'; // or wherever you create your Express app
+import createApp from '../../app'; // or wherever you create your Express app
 import jwt from 'jsonwebtoken';
 
 let app: any;

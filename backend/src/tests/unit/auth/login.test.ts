@@ -1,11 +1,11 @@
 import { vi } from 'vitest';
 
 import request from 'supertest';
-import createApp from '../../app'; // path to your Express app
+import createApp from '../../../app'; // path to your Express app
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import UserManager from '../../data/UserManager';
-import type { UserLookup } from '../../services/UserRepository';
+import UserManager from '../../../data/UserManager';
+import type { UserLookup } from '../../../services/UserRepository';
 import { UserT } from 'types/user/User';
 
 let app: any;
@@ -24,20 +24,18 @@ beforeAll(async () => {
   process.env.JWT_SECRET = accessSecret;
 
   // Mock UserManager.getUser to return testUser with hashed password
-  vi.spyOn(UserManager, 'getUser').mockImplementation(async (lookup: UserLookup | string) => {
-    if (typeof lookup === "string") {
-      lookup = { id: lookup }
-    }
-    if (
-      lookup.id === testUser.id ||
-      lookup.email === testUser.email ||
-      lookup.username === testUser.username ||
-      lookup.phone_number === testUser.phone_number
-    ) {
-      return testUser;
-    }
-    return undefined;
-  });
+  vi.mock('../../../data/UserManager', () => ({
+  default: {
+    getUser: vi.fn(async (lookup: UserLookup | string) => {
+      if (typeof lookup === "string") lookup = { id: lookup };
+      if (lookup.id === testUser.id ||
+          lookup.email === testUser.email ||
+          lookup.phone_number === testUser.phone_number ||
+          lookup.username === testUser.username) return { success: true, value: testUser };
+      return { success: false, code: 67, details: { error: '', message: '' } };
+    })
+  }
+}));
 
   testUser = {
     id: 'user-123',
