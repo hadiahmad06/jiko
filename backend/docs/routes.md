@@ -1,3 +1,5 @@
+# V1 API
+
 ```mermaid
 classDiagram
     %% Authentication layer
@@ -11,21 +13,60 @@ classDiagram
         %% +DELETE /auth/logout
     }
 
+    %% Users layer
+    class UsersAPI {
+        <<REST API>>
+        +GET /users/me
+        +PATCH /users/me
+        +DELETE /users/me
+    }
+
+    %% User Preferences layer
+    class UserPreferencesAPI {
+        <<REST API>>
+        +GET /users/preferences
+        +PATCH /users/preferences
+    }
+
+    %% Devices layer
+    class DevicesAPI {
+        <<REST API>>
+        +GET /users/devices
+        +POST /users/devices
+        +PATCH /users/devices/:id
+        +DELETE /users/devices/:id
+
+        %% +GET /users/devices/:id
+    }
+
+    %% Integration Management APIs
+    class IntegrationsAPI {
+        <<REST API>>
+        +GET /users/integrations
+        +POST /users/integrations
+        +PATCH /users/integrations/:id
+        +DELETE /users/integrations/:id
+        +PATCH /users/integrations/:id/sync
+    }
+
     %% Activities
     class ActivitiesAPI {
         <<REST API>>
         +POST /activities
         +GET /activities
 
+        +GET /activities/:id
+        +PATCH /activities/:id
+        +DELETE /activities/:id
+    }
+
+    class ActivityEntriesAPI {
+        <<REST API>>
         +POST /activities/entries
         +PATCH /activities/entries
         +GET /activities/entries
         
         +DELETE /activities/entries/:id
-
-        +GET /activities/:id
-        +PATCH /activities/:id
-        +DELETE /activities/:id
 
         +GET /activities/:id/entries
     }
@@ -34,64 +75,66 @@ classDiagram
     class ObligationsAPI {
         <<REST API>>
         +GET /obligations
-        +POST /obligations
         +GET /obligations/:id
-        +PUT /obligations/:id
         +DELETE /obligations/:id
     }
 
-    %% Notifications
-    class NotificationsAPI {
-        <<REST API>>
-        +GET /notifications
-        +POST /notifications
-        +GET /notifications/:id
-        +PATCH /notifications/:id/read
-    }
-
-    %% Time Allocation Goals
     class TimeAllocationGoalsAPI {
         <<REST API>>
-        +GET /goals
-        +POST /goals
-        +GET /goals/:id
-        +PUT /goals/:id
+        +GET /obligations/time-goals
+        +POST /obligations/time-goals
+        +PATCH /obligations/time-goals/:id
+    }
+    
+    class EventsAPI {
+        <<REST API>>
+        +GET /obligations/events
+        +POST /obligations/events
+        +PATCH /obligations/events/:id
     }
 
-    %% Normal updates
-    class NormalUpdateAPI {
+    class TasksAPI {
         <<REST API>>
-        +POST /activities/:id/entries
-        +POST /obligations/:id/events
-        +POST /app-usage
-        +POST /health
-        +POST /location
+        +GET /obligations/tasks
+        +POST /obligations/tasks
+        +PATCH /obligations/tasks/:id
     }
 
-    %% Damaging updates (destructive changes)
-    class DamagingUpdateAPI {
+    %% Notifications
+    %%class NotificationsAPI {
+    %%    <<REST API>>
+    %%    +GET /notifications
+    %%    +POST /notifications
+    %%    +GET /notifications/:id
+    %%    +PATCH /notifications/:id/read
+    %%}
+
+    %% Meta & System
+    class SystemAPI {
         <<REST API>>
-        +PUT /notification-settings
-        +PATCH /calendar-integration
-        +PATCH /email-integration
+        +GET /health
+        +GET /version
+        +GET /debug/routes
     }
 
-    %% Device & integrations
-    class DeviceIntegrationAPI {
+    %% Sync APIs
+    class ClientSyncAPI {
         <<REST API>>
-        +GET /device-tokens
-        +POST /device-tokens
-        +DELETE /device-tokens
-        +GET /services
+        +POST /sync/health
+        +POST /sync/location
+        +POST /sync/app-usage
     }
 
     %% Relationships
-    %% AuthAPI --|> UsersAPI : "Authenticates user operations"
-    AuthAPI --|> ObligationsAPI : "Protects obligation actions"
-    AuthAPI --|> NotificationsAPI : "Controls notification access"
-    AuthAPI --|> ActivitiesAPI : "Restricts activity management"
-    AuthAPI --|> DeviceIntegrationAPI : "Secures device/integration access"
-    AuthAPI --|> NormalUpdateAPI : "Validates updates"
-    AuthAPI --|> DamagingUpdateAPI : "Prevents unauthorized deletions/changes"
+    AuthAPI --|> UsersAPI
+    AuthAPI --|> ObligationsAPI
+    AuthAPI --|> ActivitiesAPI
+    ActivitiesAPI <|-- ActivityEntriesAPI
+    AuthAPI --|> ClientSyncAPI
+    UsersAPI <|-- IntegrationsAPI
+    UsersAPI <|-- DevicesAPI
+    UsersAPI <|-- UserPreferencesAPI
     ObligationsAPI <|-- TimeAllocationGoalsAPI
+    ObligationsAPI <|-- EventsAPI
+    ObligationsAPI <|-- TasksAPI
 ```

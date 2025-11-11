@@ -3,25 +3,27 @@
 ```mermaid
 erDiagram
 
-    PostgreSQL:::postgres
+    PostgreSQL:::postgres_
 
-    USERS:::postgres {
+    USERS:::postgres_ {
         uuid id PK
-        string phone_number UK
-        string password_hash
+        string phone_number UK "NOT NULL"
+        string password_hash "NOT NULL"
         string email UK
         string username UK
-        boolean is_active
-        Date created_at
-        Date updated_at
+        boolean is_active "DEFAULT TRUE"
+        Date created_at "DEFAULT NOW()"
+        Date updated_at "DEFAULT NOW() + TRIGGER"
         string display_name
         string nickname
     }
 
-    DynamoDB:::dynamodb
+    DynamoDB:::dynamodb_
 
-    classDef postgres fill:#a448
-    classDef dynamodb fill:#44a8
+    classDef postgres fill:#8334
+    classDef dynamodb fill:#3384
+    classDef postgres_ fill:#833
+    classDef dynamodb_ fill:#338
 ```
 # Activity and Obligations ER Diagram
 
@@ -29,49 +31,50 @@ erDiagram
 erDiagram
     USERS:::postgres
 
-    OBLIGATIONS:::postgres {
+    OBLIGATIONS:::postgres_ {
         uuid id PK
-        uuid user_id FK
-        string title
+        uuid user_id FK "REFERENCES users(id)"
+        string title "NOT NULL"
         string description
-        boolean completed
+        log_type created_by "DEFAULT 'user'"
+        boolean completed "DEFAULT FALSE"
         datetime completed_at
-        boolean archived
-        datetime created_at
-        datetime updated_at
+        boolean archived "DEFAULT FALSE"
+        datetime created_at "DEFAULT NOW()"
+        datetime updated_at "DEFAULT NOW() + TRIGGER"
     }
 
-    DEADLINED_OBLIGATIONS:::postgres {
-        uuid id PK, FK
+    DEADLINED_OBLIGATIONS:::postgres_ {
+        uuid id PK, FK "REFERENCES obligations(id)"
         datetime deadline
-        float intervention_level "default 0.5"
-        boolean completed
+        float intervention_level "DEFAULT 0.5"
+        boolean completed "DEFAULT FALSE"
         datetime completed_at
     }
 
-    EVENTS:::postgres {
-        uuid id PK, FK
-        datetime start_time
+    EVENTS:::postgres_ {
+        uuid id PK, FK "REFERENCES obligations(id)"
+        datetime start_time "NOT NULL"
         datetime end_time
-        string location
-        boolean all_day
+        uuid location_id "REFERENCES locations(id)"
+        boolean all_day "DEFAULT FALSE"
     }
 
-    TASKS:::postgres {
-        uuid id PK, FK
+    TASKS:::postgres_ {
+        uuid id PK, FK "REFERENCES obligations(id)"
         datetime due_date
         int estimated_minutes
     }
 
-    TIME_ALLOCATION_GOALS:::postgres {
-        uuid id PK, FK
-        uuid activity_id FK
-        float strictness "default 0.5"
+    TIME_ALLOCATION_GOALS:::postgres_ {
+        uuid id PK, FK "REFERENCES users(id)"
+        uuid activity_id FK "REFERENCES activities(id)"
+        float strictness "DEFAULT 0.5"
         int target_minutes
         int timeframe_days "1 = one day, 7 = one week"
     }
 
-    MESSAGES:::dynamodb {
+    MESSAGES:::dynamodb_ {
         uuid id PK
         uuid user_id FK
         boolean is_user
@@ -79,34 +82,35 @@ erDiagram
         datetime timestamp
     }
 
-    MESSAGE_HISTORY:::dynamodb {
+    MESSAGE_HISTORIES:::dynamodb_ {
         uuid id PK
         uuid message_id FK
         string action "delivered, seen, responded"
         datetime timestamp
     }
 
-    ACTIVITIES:::postgres {
+    ACTIVITIES:::postgres_ {
         uuid id PK
-        uuid user_id FK
+        uuid user_id FK "REFERENCES users(id)"
         string name
+        string description
         string image
         string color
-        string description
-        datetime created_at
+        datetime created_at "DEFAULT NOW()"
+        datetime updated_at "DEFAULT NOW() + TRIGGER"
     }
 
-    ACTIVITY_ENTRIES:::postgres {
+    ACTIVITY_ENTRIES:::postgres_ {
         uuid id PK
-        uuid user_id FK
-        uuid activity_id FK
-        datetime start_time
+        uuid user_id FK "REFERENCES users(id)"
+        uuid activity_id FK "REFERENECS activities(id)"
+        datetime start_time "NOT NULL"
         datetime end_time
         string note
-        string logged_by "user, system, trigger"
-        string ended_by "user, system, trigger"
+        log_type logged_by "NOT NULL"
+        log_type ended_by "user, system, trigger"
         float confidence_score
-        int duration_minutes
+        int duration_minutes "GENERATED .. STORED"
     }
 
     USERS ||--o{ OBLIGATIONS : "owns"
@@ -121,10 +125,12 @@ erDiagram
     %%MESSAGES ||--o| NOTIFICATIONS : "extends"
     %%NOTIFICATIONS ||--o| RECURRING_NOTIFICATIONS : "extends"
     %%NOTIFICATIONS }o--|| NOTIFICATION_TYPES : "used_by"
-    MESSAGES ||--o{ MESSAGE_HISTORY : "has"
+    MESSAGES ||--o{ MESSAGE_HISTORIES : "has"
     
-    classDef postgres fill:#a448
-    classDef dynamodb fill:#44a8
+    classDef postgres fill:#8334
+    classDef dynamodb fill:#3384
+    classDef postgres_ fill:#833
+    classDef dynamodb_ fill:#338
 ```
 
 # User Preferences & Integrations ER Diagram
@@ -141,7 +147,7 @@ erDiagram
 
     USERS:::postgres
 
-    USER_PREFERENCES:::dynamodb {
+    USER_PREFERENCES:::dynamodb_ {
         uuid user_id PK, FK
         string strictness
         string intervention_level
@@ -150,7 +156,7 @@ erDiagram
         string other_preferences
     }
 
-    SERVICES:::dynamodb {
+    SERVICES:::dynamodb_ {
         uuid id PK
         string name
         string description
@@ -159,7 +165,7 @@ erDiagram
         string icon_url
     }
 
-    INTEGRATIONS:::dynamodb {
+    INTEGRATIONS:::dynamodb_ {
         uuid user_id PK, FK
         uuid service_id PK, FK
         string access_token
@@ -168,40 +174,41 @@ erDiagram
         string sync_settings
     }
 
-    LOCATIONS:::postgres {
+    LOCATIONS:::postgres_ {
         uuid id PK
-        uuid user_id FK
+        uuid user_id FK "REFERENCES users(id)"
         string name
-        float latitude
-        float longitude
-        int radius
-        boolean is_active
-        datetime created_at
-        datetime updated_at
+        float latitude "NOT NULL"
+        float longitude "NOT NULL"
+        int radius "NOT NULL"
+        boolean archived "DEFAULT FALSE"
+        datetime created_at "DEFAULT NOW()"
+        datetime updated_at "DEFAULT NOW() + TRIGGER"
     }
 
     LOCATION_TRIGGERS:::dynamodb
 
-    DEVICE_TOKENS:::dynamodb {
-        uuid user_id PK, FK
-        string device_token PK
+    DEVICES:::dynamodb_ {
+        uuid id PK
+        uuid user_id FK
+        string device_token
         string device_type "ios, macos"
         datetime last_active
     }
 
-    CHATBOTS:::dynamodb {
+    CHATBOTS:::dynamodb_ {
         uuid id PK
         uuid user_id FK
-        string nickname PK
+        string nickname
     }
 
-    CHATBOT_SPEAKING_STYLE_WEIGHT:::dynamodb {
+    CHATBOT_SPEAKING_STYLE_WEIGHTS:::dynamodb_ {
         uuid chatbot_id PK, FK
         uuid speaking_style_id PK, FK
         float weight 
     }
 
-    SPEAKING_STYLES:::dynamodb {
+    SPEAKING_STYLES:::dynamodb_ {
         uuid id PK
         string name
         string description "for developers"
@@ -209,20 +216,23 @@ erDiagram
     
     USERS ||--o{ INTEGRATIONS : "owns"
     USERS ||--|| USER_PREFERENCES : "owns"
-    USERS ||--o{ DEVICE_TOKENS : "owns"
+    USERS ||--o{ DEVICES : "owns"
     SERVICES }o--|| INTEGRATIONS : "used_by"
 
     USERS ||--o{ LOCATIONS : "owns"
     USERS ||--|| CHATBOTS : "has"
 
-    CHATBOTS ||--o{ CHATBOT_SPEAKING_STYLE_WEIGHT : "has"
-    SPEAKING_STYLES }o--|| CHATBOT_SPEAKING_STYLE_WEIGHT : "used_by"
+    CHATBOTS ||--o{ CHATBOT_SPEAKING_STYLE_WEIGHTS : "has"
+    SPEAKING_STYLES }o--|| CHATBOT_SPEAKING_STYLE_WEIGHTS : "used_by"
 
     LOCATION_TRIGGERS }o--|| LOCATIONS : "uses"
 
-    classDef postgres fill:#a448
-    classDef dynamodb fill:#44a8
+    classDef postgres fill:#8334
+    classDef dynamodb fill:#3384
+    classDef postgres_ fill:#833
+    classDef dynamodb_ fill:#338
 ```
+# Triggers ER Diagram
 
 ```mermaid
 erDiagram
@@ -230,62 +240,38 @@ erDiagram
     LOCATIONS:::postgres
     USERS:::postgres
 
-    %%ACTIONS:::dynamodb {
-    %%    uuid id PK
-    %%    uuid user_id FK
-    %%    json definition
-        %%string type "start_activity, end_activity, llm_call"
-        %%json edges "[{condition:'success', action_id:'act-2'}]"
-        %%json payload
-    %%}
-
-    %%CONDITIONS:::dynamodb {
-    %%    uuid id PK
-    %%    uuid user_id FK
-    %%    json definition
-    %%    %%string expression "health.getLast(heartrate) < 60"
-    %%}
-
-    %%NESTED_CONDITIONS:::dynamodb {
-    %%    uuid parent_cond_id FK
-    %%    string type "NOT, AND, OR, XOR"
-    %%    uuid l_cond_id FK
-    %%    uuid r_cond_id FK
-    %%}
-
-    TRIGGERS:::dynamodb {
+    TRIGGERS:::dynamodb_ {
         uuid id PK
         uuid user_id FK
         json action_json
-    %%    uuid action_id FK
-    %%    uuid condition_id FK 
     }
 
-    SCHEDULED_TRIGGERS:::dynamodb {
+    SCHEDULED_TRIGGERS:::dynamodb_ {
         uuid trigger_id PK, FK
         datetime scheduled_at
         json recurrence_rule "{interval: '7', unit: 'd'}"
         boolean enabled "separate from triggers table so that they can be turned off individually"
     }
 
-    LOCATION_TRIGGERS:::dynamodb {
+    %% include user_id beacuse it makes the query faster since its based on sync updates.
+    LOCATION_TRIGGERS:::dynamodb_ {
         uuid trigger_id PK, FK
         uuid location_id FK
         string event_type "enter/exit/both"
         boolean enabled
     }
 
-    APP_USAGE_TRIGGERS:::dynamodb {
+    APP_USAGE_TRIGGERS:::dynamodb_ {
         uuid trigger_id PK, FK
-        uuid bundleId FK "to be polished"
-        json event_type "open/close/both"
-        boolean enabled
+        uuid user_id FK
+        string enabled_bundle_id "${enabled}#${bundle_Id}"
+        json precondition "included to reduce duplicate triggers"
     }
 
-    HEALTH_TRIGGERS:::dynamodb {
+    HEALTH_TRIGGERS:::dynamodb_ {
         uuid trigger_id PK, FK
-        string event_type "step_count, heartrate"
-        boolean enabled
+        uuid user_id FK 
+        string enabled_event_type "${enabled}#${event_type}"
     }
 
     %%USERS ||--o{ ACTIONS : "owns"
@@ -299,11 +285,14 @@ erDiagram
     TRIGGERS ||--o| LOCATION_TRIGGERS : "extends"
     TRIGGERS ||--o| APP_USAGE_TRIGGERS : "extends"
     TRIGGERS ||--o| SCHEDULED_TRIGGERS : "extends"
+    TRIGGERS ||--o| HEALTH_TRIGGERS : "extends"
 
     %%CONDITIONS ||--o| NESTED_CONDITIONS : "extends"
     %%NESTED_CONDITIONS ||--o| NESTED_CONDITIONS : "uses"
 
 
-    classDef postgres fill:#a448
-    classDef dynamodb fill:#44a8
+    classDef postgres fill:#8334
+    classDef dynamodb fill:#3384
+    classDef postgres_ fill:#833
+    classDef dynamodb_ fill:#338
 ```

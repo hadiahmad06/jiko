@@ -61,12 +61,22 @@ async function createTables() {
 
   await client.connect();
 
+  await client.query(`
+    CREATE OR REPLACE FUNCTION set_updated_at()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = NOW();
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `)
+
   // Example table creation
   await client.query(`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY,
       phone_number TEXT UNIQUE NOT NULL,
-      password_hash TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
       email TEXT UNIQUE,
       username TEXT UNIQUE,
       is_active BOOLEAN DEFAULT TRUE,
@@ -75,6 +85,10 @@ async function createTables() {
       display_name TEXT,
       nickname TEXT
     );
+    CREATE TRIGGER users_set_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
   `);
 
   await client.query(`
@@ -85,11 +99,17 @@ async function createTables() {
       description TEXT,
       image TEXT,
       color TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
     );
+    CREATE TRIGGER activities_set_updated_at
+    BEFORE UPDATE ON activities
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
   `);
 
   await client.query(`
+    CREATE TYPE log_type AS ENUM ('user', 'system', 'trigger');
     CREATE TABLE IF NOT EXISTS activity_entries (
       id UUID PRIMARY KEY,
       user_id UUID REFERENCES users(id),
@@ -97,7 +117,8 @@ async function createTables() {
       start_time TIMESTAMP NOT NULL,
       end_time TIMESTAMP,
       note TEXT,
-      logged_by TEXT NOT NULL,
+      logged_by log_type NOT NULL,
+      ended_by log_type,
       confidence_score FLOAT,
       duration_minutes INT GENERATED ALWAYS AS (CAST(EXTRACT(EPOCH FROM (end_time - start_time)) / 60 AS INT)) STORED
     );
@@ -109,22 +130,45 @@ async function createTables() {
       user_id UUID REFERENCES users(id),
       title TEXT NOT NULL,
       description TEXT,
+      created_by log_type DEFAULT 'user'
       completed BOOLEAN DEFAULT FALSE,
       completed_at TIMESTAMP,
       archived BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
+    CREATE TRIGGER obligations_set_updated_at
+    BEFORE UPDATE ON obligations
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
   `);
 
   await client.query(`
     CREATE TABLE IF NOT EXISTS deadlined_obligations (
       id UUID PRIMARY KEY REFERENCES obligations(id),
       deadline TIMESTAMP,
-      intervention_level FLOAT DEFAULT 0.5 NOT NULL,
+      intervention_level FLOAT DEFAULT 0.5,
       completed BOOLEAN DEFAULT FALSE,
       completed_at TIMESTAMP
     );
+  `);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS locations (
+      id UUID PRIMARY KEY,
+      user_id UUID REFERENCES users(id),
+      name TEXT,
+      latitude FLOAT NOT NULL,
+      longitude FLOAT NOT NULL,
+      radius INT NOT NULL,
+      archived BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TRIGGER locations_set_updated_at
+    BEFORE UPDATE ON locations
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
   `);
 
   await client.query(`
@@ -132,7 +176,7 @@ async function createTables() {
       id UUID PRIMARY KEY REFERENCES obligations(id),
       start_time TIMESTAMP NOT NULL,
       end_time TIMESTAMP,
-      location TEXT,
+      location_id UUID REFERENCES locations(id),
       all_day BOOLEAN DEFAULT FALSE
     );
   `);
@@ -149,7 +193,7 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS time_allocation_goals (
       id UUID PRIMARY KEY REFERENCES users(id),
       activity_id UUID REFERENCES activities(id),
-      strictness FLOAT DEFAULT 0.5 NOT NULL,
+      strictness FLOAT DEFAULT 0.5,
       target_minutes INT,
       timeframe_days INT
     );

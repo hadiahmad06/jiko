@@ -39,7 +39,7 @@ const client = new DynamoDBClient({
 async function createTables() {
   const tables = [
     {
-      TableName: 'Messages',
+      TableName: 'MESSAGES',
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'user_id', AttributeType: 'S' },
@@ -48,25 +48,7 @@ async function createTables() {
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'NotificationTypes',
-      AttributeDefinitions: [
-        { AttributeName: 'id', AttributeType: 'S' },
-        { AttributeName: 'user_id', AttributeType: 'S' },
-      ],
-      KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'Notifications',
-      AttributeDefinitions: [
-        { AttributeName: 'id', AttributeType: 'S' },
-        { AttributeName: 'type_id', AttributeType: 'S' },
-      ],
-      KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'MessageHistory',
+      TableName: 'MESSAGE_HISTORIES',
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'message_id', AttributeType: 'S' },
@@ -75,7 +57,7 @@ async function createTables() {
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'UserPreferences',
+      TableName: 'USER_PREFERENCES',
       AttributeDefinitions: [
         { AttributeName: 'user_id', AttributeType: 'S' },
       ],
@@ -83,51 +65,7 @@ async function createTables() {
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'Services',
-      AttributeDefinitions: [
-        { AttributeName: 'name', AttributeType: 'S' },
-      ],
-      KeySchema: [{ AttributeName: 'name', KeyType: 'HASH' }],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'EmailIntegration',
-      AttributeDefinitions: [
-        { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'service_name', AttributeType: 'S' },
-      ],
-      KeySchema: [
-        { AttributeName: 'user_id', KeyType: 'HASH' },
-        { AttributeName: 'service_name', KeyType: 'RANGE' },
-      ],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'CalendarIntegration',
-      AttributeDefinitions: [
-        { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'service_name', AttributeType: 'S' },
-      ],
-      KeySchema: [
-        { AttributeName: 'user_id', KeyType: 'HASH' },
-        { AttributeName: 'service_name', KeyType: 'RANGE' },
-      ],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'DeviceTokens',
-      AttributeDefinitions: [
-        { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'device_token', AttributeType: 'S' },
-      ],
-      KeySchema: [
-        { AttributeName: 'user_id', KeyType: 'HASH' },
-        { AttributeName: 'device_token', KeyType: 'RANGE' },
-      ],
-      BillingMode: 'PAY_PER_REQUEST',
-    },
-    {
-      TableName: 'Devices',
+      TableName: 'SERVICES',
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
       ],
@@ -135,19 +73,41 @@ async function createTables() {
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'Chatbots',
+      TableName: 'INTEGRATIONS',
       AttributeDefinitions: [
-        { AttributeName: 'id', AttributeType: 'S' },
-        { AttributeName: 'nickname', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' },
+        { AttributeName: 'service_id', AttributeType: 'S' },
       ],
       KeySchema: [
-        { AttributeName: 'id', KeyType: 'HASH' },
-        { AttributeName: 'nickname', KeyType: 'RANGE' },
+        { AttributeName: 'user_id', KeyType: 'HASH' },
+        { AttributeName: 'service_id', KeyType: 'RANGE' },
       ],
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'ChatbotSpeakingStyleWeight',
+      TableName: 'DEVICES',
+      AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' },
+      ],
+      KeySchema: [
+        { AttributeName: 'id', KeyType: 'HASH' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    {
+      TableName: 'CHATBOTS',
+      AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' },
+      ],
+      KeySchema: [
+        { AttributeName: 'id', KeyType: 'HASH' },
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    {
+      TableName: 'CHATBOT_SPEAKING_STYLE_WEIGHTS',
       AttributeDefinitions: [
         { AttributeName: 'chatbot_id', AttributeType: 'S' },
         { AttributeName: 'speaking_style_id', AttributeType: 'S' },
@@ -159,13 +119,81 @@ async function createTables() {
       BillingMode: 'PAY_PER_REQUEST',
     },
     {
-      TableName: 'SpeakingStyles',
+      TableName: 'SPEAKING_STYLES',
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
       ],
       KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
       BillingMode: 'PAY_PER_REQUEST',
-    } as any
+    } as any,
+    // TRIGGERS table
+    {
+      TableName: 'TRIGGERS',
+      AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' }
+      ],
+      KeySchema: [
+        { AttributeName: 'id', KeyType: 'HASH' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    // SCHEDULED_TRIGGERS table
+    {
+      TableName: 'SCHEDULED_TRIGGERS',
+      AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'scheduled_at', AttributeType: 'S' },
+        { AttributeName: 'enabled', AttributeType: 'B' }
+      ],
+      KeySchema: [
+        { AttributeName: 'id', KeyType: 'HASH' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    // LOCATION_TRIGGERS table
+    {
+      TableName: 'LOCATION_TRIGGERS',
+      AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' },
+        { AttributeName: 'location_id', AttributeType: 'S' },
+        { AttributeName: 'enabled', AttributeType: 'B' }
+      ],
+      KeySchema: [
+        { AttributeName: 'id', KeyType: 'HASH' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    // APP_USAGE_TRIGGERS table
+    {
+      TableName: 'APP_USAGE_TRIGGERS',
+      AttributeDefinitions: [
+        { AttributeName: 'user_id', AttributeType: 'S' },
+        { AttributeName: 'enabled_event_type', AttributeType: 'S' },
+        { AttributeName: 'id', AttributeType: 'S' }
+      ],
+      KeySchema: [
+        { AttributeName: 'user_id', KeyType: 'HASH' },
+        { AttributeName: 'enabled_event_type', KeyType: 'RANGE' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    },
+    // HEALTH_TRIGGERS table
+    {
+      TableName: 'HEALTH_TRIGGERS',
+      AttributeDefinitions: [
+        { AttributeName: 'user_id', AttributeType: 'S' },
+        { AttributeName: 'enabled_event_type', AttributeType: 'S' },
+        { AttributeName: 'id', AttributeType: 'B' },
+      ],
+      KeySchema: [
+        // NEEDS TO USE COMPOSITE SORT KEY: `${enabled}#${health_type}`
+        { AttributeName: 'user_id', KeyType: 'HASH' },
+        { AttributeName: 'enabled_event_type', KeyType: 'RANGE' }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+    }
   ];
 
   for (const t of tables) {
