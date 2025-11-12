@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0122C25E2EA4688400D806AC /* JikoSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0122C25D2EA4688400D806AC /* JikoSync.framework */; };
+		0122C25F2EA4688400D806AC /* JikoSync.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0122C25D2EA4688400D806AC /* JikoSync.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		014A28502E9FC44900DB88E2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -23,15 +28,43 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		0122C2592EA4680D00D806AC /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				0122C25F2EA4688400D806AC /* JikoSync.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		0122C25D2EA4688400D806AC /* JikoSync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = JikoSync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		014A283E2E9FC44800DB88E2 /* JikoMacOSAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JikoMacOSAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014A284F2E9FC44900DB88E2 /* JikoMacOSAgentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoMacOSAgentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		014A28592E9FC44900DB88E2 /* JikoMacOSAgentUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoMacOSAgentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		0122C25C2EA4683E00D806AC /* Exceptions for "JikoMacOSAgent" folder in "Compile Sources" phase from "JikoMacOSAgent" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 014A283A2E9FC44800DB88E2 /* Sources */;
+			membershipExceptions = (
+				"JikoSync-Bridging-Header.h",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		014A28402E9FC44800DB88E2 /* JikoMacOSAgent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0122C25C2EA4683E00D806AC /* Exceptions for "JikoMacOSAgent" folder in "Compile Sources" phase from "JikoMacOSAgent" target */,
+			);
 			path = JikoMacOSAgent;
 			sourceTree = "<group>";
 		};
@@ -52,6 +85,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0122C25E2EA4688400D806AC /* JikoSync.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +112,7 @@
 				014A28402E9FC44800DB88E2 /* JikoMacOSAgent */,
 				014A28522E9FC44900DB88E2 /* JikoMacOSAgentTests */,
 				014A285C2E9FC44900DB88E2 /* JikoMacOSAgentUITests */,
+				014A28ED2EA4421000DB88E2 /* Frameworks */,
 				014A283F2E9FC44800DB88E2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -92,6 +127,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		014A28ED2EA4421000DB88E2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0122C25D2EA4688400D806AC /* JikoSync.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -102,6 +145,7 @@
 				014A283A2E9FC44800DB88E2 /* Sources */,
 				014A283B2E9FC44800DB88E2 /* Frameworks */,
 				014A283C2E9FC44800DB88E2 /* Resources */,
+				0122C2592EA4680D00D806AC /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

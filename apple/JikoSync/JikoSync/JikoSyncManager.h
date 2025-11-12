@@ -6,8 +6,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "JikoSyncEvent.h"
-#import "JikoSyncEnvironment.h"
+#import <JikoSync/JikoSyncEvent.h>
+#import <JikoSync/JikoSyncEnvironment.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

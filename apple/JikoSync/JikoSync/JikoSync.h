@@ -13,6 +13,7 @@ FOUNDATION_EXPORT double JikoSyncVersionNumber;
 //! Project version string for JikoSync.
 FOUNDATION_EXPORT const unsigned char JikoSyncVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <JikoSync/PublicHeader.h>
-
-
+// Public headers
+#import <JikoSync/JikoSyncManager.h>
+#import <JikoSync/JikoSyncEvent.h>
+#import <JikoSync/JikoSyncEnvironment.h>

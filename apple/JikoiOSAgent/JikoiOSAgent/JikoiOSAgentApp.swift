@@ -6,12 +6,22 @@
 //
 
 import SwiftUI
+import JikoSync
 
 @main
 struct JikoiOSAgentApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  
+  // Start the agent on launch
+  init() {
+    JikoSyncManager.shared().startSyncing()
+    JikoSyncManager.shared().onEventSynced = { event in
+      print("Synced event: \(event.appIdentifier) at \(event.timestamp)")
     }
+  }
+  
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
+  }
 }

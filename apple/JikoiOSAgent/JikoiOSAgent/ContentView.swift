@@ -6,19 +6,38 @@
 //
 
 import SwiftUI
+import JikoSync
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
+  @State private var batteryLevel: Float = 0.0
+  @State private var isCharging: Bool = false
+  
+  var body: some View {
+    VStack(spacing: 20) {
+      Text("JikoiOSAgent Running")
+        .font(.title)
         .padding()
+      
+      Text("Battery Level: \(Int(batteryLevel * 100))%")
+      Text("Charging: \(isCharging ? "Yes" : "No")")
+      
+      Button("Update Environment") {
+        let env = JikoSyncManager.shared().currentEnvironmentSnapshot()
+        batteryLevel = Float(env.batteryLevel)
+        isCharging = env.isCharging
+      }
+      
+      Button("Log Test Event") {
+        let event = JikoSyncEvent(appIdentifier: "com.example.test", type: .custom, metadata: ["note": "Test event"])
+        JikoSyncManager.shared().logEvent(event)
+      }
     }
+    .padding()
+  }
 }
 
-#Preview {
+struct ContentView_Previews: PreviewProvider {
+  static var previews: some View {
     ContentView()
+  }
 }
