@@ -1,10 +1,10 @@
 import { Result } from 'types/common.js';
 import UserRepository, { UserLookup } from '../services/UserRepository.js';
-import type { AppUsageUpdateT } from '../types/appUsage/AppUsageUpdate.js';
-import type { PlatformT } from '../types/device/Platform.js';
 import type { UserT } from '../types/user/User.js';
 
 class UserManager {
+  // * need to replace with something better... not rn tho
+  // ? redis, or dictionary, think about it later
   private cache: Record<string, UserT> = {};
 
   async getUser(lookup: UserLookup | string): Promise<Result<UserT>> {
@@ -31,22 +31,7 @@ class UserManager {
     return result;
   }
 
-  async updateAppUsage(user_id: string, update: AppUsageUpdateT) {
-    const timestamp = update.timestamp ?? new Date().toISOString();
-    const result = await this.getUser({ id: user_id });
-    if (!result.success) return;
-
-    const platform = update.platform as PlatformT;
-    result.value.appUsage[platform] = {
-      timestamp,
-      platform,
-      currentActivity: update.currentActivity ?? [],
-      deviceId: update.deviceId,
-    };
-
-    // Not persisted yet by design
-  }
-
+  // ! debug only
   getAllCached() {
     return { ...this.cache };
   }

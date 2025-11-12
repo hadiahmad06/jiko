@@ -38,10 +38,8 @@ class UserRepository {
   async addUser(user: UserT): Promise<Result<UserT>> {
     const client = await getPsqlClient();
 
-    const { appUsage, ...rest } = user
-
-    const columns = [...Object.keys(rest)];
-    const values = [...Object.values(rest)];
+    const columns = [...Object.keys(user)];
+    const values = [...Object.values(user)];
     const placeholders = values.map((_, i) => `$${i + 1}`);
     // console.log(columns)
 

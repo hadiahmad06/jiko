@@ -82,7 +82,7 @@ router.patch('/activities/entries', authMiddleware, async (req, res) => {
 
     const entries = await ActivityManager.updateEntry(parsed.data);
     if (!entries.success) return res.status(entries.code).json(entries.details);
-    res.json(entries);
+    res.json(entries.value);
   } catch (error) {
     console.error(`Error fetching entries for activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while fetching activity entries.' });
@@ -111,7 +111,7 @@ router.get('/activities/entries', authMiddleware, async (req, res) => {
 
     const entries = await ActivityManager.getEntries(parsed.data, user_id);
     if (!entries.success) return res.status(entries.code).json(entries.details);
-    res.json(entries);
+    res.json(entries.value);
   } catch (error) {
     console.error(`Error fetching entries for activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while fetching activity entries.' });
@@ -150,10 +150,8 @@ router.get('/activities/:id/entries', authMiddleware, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ error: 'InvalidQuery', message: 'Query parameters are invalid.', details: parsed.error.issues });
     const entries = await ActivityManager.getActivityEntries(id, parsed.data, user_id);
 
-    if (!entries) {
-      return res.status(404).json({ error: 'NotFound', message: `Entries for activity id ${id} not found.` });
-    }
-    res.json(entries);
+    if (!entries.success) return res.status(entries.code).json(entries.details)
+    res.json(entries.value);
   } catch (error) {
     console.error(`Error fetching entries for activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while fetching activity entries.' });
@@ -168,11 +166,10 @@ router.get('/activities/:id', authMiddleware, async (req, res) => {
 
     if (!id) return res.status(400).json({ error: 'MissingParameter', message: 'Activity id is required.' });
 
-    const activity = await ActivityManager.getActivity(id, user_id);
-    if (!activity) {
-      return res.status(404).json({ error: 'NotFound', message: `Activity with id ${id} not found.` });
-    }
-    res.json(activity);
+    const result = await ActivityManager.getActivity(id, user_id);
+    if (!result.success) return res.status(result.code).json(result.details);
+
+    res.json(result.value);
   } catch (error) {
     console.error(`Error fetching activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while fetching the activity.' });
@@ -191,10 +188,10 @@ router.patch('/activities/:id', authMiddleware, async (req, res) => {
     const parsed = PartialActivityWithIds.safeParse({ id, user_id, ...body });
     if (!parsed.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: parsed.error.issues });
 
-    const updatedActivity = await ActivityManager.updateActivity({ id, user_id, ...req.body });
-    if (!updatedActivity.success) return res.status(updatedActivity.code).json(updatedActivity.details);
+    const result = await ActivityManager.updateActivity({ id, user_id, ...req.body });
+    if (!result.success) return res.status(result.code).json(result.details);
 
-    res.json(updatedActivity);
+    res.json(result.value);
   } catch (error) {
     console.error(`Error updating activity with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while updating the activity.' });

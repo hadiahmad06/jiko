@@ -25,6 +25,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/types/appUsage/AppUsageData.ts"],
   "exclude": ["scripts/**/*.ts"],
 }

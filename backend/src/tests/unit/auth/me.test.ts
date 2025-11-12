@@ -18,7 +18,7 @@ beforeAll(async () => {
 const refreshSecret = 'test_refresh_secret';
 const accessSecret = 'test_access_secret';
 
-vi.mock('../../data/UserManager');
+vi.mock('../../../data/UserManager');
 const mockedGetUser = vi.mocked(UserManager.getUser);
 
 describe('Auth API - /auth/me', () => {
@@ -30,8 +30,7 @@ describe('Auth API - /auth/me', () => {
     username: 'testuser',
     display_name: 'Test User',
     nickname: 'Tester',
-    is_active: true,
-    appUsage: {}
+    is_active: true
   };
 
   beforeAll(() => {
@@ -44,7 +43,7 @@ describe('Auth API - /auth/me', () => {
   });
 
   it('should return user info when token is valid', async () => {
-    mockedGetUser.mockResolvedValue(testUser);
+    mockedGetUser.mockResolvedValue({ success: true, value: testUser });
 
     const res = await request(app)
       .get('/auth/me')
@@ -75,7 +74,7 @@ describe('Auth API - /auth/me', () => {
   });
 
   it('should return 404 if user not found', async () => {
-    mockedGetUser.mockResolvedValue(undefined);
+    mockedGetUser.mockResolvedValue({ success: false, code: 404, details: { error: '', message: '' } });
     const res = await request(app)
       .get('/auth/me')
       .set('Authorization', `Bearer ${token}`);

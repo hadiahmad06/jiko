@@ -3,6 +3,8 @@ import { vi } from 'vitest';
 import request from 'supertest';
 import createApp from '../../../app';
 import UserManager from '../../../data/UserManager';
+import { Result } from 'types/common';
+import { UserT } from 'types/user/User';
 
 let app: any;
 
@@ -15,16 +17,13 @@ beforeAll(async () => {
   process.env.JWT_SECRET = accessSecret;
 })
 
-vi.mock('../../data/UserManager');
+vi.mock('../../../data/UserManager');
 const mockedAddUser = vi.mocked(UserManager.addUser);
-
-beforeEach(() => {
-  mockedAddUser.mockReset();
-});
+const mockSuccessfulResult: Result<UserT> = { success: true, value: { id: 'random-id', phone_number: '+11234567890', password_hash: 'hashed-password', is_active: true }}
 
 describe('Auth API - /auth/signup', () => {
   it('should signup with only phoneNumber and password', async () => {
-    mockedAddUser.mockResolvedValue({ success: true });
+    mockedAddUser.mockResolvedValue(mockSuccessfulResult);
 
     const res = await request(app)
       .post('/auth/signup')
@@ -36,7 +35,7 @@ describe('Auth API - /auth/signup', () => {
   });
 
   it('should signup with all attributes', async () => {
-    mockedAddUser.mockResolvedValue({ success: true });
+    mockedAddUser.mockResolvedValue(mockSuccessfulResult);
 
     const res = await request(app)
       .post('/auth/signup')
