@@ -9,6 +9,9 @@ import { motion } from "framer-motion";
 // import Hero from "./Hero";
 // extend({ Hero })
 
+useGLTF.preload("/lotus_flower.glb");
+
+
 type ModelProps = ThreeElements["primitive"]
 
 function Model({src, ...props}: {src: string} & Omit<ModelProps, "object">) {

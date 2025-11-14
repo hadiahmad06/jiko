@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat, Italianno } from "next/font/google";
 import "./globals.css";
-import LotusFlower from "@/components/LotusFlower";
 import Navbar from "@/components/Navbar";
 import CursorHandler from "@/components/CursorHandler";
 import PortalScene from "@/components/PortalScene";
 import { PortalProvider } from "@/context/PortalContext";
+// import { SectionHeightProvider } from "@/context/SectionHeightContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -80,12 +80,14 @@ export default function RootLayout({
         <div className="text-foreground min-h-screen font-sans flex flex-col justify-between">
           <Navbar />
           <div className="h-8"/>
-          <PortalProvider>
-            <CursorHandler>
-              <PortalScene />
-              <main>{children}</main>
-            </CursorHandler>
-          </PortalProvider>
+          {/* <SectionHeightProvider> */}
+            <PortalProvider>
+              <CursorHandler>
+                <PortalScene />
+                <main>{children}</main>
+              </CursorHandler>
+            </PortalProvider>
+          {/* </SectionHeightProvider> */}
           {/* <LotusFlower /> */}
           <div className="h-24"/>
          </div>

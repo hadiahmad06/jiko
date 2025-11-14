@@ -3,7 +3,13 @@
 import React, { useEffect, useRef } from "react";
 import { usePortal } from "@/context/PortalContext";
 
-export default function PortalAnchor({ children, className }: { children?: React.ReactNode, className?: string }) {
+export default function PortalAnchor({ 
+    children, 
+    className
+}: { 
+    children?: React.ReactNode, 
+    className?: string
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const { setTarget } = usePortal();
 
@@ -15,10 +21,10 @@ export default function PortalAnchor({ children, className }: { children?: React
       setTarget(null);
     };
     // intentionally only run on mount/unmount
-  }, []);
+  }, [setTarget]);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={`h-80 ${className}`}>
       {children}
     </div>
   );

@@ -5,38 +5,28 @@ import { createPortal } from "react-dom";
 import { usePortal } from "@/context/PortalContext";
 import LotusFlower from "./LotusFlower";
 
-// This is your actual 3D content: the canvas + WebGL setup
-function CanvasRoot() {
-    return <LotusFlower/>
-//   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-//   useEffect(() => {
-//     const canvas = canvasRef.current!;
-//     // Initialize your WebGL/Three.js scene here using `canvas`
-//     // Example pseudo-code:
-//     // const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-//     // ...setup scene, camera, animate loop...
-//     //
-//     // return cleanup to stop animation and dispose renderer/scene
-//     return () => {
-//       // cleanup renderer, stop animation loops, dispose resources
-//     };
-//   }, []);
-
-//   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />;
-}
 
 export default function PortalScene() {
   const { target } = usePortal();
 
   // create single stable container element — created once
   const containerRef = useRef<HTMLDivElement | null>(null);
-  if (containerRef.current === null) {
-    containerRef.current = document.createElement("div");
-    // ensure it's sized/positioned by CSS from wherever it's moved to
-    containerRef.current.style.width = "100%";
-    containerRef.current.style.height = "100%";
+  useEffect(() => {
+  if (!containerRef.current) {
+    const el = document.createElement("div");
+    el.style.width = "100%";
+    el.style.height = "100%";
+    containerRef.current = el;
   }
+
+  // attach fallback to body
+  const el = containerRef.current;
+  if (!el.parentElement) document.body.appendChild(el);
+
+  return () => {
+    if (el.parentElement) document.body.removeChild(el);
+  };
+  }, []);
 
   // On mount, attach container to body as fallback
   useEffect(() => {
@@ -63,5 +53,10 @@ export default function PortalScene() {
 
   // Render your CanvasRoot into the stable container. React will keep this mounted
   // even when the container is moved in the DOM.
-  return createPortal(<CanvasRoot />, containerRef.current);
+
+//   const CanvasRoot = () => {return <LotusFlower />};
+  return containerRef.current
+    ? createPortal(<LotusFlower />, containerRef.current)
+    : null;
 }
+

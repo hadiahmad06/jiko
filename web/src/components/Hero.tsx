@@ -46,7 +46,7 @@ export default function Hero() {
   }, [phrases.length]);
 
   return (
-    <section id="main" className="flex flex-col items-center justify-center px-6">
+    <section className="flex flex-col items-center justify-center px-6">
       
       {/* Main Heading */}
       {isMobile ? (
