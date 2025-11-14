@@ -4,6 +4,8 @@ import "./globals.css";
 import LotusFlower from "@/components/LotusFlower";
 import Navbar from "@/components/Navbar";
 import CursorHandler from "@/components/CursorHandler";
+import PortalScene from "@/components/PortalScene";
+import { PortalProvider } from "@/context/PortalContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,10 +80,13 @@ export default function RootLayout({
         <div className="text-foreground min-h-screen font-sans flex flex-col justify-between">
           <Navbar />
           <div className="h-8"/>
-          <CursorHandler>
-            {children}
-           </CursorHandler>
-          <LotusFlower />
+          <PortalProvider>
+            <CursorHandler>
+              <PortalScene />
+              <main>{children}</main>
+            </CursorHandler>
+          </PortalProvider>
+          {/* <LotusFlower /> */}
           <div className="h-24"/>
          </div>
       </body>
