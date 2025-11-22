@@ -33,8 +33,8 @@ export type AppUsageRecordT = z.infer<typeof AppUsageRecord>;
 export function appendAppUsage(
   oldData: AppUsageDataT | undefined,
   newData: AppUsageDataT,
-  maxEntries: number,
-  maxAgeSec: number
+  maxEntries?: number,
+  maxAgeSec?: number
 ): AppUsageDataT {
 
   const merged = mergeArray(

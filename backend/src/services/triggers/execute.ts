@@ -87,7 +87,7 @@ async function executeAction(user_id: string, action: any) {
 /*
 
 const action_json = {
-  [
+  actions: [
     type: "start_activity",
     params: {
       user_id: 42, // injected at runtime

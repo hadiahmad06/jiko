@@ -1,19 +1,19 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.js';
-import HealthManager from '../../data/HealthManager.js';
-import { HealthData } from '../../types/user/HealthData.js';
+import { LocationData } from '../../types/user/LocationData.js';
+import LocationManager from '../../data/LocationManager.js';
 
 const router = Router();
 
-// POST /sync/health - syncs health data
-router.post('/sync/health', authMiddleware, async (req, res) => {
+// POST /sync/location - syncs location data
+router.post('/sync/location', authMiddleware, async (req, res) => {
   try {
     const userId = req.uid!; // now set by middleware
 
-    const parsed = HealthData.safeParse(req.body);
+    const parsed = LocationData.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error });
 
-    const result = await HealthManager.updateHealth(userId, parsed.data);
+    const result = await LocationManager.updateLocation(userId, parsed.data);
     if (!result.success) return res.status(result.code).json(result.details);
     
     return res.json(result.value);
