@@ -46,6 +46,15 @@ async function createTables() {
       ],
       KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     {
       TableName: 'MESSAGE_HISTORIES',
@@ -55,6 +64,15 @@ async function createTables() {
       ],
       KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'message-id-index',
+          KeySchema: [
+            { AttributeName: 'message_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     {
       TableName: 'USER_PREFERENCES',
@@ -94,6 +112,15 @@ async function createTables() {
         { AttributeName: 'id', KeyType: 'HASH' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     {
       TableName: 'CHATBOTS',
@@ -105,6 +132,15 @@ async function createTables() {
         { AttributeName: 'id', KeyType: 'HASH' },
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     {
       TableName: 'CHATBOT_SPEAKING_STYLE_WEIGHTS',
@@ -137,19 +173,46 @@ async function createTables() {
         { AttributeName: 'id', KeyType: 'HASH' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     // SCHEDULED_TRIGGERS table
     {
       TableName: 'SCHEDULED_TRIGGERS',
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'user_id', AttributeType: 'S' },
         { AttributeName: 'scheduled_at', AttributeType: 'S' },
         { AttributeName: 'enabled', AttributeType: 'B' }
       ],
       KeySchema: [
-        { AttributeName: 'id', KeyType: 'HASH' }
+        { AttributeName: 'enabled', KeyType: 'HASH' },
+        { AttributeName: 'scheduled_at', KeyType: 'RANGE' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'id-index',
+          KeySchema: [
+            { AttributeName: 'id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     // LOCATION_TRIGGERS table
     {
@@ -158,34 +221,60 @@ async function createTables() {
         { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'user_id', AttributeType: 'S' },
         { AttributeName: 'location_id', AttributeType: 'S' },
-        { AttributeName: 'enabled', AttributeType: 'B' }
+        { AttributeName: 'enabled_event_type', AttributeType: 'S' }
       ],
       KeySchema: [
-        { AttributeName: 'id', KeyType: 'HASH' }
+        { AttributeName: 'location_id', KeyType: 'HASH' },
+        { AttributeName: 'enabled_event_type', KeyType: 'RANGE' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'id-index',
+          KeySchema: [
+            { AttributeName: 'id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+        {
+          IndexName: 'user-id-index',
+          KeySchema: [
+            { AttributeName: 'user_id', KeyType: 'HASH' }
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     // APP_USAGE_TRIGGERS table
     {
       TableName: 'APP_USAGE_TRIGGERS',
       AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'enabled_event_type', AttributeType: 'S' },
-        { AttributeName: 'id', AttributeType: 'S' }
+        { AttributeName: 'enabled_event_type', AttributeType: 'S' }
       ],
       KeySchema: [
-        { AttributeName: 'user_id', KeyType: 'HASH' },
-        { AttributeName: 'enabled_event_type', KeyType: 'RANGE' }
+        { AttributeName: 'enabled_event_type', KeyType: 'HASH' },
+        { AttributeName: 'user_id', KeyType: 'RANGE' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'id-index',
+          KeySchema: [
+            { AttributeName: 'id', KeyType: 'HASH' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     },
     // HEALTH_TRIGGERS table
     {
       TableName: 'HEALTH_TRIGGERS',
       AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'enabled_event_type', AttributeType: 'S' },
-        { AttributeName: 'id', AttributeType: 'B' },
+        { AttributeName: 'enabled_event_type', AttributeType: 'S' }
       ],
       KeySchema: [
         // NEEDS TO USE COMPOSITE SORT KEY: `${enabled}#${health_type}`
@@ -193,6 +282,15 @@ async function createTables() {
         { AttributeName: 'enabled_event_type', KeyType: 'RANGE' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'id-index',
+          KeySchema: [
+            { AttributeName: 'id', KeyType: 'HASH' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
     }
   ];
 

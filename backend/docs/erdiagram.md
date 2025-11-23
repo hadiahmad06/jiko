@@ -149,11 +149,10 @@ erDiagram
 
     USER_PREFERENCES:::dynamodb_ {
         uuid user_id PK, FK
-        string strictness
-        string intervention_level
         string language
         string timezone
-        string other_preferences
+        float strictness
+        float intervention_level
     }
 
     SERVICES:::dynamodb_ {
@@ -174,7 +173,7 @@ erDiagram
         string sync_settings
     }
 
-    LOCATIONS:::postgres_ {
+    LOCATIONS:::postgres {
         uuid id PK
         uuid user_id FK "REFERENCES users(id)"
         string name
@@ -254,7 +253,7 @@ erDiagram
     }
 
     %% include user_id beacuse it makes the query faster since its based on sync updates.
-    LOCATION_TRIGGERS:::dynamodb_ {
+    LOCATION_TRIGGERS:::dynamodb {
         uuid trigger_id PK, FK
         uuid location_id FK
         string event_type "enter/exit/both"

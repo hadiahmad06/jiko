@@ -3,8 +3,8 @@ import request from 'supertest';
 import createApp from '../../../app';
 import jwt from 'jsonwebtoken';
 import LocationManager from '../../../data/LocationManager';
-import { LocationDataT } from '../../../types/user/LocationData';
-import { Result } from '../../../types/common';
+import { LocationDataT } from '../../../types/user/sync/LocationData';
+import { Result } from '../../../types/common/common';
 
 let app: any;
 
@@ -24,7 +24,7 @@ const locationPayload: LocationDataT = {
   device_id: "device-ios-001",
   latitude: 37.7749,
   longitude: -122.4194,
-  accuracy: 10,
+  radius: 10,
   altitude: 50
 };
 

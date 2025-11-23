@@ -3,8 +3,8 @@ import request from 'supertest';
 import createApp from '../../../app';
 import jwt from 'jsonwebtoken';
 import HealthManager from '../../../data/HealthManager';
-import { HealthDataT } from '../../../types/user/HealthData';
-import { Result } from '../../../types/common';
+import { HealthDataT } from '../../../types/user/sync/HealthData';
+import { Result } from '../../../types/common/common';
 
 let app: any;
 

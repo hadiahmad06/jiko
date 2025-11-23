@@ -1,6 +1,6 @@
 // src/services/triggers/execute.ts
 
-import ActivityManager from "data/ActivityManager";
+import ActivityManager from "../../data/ActivityManager.js";
 
 export async function executeActions(user_id: string, action_json: any) {
   for (const action of action_json) {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Platform } from '../device/Platform.js';
-import { mergeArray } from '../../types/common.js';
+import { mergeArray } from '../../common/common.js';
 
 export const AppUsageLog = z.object({
   bundleId: z.string(),

@@ -1,4 +1,4 @@
-import { Result } from 'types/common.js';
+import { Result } from 'types/common/common.js';
 import UserRepository, { UserLookup } from '../services/UserRepository.js';
 import type { UserT } from '../types/user/User.js';
 

@@ -25,7 +25,7 @@ async function startPostgresContainer() {
   } else {
     console.log('Creating and starting new Postgres container...');
     await docker.createContainer({
-      Image: 'postgres:15',
+      Image: 'postgis/postgis:15-3.3',
       name: 'local-postgres',
       Env: [
         `POSTGRES_DB=${DB_NAME}`,
@@ -60,6 +60,9 @@ async function createTables() {
   });
 
   await client.connect();
+
+  await client.query(`CREATE EXTENSION IF NOT EXISTS postgis;`);
+  await client.query(`CREATE EXTENSION IF NOT EXISTS postgis_topology;`); 
 
   await client.query(`
     CREATE OR REPLACE FUNCTION set_updated_at()
@@ -130,7 +133,7 @@ async function createTables() {
       user_id UUID REFERENCES users(id),
       title TEXT NOT NULL,
       description TEXT,
-      created_by log_type DEFAULT 'user'
+      created_by log_type DEFAULT 'user',
       completed BOOLEAN DEFAULT FALSE,
       completed_at TIMESTAMP,
       archived BOOLEAN DEFAULT FALSE,
@@ -158,8 +161,11 @@ async function createTables() {
       id UUID PRIMARY KEY,
       user_id UUID REFERENCES users(id),
       name TEXT,
-      latitude FLOAT NOT NULL,
-      longitude FLOAT NOT NULL,
+      latitude DOUBLE PRECISION NOT NULL,
+      longitude DOUBLE PRECISION NOT NULL,
+
+      geog GEOGRAPHY(POINT, 4326),
+
       radius INT NOT NULL,
       archived BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT NOW(),
@@ -169,6 +175,19 @@ async function createTables() {
     BEFORE UPDATE ON locations
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at();
+
+    CREATE OR REPLACE FUNCTION update_geog()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.geog := ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326);
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER locations_update_geog
+    BEFORE INSERT OR UPDATE ON locations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_geog();
   `);
 
   await client.query(`

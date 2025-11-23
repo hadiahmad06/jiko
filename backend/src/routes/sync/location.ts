@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.js';
-import { LocationData } from '../../types/user/LocationData.js';
+import { LocationData } from '../../types/user/sync/LocationData.js';
 import LocationManager from '../../data/LocationManager.js';
 
 const router = Router();

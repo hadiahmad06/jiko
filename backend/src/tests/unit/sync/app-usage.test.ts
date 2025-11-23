@@ -3,8 +3,8 @@ import request from 'supertest';
 import createApp from '../../../app'; // or wherever you create your Express app
 import jwt from 'jsonwebtoken';
 import AppUsageManager from '../../../data/AppUsageManager';
-import { AppUsageDataT } from '../../../types/user/AppUsageData';
-import { Result } from '../../../types/common';
+import { AppUsageDataT } from '../../../types/user/sync/AppUsageData';
+import { Result } from '../../../types/common/common';
 
 let app: any;
 

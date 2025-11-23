@@ -1,6 +1,6 @@
 import { User, type UserT } from '../types/user/User.js';
 import { getPsqlClient } from '../db/psqlClient.js';
-import { Result } from 'types/common.js';
+import { Result } from 'types/common/common.js';
 
 const USERS_TABLE_NAME = 'Users';
 

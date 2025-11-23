@@ -1,7 +1,7 @@
 import { Activity, ActivityT } from "../types/activity/Activity.js";
 import ActivityRepository, { ActivityQueryT, PartialActivityEntryWithIdsT, PartialActivityWithIdsT } from "../services/ActivityRepository.js";
 import { ActivityEntry, ActivityEntryT } from "../types/activity/ActivityEntry.js";
-import { Result } from "../types/common.js";
+import { Result } from "../types/common/common.js";
 
 //TODO: add caching if necessary, using redis or simple dictionary cache or sm
 

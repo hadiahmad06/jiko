@@ -1,7 +1,7 @@
 import { Activity, type ActivityT } from '../types/activity/Activity.js';
 import { ActivityEntry, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
 import { getPsqlClient } from '../db/psqlClient.js';
-import { Result } from '../types/common.js';
+import { Result } from '../types/common/common.js';
 import { z, ZodArray } from "zod";
 
 class ActivityRepository {

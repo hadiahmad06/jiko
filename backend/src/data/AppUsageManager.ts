@@ -1,5 +1,5 @@
-import { Result } from '../types/common.js';
-import { appendAppUsage, type AppUsageRecordT, type AppUsageDataT } from '../types/user/AppUsageData.js';
+import { Result } from '../types/common/common.js';
+import { appendAppUsage, type AppUsageRecordT, type AppUsageDataT } from '../types/user/sync/AppUsageData.js';
 
 // stores unpersisted app usage for reference and llm content shit
 // ? how long should it last?? 1 day, 6 hours, or replaced immediately with new sync?

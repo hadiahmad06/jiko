@@ -1,5 +1,5 @@
-import { Result } from '../types/common.js';
-import { appendHealth, HealthDataT, HealthRecordT } from '../types/user/HealthData.js';
+import { Result } from '../types/common/common.js';
+import { appendHealth, HealthDataT, HealthRecordT } from '../types/user/sync/HealthData.js';
 
 // stores unpersisted health for reference and llm content shit
 // currently 1 hour with a max of 100 app entires per device.

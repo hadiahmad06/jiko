@@ -1,20 +1,33 @@
-import { Result } from '../types/common.js';
-import { LocationDataT, LocationQueue } from '../types/user/LocationData.js';
+import { checkLocationTriggersUnbatched } from '../services/triggers/locationTriggerService.js';
+import { Result } from '../types/common/common.js';
+import { LocationDataT } from '../types/user/sync/LocationData.js';
+import { Queue } from '../types/common/Queue.js';
 
 // Manages location data storage with a fixed-size queue per user
 class LocationManager {
   // { user_id : LocationQueue }
-  private locationQueues: Record<string, LocationQueue> = {};
+  private locationQueues: Record<string, Queue<LocationDataT>> = {};
 
   async updateLocation(user_id: string, data: LocationDataT): Promise<Result<LocationDataT>> {
     try {
       // Initialize queue for user if it doesn't exist
+      
       if (!this.locationQueues[user_id]) {
-        this.locationQueues[user_id] = new LocationQueue(3); // Store last 3 locations
+        this.locationQueues[user_id] = new Queue<LocationDataT>(3); // Store last 3 locations
+} else {
+        const lastKnownLocation = this.locationQueues[user_id].last();
+        if(lastKnownLocation) {
+          try {
+            await checkLocationTriggersUnbatched(user_id, lastKnownLocation, data )
+          } catch (triggerError) {
+            // Log trigger errors but don't fail the location update
+            console.error('Error checking location triggers:', triggerError);
+          }
+        }
       }
 
       // Add new location to the queue
-      this.locationQueues[user_id].push(data);
+      this.locationQueues[user_id].enqueue(data);
 
       return { 
         success: true, 
@@ -59,8 +72,6 @@ class LocationManager {
       };
     }
   }
-
-  // withinGeofence(user_id)
 
   // Debug only
   getAllCached() {

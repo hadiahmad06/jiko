@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.js';
 import AppUsageManager from '../../data/AppUsageManager.js';
-import { AppUsageData } from '../../types/user/AppUsageData.js';
+import { AppUsageData } from '../../types/user/sync/AppUsageData.js';
 
 const router = Router();
 

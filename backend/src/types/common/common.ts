@@ -33,3 +33,4 @@ export function mergeArray<T>(
   // enforce max length
   return filtered.slice(-maxEntries);
 }
+

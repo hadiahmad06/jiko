@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.js';
 import HealthManager from '../../data/HealthManager.js';
-import { HealthData } from '../../types/user/HealthData.js';
+import { HealthData } from '../../types/user/sync/HealthData.js';
 
 const router = Router();
 

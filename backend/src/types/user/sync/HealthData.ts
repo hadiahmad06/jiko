@@ -1,7 +1,7 @@
 // designed for both apple health and android health connect
 
-import { mergeArray } from "../../types/common";
-import { Platform } from "../../types/device/Platform";
+import { mergeArray } from "../../common/common";
+import { Platform } from "../device/Platform";
 import z from "zod";
 
 // designed for android History Data only.
