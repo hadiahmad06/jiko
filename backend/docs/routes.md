@@ -16,9 +16,8 @@ classDiagram
     %% Users layer
     class UsersAPI {
         <<REST API>>
-        +GET /users/me
-        +PATCH /users/me
-        +DELETE /users/me
+        +GET /users
+        +DELETE /users
     }
 
     %% User Preferences layer
@@ -26,6 +25,7 @@ classDiagram
         <<REST API>>
         +GET /users/preferences
         +PATCH /users/preferences
+        +DELETE /users/preferences
     }
 
     %% Devices layer
@@ -36,7 +36,7 @@ classDiagram
         +PATCH /users/devices/:id
         +DELETE /users/devices/:id
 
-        %% +GET /users/devices/:id
+        +GET /users/devices/:id
     }
 
     %% Integration Management APIs

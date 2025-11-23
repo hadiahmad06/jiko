@@ -22,7 +22,7 @@ router.post('/activities', authMiddleware, async (req, res) => {
 
     res.status(201).json(result.value);
   } catch (error) {
-    console.error(`Error creating activity with id ${req.params.id}:`, error);
+    console.error('Error creating activity:', error);
     res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred while creating the activity.' });
   }
 });
