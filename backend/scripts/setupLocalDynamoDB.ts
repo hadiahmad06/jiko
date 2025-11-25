@@ -251,11 +251,11 @@ async function createTables() {
       AttributeDefinitions: [
         { AttributeName: 'id', AttributeType: 'S' },
         { AttributeName: 'user_id', AttributeType: 'S' },
-        { AttributeName: 'enabled_event_type', AttributeType: 'S' }
+        { AttributeName: 'enabled', AttributeType: 'S' }
       ],
       KeySchema: [
-        { AttributeName: 'enabled_event_type', KeyType: 'HASH' },
-        { AttributeName: 'user_id', KeyType: 'RANGE' }
+        { AttributeName: 'user_id', KeyType: 'HASH' },
+        { AttributeName: 'enabled', KeyType: 'RANGE' }
       ],
       BillingMode: 'PAY_PER_REQUEST',
       GlobalSecondaryIndexes: [
@@ -265,7 +265,7 @@ async function createTables() {
             { AttributeName: 'id', KeyType: 'HASH' },
           ],
           Projection: { ProjectionType: 'ALL' },
-        },
+        }
       ],
     },
     // HEALTH_TRIGGERS table

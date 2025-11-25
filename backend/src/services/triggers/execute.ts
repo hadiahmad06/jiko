@@ -90,28 +90,24 @@ const action_json = {
   actions: [
     type: "start_activity",
     params: {
-      user_id: 42, // injected at runtime
       activity_id: "id-for-gym-activity",
       closure: {
         "success": [
           {
             type: "stop_activity",
             params: {
-              user_id: 42, // injected at runtime
               activity_id: "id-for-walking-activity",
             }
           },
           {
             type: "stop_activity",
             params: {
-              user_id: 42, // injected at runtime
               activity_id: "id-for-cycling-activity",
             }
           },
           {
             type: "stop_activity",
             params: {
-              user_id: 42, // injected at runtime
               activity_id: "id-for-commuting-activity",
             }
           }
@@ -120,7 +116,6 @@ const action_json = {
           {
             type: "notify_user",
             params: {
-              user_id: 42, // injected at runtime
               message: "Could not start activity",
             }
           }
@@ -130,10 +125,7 @@ const action_json = {
     condition: {
       type: "within_geofence",
       params: {
-        user_id: 42, // injected at runtime
-        latitude: 44.97399,
-        longitude: -93.22773,
-        radius_meters: 100
+        location_id: 123123
       }
     }
   ]

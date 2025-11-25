@@ -33,7 +33,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/signup')
         .send({
-          phone_number: '11234567890',
+          phone_number: '21234567890',
           password: 'Password123!',
         });
       
@@ -46,7 +46,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/signup')
         .send({
-          phone_number: '11234567891',
+          phone_number: '21234567891',
           password: 'Password123!',
           email: 'test@example.com',
           username: 'tester'
@@ -69,7 +69,7 @@ describe('Auth Integration Tests', () => {
     it('should fail signup if password is missing', async () => {
       const res = await request(app)
         .post('/auth/signup')
-        .send({ phone_number: '11234567892' });
+        .send({ phone_number: '21234567892' });
 
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('error');
@@ -79,7 +79,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/signup')
         .send({
-          phone_number: '11234567890',
+          phone_number: '21234567890',
           password: 'Password123!',
         });
       
@@ -91,7 +91,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/signup')
         .send({
-          phone_number: '11234567893',
+          phone_number: '21234567893',
           password: 'Password123!',
           email: 'test@example.com',
         });
@@ -104,7 +104,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/signup')
         .send({
-          phone_number: '11234567894',
+          phone_number: '21234567894',
           password: 'Password123!',
           username: 'tester',
         });
@@ -122,7 +122,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/login')
         .send({
-          phone_number: '11234567890',
+          phone_number: '21234567890',
           password: 'Password123!',
         });
 
@@ -146,7 +146,7 @@ describe('Auth Integration Tests', () => {
       const res = await request(app)
         .post('/auth/login')
         .send({
-          phone_number: '11234567890',
+          phone_number: '21234567890',
           password: 'WrongPassword!',
         });
 
@@ -162,6 +162,54 @@ describe('Auth Integration Tests', () => {
         });
 
       expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('error');
+    });
+  });
+
+  // -----------------------------
+  // Refresh Token
+  // -----------------------------
+  describe('POST /auth/refresh', () => {
+    it('should refresh token with valid refresh token', async () => {
+      // First, login to get a refresh token
+      const loginRes = await request(app)
+        .post('/auth/login')
+        .send({
+          phone_number: '21234567890',
+          password: 'Password123!',
+        });
+
+      expect(loginRes.status).toBe(200);
+      expect(loginRes.body).toHaveProperty('refreshToken');
+
+      // Now use the refresh token
+      const res = await request(app)
+        .post('/auth/refresh')
+        .send({
+          refreshToken: loginRes.body.refreshToken,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('token');
+    });
+
+    it('should fail refresh with missing refresh token', async () => {
+      const res = await request(app)
+        .post('/auth/refresh')
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('should fail refresh with invalid refresh token', async () => {
+      const res = await request(app)
+        .post('/auth/refresh')
+        .send({
+          refreshToken: 'invalid-token',
+        });
+
+      expect(res.status).toBe(401);
       expect(res.body).toHaveProperty('error');
     });
   });

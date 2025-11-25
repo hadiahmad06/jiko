@@ -1,3 +1,4 @@
+import { checkAppUsageTriggers } from '../services/triggers/appUsageTriggerService.js';
 import { Result } from '../types/common/common.js';
 import { appendAppUsage, type AppUsageRecordT, type AppUsageDataT } from '../types/user/sync/AppUsageData.js';
 
@@ -22,16 +23,23 @@ class AppUsageManager {
     return { success: true, value: result } 
   }
 
-  async updateAppUsage(user_id: string, data: AppUsageDataT): Promise<Result<AppUsageDataT>> {
+  async updateAppUsage(user_id: string, data: AppUsageDataT): Promise<Result<{ appUsage: AppUsageDataT, triggered_ids: string[] }>> {
     const timestamp = data.timestamp ?? new Date().toISOString();
     const device_id = data.device_id
     const oldData = this.cache[user_id]?.[data.device_id]
+    const last_synced = oldData?.timestamp
     data.timestamp = timestamp
-    
-    const result = appendAppUsage(oldData, data, 100, 3600) // 100 entry limit, 3600 maxAgeSec (1 hour)
+
+    const triggerRes = await checkAppUsageTriggers(user_id, data, last_synced)
+    let triggered_ids: string[] = [];
+    if (triggerRes.success) {
+      triggered_ids = triggerRes.value
+    }
+
+    const res = appendAppUsage(oldData, data, 100, 3600) // 100 entry limit, 3600 maxAgeSec (1 hour)
     if (!this.cache[user_id]) this.cache[user_id] = {};
-    this.cache[user_id][device_id] = result
-    return { success: true, value: result }
+    this.cache[user_id][device_id] = res
+    return { success: true, value: { appUsage: res, triggered_ids: triggered_ids } }
   }
 
   // ! debug only

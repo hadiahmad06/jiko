@@ -32,8 +32,10 @@ beforeAll(async () => {
   
   // Create a test user
   const userResult = await db.query(
-    'INSERT INTO users (id, phone_number, password_hash) VALUES ($1, $2, $3) RETURNING id',
-    [crypto.randomUUID(), '11234567890', 'hashed_password']
+    `INSERT INTO users (id, phone_number, password_hash)
+     VALUES ($1, $2, $3)
+     RETURNING id`,
+    [crypto.randomUUID(), '11234567892', 'hashed_password']
   );
   userId = userResult.rows[0].id;
   

@@ -36,37 +36,17 @@ const updatePayload: AppUsageDataT = {
 
 vi.mock('../../../data/AppUsageManager');
 const mockedUpdateAppUsage = vi.mocked(AppUsageManager.updateAppUsage);
-const mockSuccessfulResult: Result<AppUsageDataT> = { success: true, value: updatePayload }
-const mockFailedResult: Result<AppUsageDataT> = { success: false, code: 404, details: { error: '', message: '' }}
+const mockSuccessfulResult: Result<{ appUsage: AppUsageDataT, triggered_ids: string[] }> = { 
+  success: true, 
+  value: { 
+    appUsage: updatePayload,
+    triggered_ids: ['trigger-1', 'trigger-2']
+  } 
+}
+const mockFailedResult: Result<{ appUsage: AppUsageDataT, triggered_ids: string[] }> = { success: false, code: 404, details: { error: '', message: '' }}
 
 describe('AppUsageAPI', () => {
-  describe('GET /sync/app-usage', () => {
-    it('should get all app usage for a user', async () => {
-      mockedUpdateAppUsage.mockResolvedValue(mockSuccessfulResult);
-      // // first, login with mock user to get real JWT token
-      // const res = await request(app)
-      //   .post('/sync/app-usage')
-      //   .set('Authorization', `Bearer ${token}`)
-      //   .send(updatePayload);
-
-      // expect(res.status).toBe(200);
-      // expect(res.body).toMatchObject(updatePayload);
-    });
-  });
-  describe('GET /sync/app-usage/:id', () => {
-    it('should get all app usage for a device_id', async () => {
-      mockedUpdateAppUsage.mockResolvedValue(mockSuccessfulResult);
-      // first, login with mock user to get real JWT token
-      // const { timestamp, ...incompletePayload } = updatePayload
-      // const res = await request(app)
-      //   .post('/sync/app-usage')
-      //   .set('Authorization', `Bearer ${token}`)
-      //   .send(incompletePayload);
-
-      // expect(res.status).toBe(400);
-    });
-  });
-  describe('GET /sync/app-usage', () => {
+  describe('POST /sync/app-usage', () => {
     it('should allow posting an app usage update', async () => {
       mockedUpdateAppUsage.mockResolvedValue(mockSuccessfulResult);
       // first, login with mock user to get real JWT token
@@ -76,7 +56,9 @@ describe('AppUsageAPI', () => {
         .send(updatePayload);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject(updatePayload);
+      expect(res.body).toHaveProperty('appUsage');
+      expect(res.body).toHaveProperty('triggered_ids');
+      expect(res.body.appUsage).toMatchObject(updatePayload);
     });
     it('should reject posting an incomplete update', async () => {
       mockedUpdateAppUsage.mockResolvedValue(mockFailedResult);
