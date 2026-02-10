@@ -2,7 +2,7 @@
 
 import {useGLTF, Stage, Environment, useProgress} from "@react-three/drei";
 import { Canvas, ThreeElements, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 // import { extend } from "@react-three/fiber";
 import { AmbientLight, Mesh, MeshStandardMaterial, Object3D} from "three";
 import { motion } from "framer-motion";
@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 // extend({ Hero })
 
 useGLTF.preload("/lotus_flower.glb");
-
 
 type ModelProps = ThreeElements["primitive"]
 
@@ -28,6 +27,10 @@ function Model({src, ...props}: {src: string} & Omit<ModelProps, "object">) {
 });
   return <primitive object={scene} {...props} />  
 }
+
+const MemoModel = React.memo(function Model({ src, ...props }: { src: string;} & Omit<ModelProps, "object">) {
+  return <Model src={src} {...props}/>;
+});
 
 function useCursor() {
   const [cursorX, setCursorX] = useState(50); // start at center
@@ -116,7 +119,7 @@ export default function LotusFlower() {
             adjustCamera={false}
             // environment="city"
           >
-            <Model src="/lotus_flower.glb" scale={0.1} />
+            <MemoModel src="/lotus_flower.glb" scale={0.1} />
           </Stage>
           <CursorFollow cursorX={cursorX} cursorY={cursorY} />
         </Suspense>

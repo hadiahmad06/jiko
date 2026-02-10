@@ -1,5 +1,5 @@
-import { Activity, type ActivityT } from '../types/activity/Activity.js';
-import { ActivityEntry, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
+import { Activity, ActivityQueryT, PartialActivityWithIdsT, type ActivityT } from '../types/activity/Activity.js';
+import { ActivityEntry, PartialActivityEntryWithIdsT, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
 import { getPsqlClient } from '../db/psqlClient.js';
 import { Result } from '../types/common/common.js';
 import { z, ZodArray } from "zod";
@@ -233,32 +233,5 @@ class ActivityRepository {
     return result.rowCount !== null && result.rowCount > 0;
   }
 }
-
-export const PartialActivityWithIds = Activity
-  .partial()
-  .extend({
-    id: z.uuid(),
-    user_id: z.uuid()
-  });
-
-export type PartialActivityWithIdsT = z.infer<typeof PartialActivityWithIds>;
-
-export const PartialActivityEntryWithIds = ActivityEntry
-  .partial()
-  .extend({
-    id: z.uuid(),
-    user_id: z.uuid()
-  });
-
-export type PartialActivityEntryWithIdsT = z.infer<typeof PartialActivityEntryWithIds>;
-
-export const ActivityQuery = z.object({
-  activityIds: z.array(z.uuid()).optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-  limit: z.coerce.number().int().positive().optional()
-});
-
-export type ActivityQueryT = z.infer<typeof ActivityQuery>;
 
 export default new ActivityRepository();

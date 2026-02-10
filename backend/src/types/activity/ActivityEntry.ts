@@ -21,6 +21,15 @@ export const ActivityEntry = z.object({
 
 export type ActivityEntryT = z.infer<typeof ActivityEntry>;
 
+export const PartialActivityEntryWithIds = ActivityEntry
+  .partial()
+  .extend({
+    id: z.uuid(),
+    user_id: z.uuid()
+  });
+
+export type PartialActivityEntryWithIdsT = z.infer<typeof PartialActivityEntryWithIds>;
+
 export const EntriesExamples: ActivityEntryT[] = [
   {
     id: crypto.randomUUID(),

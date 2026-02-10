@@ -5,6 +5,9 @@ import { createPortal } from "react-dom";
 import { usePortal } from "@/context/PortalContext";
 import LotusFlower from "./LotusFlower";
 
+const CanvasRoot = React.memo(function CanvasRoot() {
+  return <LotusFlower />;
+});
 
 export default function PortalScene() {
   const { target } = usePortal();
@@ -56,7 +59,7 @@ export default function PortalScene() {
 
 //   const CanvasRoot = () => {return <LotusFlower />};
   return containerRef.current
-    ? createPortal(<LotusFlower />, containerRef.current)
+    ? createPortal(<CanvasRoot />, containerRef.current)
     : null;
 }
 
