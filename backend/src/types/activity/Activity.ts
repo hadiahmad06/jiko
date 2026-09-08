@@ -1,6 +1,5 @@
 import { z } from "zod";
 import crypto from "crypto";
-import { ActivityEntry } from "./ActivityEntry";
 
 // ACTIVITIES table schema
 export const Activity = z.object({

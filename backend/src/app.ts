@@ -32,7 +32,7 @@ const injectRouters = async (dir: string, app: express.Application) => {
   return app;
 };
 
-const printRoutes = (stack: any[], prefix = '') => {
+export const printRoutes = (stack: any[], prefix = '') => {
   stack.forEach(layer => {
     if (layer.route) {
       const route = layer.route as any;

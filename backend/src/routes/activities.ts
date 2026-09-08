@@ -1,9 +1,8 @@
 import { authMiddleware } from '../middleware/auth.js';
 import ActivityManager from '../data/ActivityManager.js';
-import { Router, Request, Response } from 'express';
-import { Activity } from '../types/activity/Activity.js';
-import { ActivityQuery, PartialActivityWithIds } from '../services/ActivityRepository.js';
-import { ActivityEntry } from '../types/activity/ActivityEntry.js';
+import { Router } from 'express';
+import { Activity, ActivityQuery, PartialActivityWithIds } from '../types/activity/Activity.js';
+import { ActivityEntry, PartialActivityEntryWithIds } from '../types/activity/ActivityEntry.js';
 
 const router = Router();
 
@@ -77,7 +76,7 @@ router.patch('/activities/entries', authMiddleware, async (req, res) => {
 
     if (!body) return res.status(400).json({ error: 'MissingParameter', message: 'Activity Body is required.' });
 
-    const parsed = PartialActivityWithIds.safeParse({ user_id, ...body});
+    const parsed = PartialActivityEntryWithIds.safeParse({ user_id, ...body });
     if (!parsed.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: parsed.error.issues });
 
     const entries = await ActivityManager.updateEntry(parsed.data);
@@ -93,7 +92,7 @@ router.patch('/activities/entries', authMiddleware, async (req, res) => {
 router.get('/activities/entries', authMiddleware, async (req, res) => {
   try {
     const user_id = req.uid!
-    let query = req.query;
+    const query = req.query;
     if (!req.query) return res.status(400).json({ error: 'MissingParameter', message: 'Options are required.' });
     
     let activityIds: string[] | undefined;
@@ -188,7 +187,7 @@ router.patch('/activities/:id', authMiddleware, async (req, res) => {
     const parsed = PartialActivityWithIds.safeParse({ id, user_id, ...body });
     if (!parsed.success) return res.status(400).json({ error: 'InvalidBody', message: 'Activity Body is invalid.', details: parsed.error.issues });
 
-    const result = await ActivityManager.updateActivity({ id, user_id, ...req.body });
+    const result = await ActivityManager.updateActivity(parsed.data);
     if (!result.success) return res.status(result.code).json(result.details);
 
     res.json(result.value);

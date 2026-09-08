@@ -1,8 +1,7 @@
-import { Activity, ActivityQueryT, PartialActivityWithIdsT, type ActivityT } from '../types/activity/Activity.js';
-import { ActivityEntry, PartialActivityEntryWithIdsT, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
+import { ActivityQueryT, PartialActivityWithIdsT, type ActivityT } from '../types/activity/Activity.js';
+import { PartialActivityEntryWithIdsT, type ActivityEntryT } from '../types/activity/ActivityEntry.js';
 import { getPsqlClient } from '../db/psqlClient.js';
 import { Result } from '../types/common/common.js';
-import { z, ZodArray } from "zod";
 
 class ActivityRepository {
 
@@ -49,7 +48,7 @@ class ActivityRepository {
     const client = await getPsqlClient();
     
     // Exclude id, user_id, created_at, updated_at from updatable fields
-    const { id, user_id, created_at, updated_at, ...fieldsToUpdate } = data;
+    const { id, user_id, created_at: _c, updated_at: _u, ...fieldsToUpdate } = data;
     const setClauses: string[] = [];
     const values: any[] = [];
     let idx = 1;
@@ -83,7 +82,7 @@ class ActivityRepository {
     return { success: true, value: res.rows[0] };
   }
 
-  async deleteActivity(activityId: string, userId: string): Promise<Boolean> {
+  async deleteActivity(activityId: string, userId: string): Promise<boolean> {
     const client = await getPsqlClient();
     const result = await client.query(
       'DELETE FROM activities WHERE id = $1 AND user_id = $2',
@@ -109,17 +108,19 @@ class ActivityRepository {
     }
 
     const res = await client.query(
-      `INSERT INTO activity_entries (id, activity_id, start_time, end_time, note, logged_by)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO activity_entries (id, user_id, activity_id, start_time, end_time, note, logged_by, ended_by, confidence_score)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         entry.id,
+        entry.user_id,
         entry.activity_id,
         entry.start_time,
-        entry.end_time,
-        entry.notes,
+        entry.end_time ?? null,
+        entry.note ?? null,
         entry.logged_by,
-        entry.confidence_score
+        entry.ended_by ?? null,
+        entry.confidence_score ?? null,
       ]
     );
 
@@ -131,7 +132,7 @@ class ActivityRepository {
     const client = await getPsqlClient();
 
     // Exclude id, user_id, activity_id, created_at, updated_at from updatable fields
-    const { id, user_id, activity_id, created_at, updated_at, ...fieldsToUpdate } = data;
+    const { id, user_id, activity_id: _a, created_at: _c, updated_at: _u, ...fieldsToUpdate } = data;
     const setClauses: string[] = [];
     const values: any[] = [];
     let idx = 1;
@@ -183,7 +184,7 @@ class ActivityRepository {
     // Filter directly on ae.user_id since user_id is now a column in activity_entries
     let query =
       'SELECT * FROM activity_entries';
-    conditions.push(`ae.user_id = $${idx}`);
+    conditions.push(`user_id = $${idx}`);
     values.push(userId);
     idx++;
 
@@ -221,7 +222,7 @@ class ActivityRepository {
     return { success: true, value: res.rows };
   }
 
-  async deleteEntry(entryId: string, userId: string): Promise<Boolean> {
+  async deleteEntry(entryId: string, userId: string): Promise<boolean> {
     const client = await getPsqlClient();
     // Only delete if the entry belongs to an activity owned by userId
     const result = await client.query(

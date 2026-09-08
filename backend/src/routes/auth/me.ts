@@ -1,31 +1,17 @@
 import { Router } from 'express';
 import UserManager from '../../data/UserManager.js';
-import jwt from 'jsonwebtoken';
+import { authMiddleware } from '../../middleware/auth.js';
 
 const router = Router();
 
-// GET /auth/me
-router.get('/auth/me', async (req, res) => {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
-
-  const token = authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Missing token' });
-
+// GET /auth/me - the caller's own profile (never returns password_hash)
+router.get('/auth/me', authMiddleware, async (req, res) => {
   try {
-    // Verify JWT
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error("JWT_SECRET missing");
-      return res.status(500).json({ error: 'Server misconfiguration' });
-    }
-    const payload = jwt.verify(token, secret) as { userId: string };
-
-    const result = await UserManager.getUser(payload.userId);
+    const result = await UserManager.getUser(req.uid!);
     if (!result.success) return res.status(404).json({ error: 'User not found' });
-
     const user = result.value;
-    res.json({
+    return res.json({
+      id: user.id,
       phoneNumber: user.phone_number,
       email: user.email,
       username: user.username,
@@ -34,7 +20,7 @@ router.get('/auth/me', async (req, res) => {
     });
   } catch (err) {
     console.error('Fetch user error:', err);
-    res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(500).json({ error: 'ServerError', message: 'An unexpected error occurred' });
   }
 });
 

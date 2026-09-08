@@ -3,7 +3,7 @@ import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { executeActions } from "./execute.js";
 import { AppUsageDataT } from "../../types/user/sync/AppUsageData.js";
 import { condition } from "./condition.js";
-import { Result } from "types/common/common.js";
+import { Result } from '../../types/common/common.js';
 
 // Check app usage triggers for a given user with new app usage data
 export async function checkAppUsageTriggers(user_id: string, data: AppUsageDataT, lastChecked: string | undefined) : Promise<Result<string[]>> {

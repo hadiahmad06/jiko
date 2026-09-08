@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 describe('Auth Integration Tests', () => {
-  let userIds: string[] = [];
+  const userIds: string[] = [];
 
   // -----------------------------
   // Signup

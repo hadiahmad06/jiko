@@ -2,7 +2,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import { issueTokenPair, secretsConfigured } from '../../lib/jwt.js';
 import { User, type UserT } from '../../types/user/User.js';
 import UserManager from '../../data/UserManager.js';
 
@@ -14,7 +14,7 @@ router.post('/auth/signup', async (req, res) => {
   try {
     // 1 Validate inputs
     const { phone_number, password, email, username, display_name, nickname, otp } = req.body;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_+=\[\]{}|;:'",.<>/?]).{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_+=[\]{}|;:'",.<>/?]).{8,}$/;
     
     if (!phone_number || typeof phone_number !== 'string') {
         return res.status(400).json({ error: 'No phone number provided'})
@@ -43,7 +43,6 @@ router.post('/auth/signup', async (req, res) => {
       password_hash,  // store hashed password, never plaintext
       display_name,
       nickname,
-      appUsage: {},  // start empty
     });
 
     // 5 Save user in UserManager
@@ -54,15 +53,12 @@ router.post('/auth/signup', async (req, res) => {
     }
 
     // 6 Create JWT and refresh token
-    const secret = process.env.JWT_SECRET;
-    const refreshSecret = process.env.JWT_REFRESH_SECRET;
-    if (!secret || !refreshSecret) {
-      console.error("JWT secrets missing");
+    if (!secretsConfigured()) {
+      console.error('JWT secrets missing');
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    const token = jwt.sign({ userId: id }, secret, { expiresIn: '1d' });
-    const refreshToken = jwt.sign({ userId: id }, refreshSecret, { expiresIn: '7d' });
+    const { token, refreshToken } = issueTokenPair(id);
 
     res.status(201).json({
       message: 'User created',

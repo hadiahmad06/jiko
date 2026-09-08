@@ -1,8 +1,7 @@
 import { User, type UserT } from '../types/user/User.js';
 import { getPsqlClient } from '../db/psqlClient.js';
-import { Result } from 'types/common/common.js';
+import { Result } from '../types/common/common.js';
 
-const USERS_TABLE_NAME = 'Users';
 
 export type UserLookup = {
   id?: string;
@@ -14,8 +13,8 @@ export type UserLookup = {
 class UserRepository {
   async getUser(lookup: UserLookup): Promise<Result<UserT>> {
     const client = await getPsqlClient();
-    let query = '';
-    let params: any[] = [];
+    let query: string;
+    let params: unknown[];
 
     if (lookup.id)            { query = 'SELECT * FROM Users WHERE id = $1'; params = [lookup.id]; }
     else if (lookup.phone_number)  { query = 'SELECT * FROM Users WHERE phone_number = $1'; params = [lookup.phone_number]; }

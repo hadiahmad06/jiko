@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Activity, ActivityQuery } from "../activity/Activity";
+import { Activity } from "../activity/Activity";
 import { Obligation } from "../obligation/Obligation";
 import { LocationData } from "types/user/sync/LocationData";
 

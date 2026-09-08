@@ -20,11 +20,11 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "types": ["node", "jest"],
+    "types": ["node", "vitest/globals"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/types/appUsage/AppUsageData.ts"],
-  "exclude": ["scripts/**/*.ts"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["scripts/**/*.ts"]
 }

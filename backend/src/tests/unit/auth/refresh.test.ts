@@ -48,7 +48,7 @@ describe('POST /auth/refresh', () => {
   });
 
   it('should issue a new access token for a valid refresh token', async () => {
-    const validRefreshToken = jwt.sign({ userId: 'user123' }, refreshSecret, { expiresIn: '1h' });
+    const validRefreshToken = jwt.sign({ user_id: 'user123' }, refreshSecret, { expiresIn: '1h' });
 
     const res = await request(app)
       .post('/auth/refresh')
@@ -57,7 +57,7 @@ describe('POST /auth/refresh', () => {
     expect(res.status).toBe(200);
     expect(res.body.token).toBeDefined();
 
-    const decoded = jwt.verify(res.body.token, accessSecret) as { userId: string };
-    expect(decoded.userId).toBe('user123');
+    const decoded = jwt.verify(res.body.token, accessSecret) as { user_id: string };
+    expect(decoded.user_id).toBe('user123');
   });
 });

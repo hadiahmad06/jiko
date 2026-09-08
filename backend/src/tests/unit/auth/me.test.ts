@@ -36,7 +36,7 @@ describe('Auth API - /auth/me', () => {
   beforeAll(() => {
   });
 
-  const token = jwt.sign({ userId: testUser.id }, accessSecret, { expiresIn: '1h' });
+  const token = jwt.sign({ user_id: testUser.id }, accessSecret, { expiresIn: '1h' });
 
   beforeEach(() => {
     mockedGetUser.mockReset();

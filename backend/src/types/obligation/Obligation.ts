@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { User } from "../user/User.js";
 
 // OBLIGATIONS table schema
 export const Obligation = z.object({

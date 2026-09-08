@@ -1,6 +1,6 @@
-import { Activity, ActivityT } from "../types/activity/Activity.js";
-import ActivityRepository, { ActivityQueryT, PartialActivityEntryWithIdsT, PartialActivityWithIdsT } from "../services/ActivityRepository.js";
-import { ActivityEntry, ActivityEntryT } from "../types/activity/ActivityEntry.js";
+import { Activity, ActivityT, ActivityQueryT, PartialActivityWithIdsT } from "../types/activity/Activity.js";
+import ActivityRepository from "../services/ActivityRepository.js";
+import { ActivityEntry, ActivityEntryT, PartialActivityEntryWithIdsT } from "../types/activity/ActivityEntry.js";
 import { Result } from "../types/common/common.js";
 
 //TODO: add caching if necessary, using redis or simple dictionary cache or sm
@@ -29,7 +29,7 @@ class ActivityManager {
   }
 
   // DELETE /activities/:id
-  async deleteActivity(id: string, user_id: string): Promise<Boolean> {
+  async deleteActivity(id: string, user_id: string): Promise<boolean> {
     return ActivityRepository.deleteActivity(id, user_id);
   }
 
@@ -54,7 +54,7 @@ class ActivityManager {
   }
 
   // DELETE /activities/entries
-  async deleteEntry(id: string, user_id: string): Promise<Boolean> {
+  async deleteEntry(id: string, user_id: string): Promise<boolean> {
     return ActivityRepository.deleteEntry(id, user_id);
   }
 

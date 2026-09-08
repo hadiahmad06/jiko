@@ -1,6 +1,6 @@
 // src/routes/auth.ts
 import { Router } from 'express';
-import jwt from 'jsonwebtoken';
+import { issueTokenPair, secretsConfigured } from '../../lib/jwt.js';
 import bcrypt from 'bcrypt';
 import { type UserLookup } from '../../services/UserRepository.js';
 import UserManager from '../../data/UserManager.js';
@@ -43,19 +43,17 @@ router.post('/auth/login', async (req, res) => {
     }
 
     // Generate JWT and refresh token
-    const secret = process.env.JWT_SECRET;
-    const refreshSecret = process.env.JWT_REFRESH_SECRET;
-    if (!secret || !refreshSecret) {
-      console.error("JWT secrets missing");
+    if (!secretsConfigured()) {
+      console.error('JWT secrets missing');
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    const token = jwt.sign({ user_id: user.id }, secret, { expiresIn: '1d' });
-    const refreshToken = jwt.sign({ user_id: user.id }, refreshSecret, { expiresIn: '7d' });
+    const { token, refreshToken } = issueTokenPair(user.id);
 
     res.json({
       token,
       refreshToken,
+      user_id: user.id,
       phone_number: user.phone_number,
       email: user.email,
       username: user.username,
