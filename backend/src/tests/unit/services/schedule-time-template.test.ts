@@ -13,9 +13,9 @@ describe('schedule', () => {
     expect(firstRun(m, NOW).toISOString()).toBe('2026-09-09T10:00:00.000Z');
     expect(nextRun(m, NOW)).toBeNull();
   });
-  it('recurring computes the next slot strictly after now', () => {
+  it('a past `at` is due immediately once; recurrence then computes strictly after now', () => {
     const m = { at: '2026-09-01T21:30:00Z', recurrence: { interval: 1, unit: 'days' as const } };
-    expect(firstRun(m, NOW).toISOString()).toBe('2026-09-08T21:30:00.000Z');
+    expect(firstRun(m, NOW).toISOString()).toBe('2026-09-01T21:30:00.000Z');
     expect(nextRun(m, new Date('2026-09-08T21:30:00Z'))!.toISOString()).toBe('2026-09-09T21:30:00.000Z');
     expect(nextRun({ at: '2026-09-08T15:00:00Z', recurrence: { interval: 20, unit: 'minutes' } }, NOW)!.toISOString()).toBe('2026-09-08T15:40:00.000Z');
   });
