@@ -444,7 +444,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -473,7 +477,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -491,7 +499,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoiOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoiOSAgent";
 			};
 			name = Debug;
@@ -510,7 +522,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoiOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoiOSAgent";
 			};
 			name = Release;
@@ -527,7 +543,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = JikoiOSAgent;
 			};
 			name = Debug;
@@ -544,7 +564,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"JikoiOSAgent/libs/JikoSyncHeaders",
+				);				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = JikoiOSAgent;
 			};
 			name = Release;

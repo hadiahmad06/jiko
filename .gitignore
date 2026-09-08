@@ -1,1 +1,22 @@
-*.DS_STORE
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+apple/**/build/
+apple/**/build_static/
+*.pbxproj.backup
+*.pbxproj.new
+*.a
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# env
+.env
+.env.*
+!.env.example

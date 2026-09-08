@@ -6,8 +6,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <JikoSync/JikoSyncEvent.h>
-#import <JikoSync/JikoSyncEnvironment.h>
+#import "JikoSyncEvent.h"
+#import "JikoSyncEnvironment.h"
+#import "JikoAppUsageData.h"
+#import "JikoLocationData.h"
+#import "JikoHealthData.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,6 +30,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 // Get current environmental context snapshot
 - (JikoSyncEnvironment *)currentEnvironmentSnapshot;
+
+// Queue data for syncing
+- (void)queueAppUsageData:(JikoAppUsageData *)appUsageData;
+- (void)queueLocationData:(JikoLocationData *)locationData;
+- (void)queueHealthData:(JikoHealthData *)healthData;
 
 // Callback for when events are synced
 @property (nonatomic, copy) void (^onEventSynced)(JikoSyncEvent *event);

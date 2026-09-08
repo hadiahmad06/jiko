@@ -7,13 +7,12 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
-#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface JikoSyncEnvironment : NSObject
 
-@property (nonatomic, assign) CGFloat batteryLevel;
+@property (nonatomic, assign) double batteryLevel;
 @property (nonatomic, assign) BOOL isCharging;
 @property (nonatomic, assign) CLLocationCoordinate2D location;
 @property (nonatomic, strong) NSDate *timestamp;

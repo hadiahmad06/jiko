@@ -6,8 +6,14 @@
 //
 
 #import "JikoSyncEnvironment.h"
-#import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <IOKit/ps/IOPowerSources.h>
+#import <IOKit/ps/IOPSKeys.h>
+#endif
 
 @implementation JikoSyncEnvironment
 
@@ -21,7 +27,7 @@
   env.batteryLevel = device.batteryLevel;
   env.isCharging = (device.batteryState == UIDeviceBatteryStateCharging ||
                     device.batteryState == UIDeviceBatteryStateFull);
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
   // macOS: use IOKit for battery info
   CFTypeRef blob = IOPSCopyPowerSourcesInfo();
   CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
