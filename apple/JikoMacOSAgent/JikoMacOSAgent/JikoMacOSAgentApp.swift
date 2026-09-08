@@ -1,30 +1,24 @@
-//
 //  JikoMacOSAgentApp.swift
-//  JikoMacOSAgent
-//
-//  Created by Hadi Ahmad on 10/15/25.
-//
-
+//  Menu-bar agent. Tracks foreground app time, syncs it, shows Jiko's messages
+//  as notifications you can reply to, and hosts a small window for the rest.
 import SwiftUI
-import JikoSync
 
 @main
 struct JikoMacOSAgentApp: App {
-//  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-  @StateObject var observer = AppSwitchObserver()
-  
-  // Start the agent on launch
-  init() {
-    JikoSyncManager.shared().startSyncing()
-    JikoSyncManager.shared().onEventSynced = { event in
-      print("Synced event: \(event.appIdentifier) at \(event.timestamp)")
-    }
-  }
+  @StateObject private var state = AppState()
 
   var body: some Scene {
-    MenuBarExtra("Jiko", systemImage: "apple.meditate") {
-      JikoMenu()
-        .environmentObject(observer)
+    MenuBarExtra {
+      MenuView().environmentObject(state)
+    } label: {
+      Image(systemName: state.isAuthenticated ? (state.lastSyncError == nil ? "apple.meditate" : "exclamationmark.triangle") : "apple.meditate.circle")
     }
+    .menuBarExtraStyle(.window)
+
+    Window("Jiko", id: "main") {
+      MainWindow().environmentObject(state)
+    }
+    .windowResizability(.contentSize)
+    .defaultSize(width: 560, height: 520)
   }
 }
