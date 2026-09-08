@@ -1,12 +1,4 @@
 //
-//  JikoSyncManager 2.h
-//  JikoSync
-//
-//  Created by Hadi Ahmad on 10/18/25.
-//
-
-
-//
 //  JikoSyncManager.m
 //  JikoSync
 //

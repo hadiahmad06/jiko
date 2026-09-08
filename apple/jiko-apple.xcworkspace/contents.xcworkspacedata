@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "group:JikoiOSAgent"
+      name = "JikoiOSAgent">
+      <Group
+         location = "group:JikoiOSAgentUITests"
+         name = "JikoiOSAgentUITests">
+         <FileRef
+            location = "group:JikoiOSAgentUITests.swift">
+         </FileRef>
+         <FileRef
+            location = "group:JikoiOSAgentUITestsLaunchTests.swift">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:JikoiOSAgent"
+         name = "JikoiOSAgent">
+         <FileRef
+            location = "group:JikoiOSAgentApp.swift">
+         </FileRef>
+         <FileRef
+            location = "group:JikoSync-Bridging-Header.h">
+         </FileRef>
+         <FileRef
+            location = "group:Assets.xcassets">
+         </FileRef>
+         <Group
+            location = "group:Preview Content"
+            name = "Preview Content">
+            <FileRef
+               location = "group:Preview Assets.xcassets">
+            </FileRef>
+         </Group>
+         <FileRef
+            location = "group:ContentView.swift">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:JikoiOSAgent.xcodeproj">
+      </FileRef>
+      <Group
+         location = "group:JikoiOSAgentTests"
+         name = "JikoiOSAgentTests">
+         <FileRef
+            location = "group:JikoiOSAgentTests.swift">
+         </FileRef>
+      </Group>
+   </Group>
+   <Group
+      location = "group:JikoMacOSAgent"
+      name = "JikoMacOSAgent">
+      <Group
+         location = "group:JikoMacOSAgentUITests"
+         name = "JikoMacOSAgentUITests">
+         <FileRef
+            location = "group:JikoMacOSAgentUITests.swift">
+         </FileRef>
+         <FileRef
+            location = "group:JikoMacOSAgentUITestsLaunchTests.swift">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:JikoMacOSAgent"
+         name = "JikoMacOSAgent">
+         <FileRef
+            location = "group:Assets.xcassets">
+         </FileRef>
+         <FileRef
+            location = "group:AppSwitchObserver.swift">
+         </FileRef>
+         <FileRef
+            location = "group:JikoMacOSAgentApp.swift">
+         </FileRef>
+         <Group
+            location = "group:Preview Content"
+            name = "Preview Content">
+            <FileRef
+               location = "group:Preview Assets.xcassets">
+            </FileRef>
+         </Group>
+         <FileRef
+            location = "group:JikoMenu.swift">
+         </FileRef>
+         <FileRef
+            location = "group:AppDelegate.swift">
+         </FileRef>
+         <FileRef
+            location = "group:JikoMacOSAgent.entitlements">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:JikoMacOSAgentTests"
+         name = "JikoMacOSAgentTests">
+         <FileRef
+            location = "group:JikoMacOSAgentTests.swift">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:JikoMacOSAgent.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:JikoSync"
+      name = "JikoSync">
+      <Group
+         location = "group:JikoSyncTests"
+         name = "JikoSyncTests">
+         <FileRef
+            location = "group:JikoSyncTests.swift">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:JikoSync.xcodeproj">
+      </FileRef>
+   </Group>
+</Workspace>

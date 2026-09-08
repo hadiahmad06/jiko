@@ -30,6 +30,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			publicHeaders = (
 				JikoSync.h,
+				JikoSyncEnvironment.h,
+				JikoSyncEvent.h,
+				JikoSyncManager.h,
 			);
 			target = 014A28192E9FC39900DB88E2 /* JikoSync */;
 		};

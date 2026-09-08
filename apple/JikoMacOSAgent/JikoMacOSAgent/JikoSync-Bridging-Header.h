@@ -1,6 +1,6 @@
 //
 //  JikoSync-Bridging-Header.h
-//  JikoiOSAgent
+//  JikoMacOSAgent
 //
 //  Created by Hadi Ahmad on 10/18/25.
 //
