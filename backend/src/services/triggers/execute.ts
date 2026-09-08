@@ -1,135 +1,124 @@
 // src/services/triggers/execute.ts
+//
+// Executes a trigger's actions in order. Each action returns an ActionResult;
+// nothing throws past this module.
+import crypto from 'crypto';
+import { Action, ActionListT, ActionResultT, ActionT } from '../../types/json/Action.js';
+import { TriggerContext } from './context.js';
+import ActivityRepository from '../ActivityRepository.js';
+import ObligationRepository from '../repositories/ObligationRepository.js';
+import PreferencesRepository from '../repositories/PreferencesRepository.js';
+import TriggerRepository from '../repositories/TriggerRepository.js';
+import { sendMessage } from '../messaging/outbox.js';
+import { renderTemplate } from '../messaging/template.js';
+import { humanizeDelta } from './time.js';
+import { buildDailySummary, formatDailySummary } from '../summary.js';
+import { voiceRewrite } from '../messaging/voice.js';
 
-import ActivityManager from "../../data/ActivityManager.js";
-
-export async function executeActions(user_id: string, action_json: any) {
-  for (const action of action_json) {
-    await executeAction(user_id, action);
-  }
+export async function templateVars(ctx: TriggerContext): Promise<Record<string, string | number | undefined>> {
+  const m = ctx.matched;
+  const due = m.obligation ?? (await ctx.obligationsDueWithin(48))[0];
+  return {
+    name: await ctx.userName(),
+    app: m.app?.app_name,
+    minutes: m.app ? Math.round(m.app.minutes) : undefined,
+    location: m.location?.name,
+    obligation: due?.title,
+    obligation_due: due ? humanizeDelta(ctx.now, new Date((due.due_at ?? due.start_at) as Date)) : undefined,
+    metric: m.metric?.name,
+    metric_value: m.metric?.value,
+  };
 }
 
-async function executeAction(user_id: string, action: any) {
-  // Input validation: check that action_json and condition_json are objects with expected structure
-  function isValidAction(obj: any): boolean {
-    return (
-      typeof obj === 'object' &&
-      obj !== null &&
-      'type' in obj &&
-      'params' in obj
-    );
+export async function executeActions(actions: ActionListT, ctx: TriggerContext): Promise<ActionResultT[]> {
+  const results: ActionResultT[] = [];
+  for (const raw of actions) {
+    const parsed = Action.safeParse(raw);
+    if (!parsed.success) {
+      results.push({ action: String((raw as { action?: string })?.action ?? '?'), ok: false, detail: 'invalid action: ' + parsed.error.issues.map(i => i.message).join('; ') });
+      continue;
+    }
+    try {
+      results.push(await executeAction(parsed.data, ctx));
+    } catch (err) {
+      results.push({ action: parsed.data.action, ok: false, detail: (err as Error).message });
+    }
   }
+  return results;
+}
 
-  if (!isValidAction(action)) {
-    console.error('Invalid action_json: must be an object with "type" and "params" keys.');
-    return;
-  }
-
-  // Inject user_id into action_json.params.user_id
-  if (action.params && typeof action.params === 'object') {
-    action.params.user_id = user_id;
-  }
-
-  // implementation for executing any trigger's action_json
-
-  let result: string = "";
-  const now = new Date();
-
-  switch (action.type) {
-    case 'notify_user':
-      console.log(`Notifying user ${user_id} with message: ${action.params.message}`);
-      // Implement notification logic here (e.g., send email, push notification, etc.)
-      break;
-    
-    case 'start_activity':
-      // Implement activity start logic here
-      let res = await ActivityManager.addEntry({
+export async function executeAction(action: ActionT, ctx: TriggerContext): Promise<ActionResultT> {
+  const user_id = ctx.user_id;
+  switch (action.action) {
+    case 'notify_user': {
+      let body = renderTemplate(action.params.message, await templateVars(ctx));
+      if (action.params.voice) body = await voiceRewrite(body, ctx);
+      const r = await sendMessage({ user_id, body, trigger_id: ctx.trigger?.id ?? null, urgent: action.params.urgent ?? false, now: ctx.now });
+      return r.sent
+        ? { action: 'notify_user', ok: true, ref: r.message.id, detail: r.message.status }
+        : { action: 'notify_user', ok: false, detail: r.reason };
+    }
+    case 'start_activity': {
+      const open = await ActivityRepository.openEntries(user_id);
+      if (open.some(e => e.activity_id === action.params.activity_id)) return { action: 'start_activity', ok: true, detail: 'already in progress' };
+      const r = await ActivityRepository.addEntry({
         id: crypto.randomUUID(),
-        user_id: user_id,
+        user_id,
         activity_id: action.params.activity_id,
-        start_time: now,
-        created_at: now,
-        updated_at: now,
-        logged_by: "trigger"
+        start_time: ctx.now,
+        logged_by: 'trigger',
+        ...(action.params.note ? { note: action.params.note } : {}),
       });
-
-      result = res ? "success" : "failure";
-      break;
-
-    case 'stop_activity':
-      console.log(`Stopping activity ${action.params.activity_id} for user ${user_id}`);
-      // Implement activity stop logic here
-      res = await ActivityManager.updateEntry({
-        id: crypto.randomUUID(),
-        user_id: user_id,
-        end_time: now,
-        logged_by: "trigger"
-      });
-
-      result = res ? "success" : "failure";
-      break;
-
-    default:
-      console.error(`Unknown action type: ${action.type}`);
-  }
-
-  // Handle nested actions in closure if present
-  if (action.closure) {
-    const closure = action.closure;
-    if (closure[result] && Array.isArray(closure[result])) {
-      executeActions(user_id, closure[result]);
+      return r.success ? { action: 'start_activity', ok: true, ref: r.value.id } : { action: 'start_activity', ok: false, detail: r.details.message };
     }
+    case 'stop_activity': {
+      const r = await ActivityRepository.closeOpenEntry(user_id, action.params.activity_id, ctx.now, 'trigger', action.params.note);
+      return r ? { action: 'stop_activity', ok: true, ref: r.id } : { action: 'stop_activity', ok: false, detail: 'no open entry' };
+    }
+    case 'complete_obligation': {
+      const r = await ObligationRepository.update(action.params.obligation_id, user_id, { completed: true });
+      return r.success ? { action: 'complete_obligation', ok: true, ref: r.value.id } : { action: 'complete_obligation', ok: false, detail: r.details.message };
+    }
+    case 'create_obligation': {
+      const due = action.params.due_in_minutes ? new Date(ctx.now.getTime() + action.params.due_in_minutes * 60_000) : undefined;
+      const r = await ObligationRepository.create(user_id, {
+        kind: action.params.kind,
+        title: action.params.title,
+        source: 'trigger',
+        ...(action.params.kind === 'task' ? { due_at: due ?? new Date(ctx.now.getTime() + 24 * 3600_000) } : {}),
+        ...(action.params.kind === 'event' ? { start_at: due ?? ctx.now } : {}),
+        ...(action.params.kind === 'goal' ? { target_minutes: 30, timeframe_days: 1 } : {}),
+      });
+      return r.success ? { action: 'create_obligation', ok: true, ref: r.value.id } : { action: 'create_obligation', ok: false, detail: r.details.message };
+    }
+    case 'set_preference': {
+      await PreferencesRepository.update(user_id, { [action.params.key]: action.params.value } as never);
+      return { action: 'set_preference', ok: true };
+    }
+    case 'enable_trigger':
+    case 'disable_trigger': {
+      const r = await TriggerRepository.update(action.params.trigger_id, user_id, { enabled: action.action === 'enable_trigger' });
+      return r.success ? { action: action.action, ok: true, ref: r.value.id } : { action: action.action, ok: false, detail: r.details.message };
+    }
+    case 'snooze_trigger': {
+      const id = action.params.trigger_id ?? ctx.trigger?.id;
+      if (!id) return { action: 'snooze_trigger', ok: false, detail: 'no trigger to snooze' };
+      // A snooze is a temporary cooldown: push last_fired_at forward so cooldown math covers the window.
+      const until = new Date(ctx.now.getTime() + action.params.minutes * 60_000);
+      const r = await TriggerRepository.update(id, user_id, { next_run_at: until, last_fired_at: until });
+      return r.success ? { action: 'snooze_trigger', ok: true, ref: id, detail: `until ${until.toISOString()}` } : { action: 'snooze_trigger', ok: false, detail: r.details.message };
+    }
+    case 'daily_summary': {
+      const summary = await buildDailySummary(user_id, action.params.days_ago, ctx.now);
+      const body = formatDailySummary(summary, ctx.prefs.strictness);
+      const r = await sendMessage({ user_id, body, trigger_id: ctx.trigger?.id ?? null, counts_as_interrupt: false, now: ctx.now, metadata: { kind: 'daily_summary', day: summary.day } });
+      return r.sent ? { action: 'daily_summary', ok: true, ref: r.message.id } : { action: 'daily_summary', ok: false, detail: r.reason };
+    }
+    case 'log': {
+      console.log(`[trigger ${ctx.trigger?.name ?? '?'} user ${user_id}] ${renderTemplate(action.params.message, await templateVars(ctx))}`);
+      return { action: 'log', ok: true };
+    }
+    default:
+      return { action: (action as { action: string }).action, ok: false, detail: 'unknown action' };
   }
 }
-
-// Example usage:
-// Nested action_json
-// assume that this action is triggered by location, app usage, or other trigger
-/*
-
-const action_json = {
-  actions: [
-    type: "start_activity",
-    params: {
-      activity_id: "id-for-gym-activity",
-      closure: {
-        "success": [
-          {
-            type: "stop_activity",
-            params: {
-              activity_id: "id-for-walking-activity",
-            }
-          },
-          {
-            type: "stop_activity",
-            params: {
-              activity_id: "id-for-cycling-activity",
-            }
-          },
-          {
-            type: "stop_activity",
-            params: {
-              activity_id: "id-for-commuting-activity",
-            }
-          }
-        ],
-        "failure": [
-          {
-            type: "notify_user",
-            params: {
-              message: "Could not start activity",
-            }
-          }
-        ]
-      }
-    }
-    condition: {
-      type: "within_geofence",
-      params: {
-        location_id: 123123
-      }
-    }
-  ]
-};
-
-executeAction(user_id, action_json);
-*/

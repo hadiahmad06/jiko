@@ -16,13 +16,14 @@
     "test:integration": "vitest run --project integration",
     "test:all": "vitest run",
     "test:watch": "vitest watch --project unit",
-    "localdb": "tsx scripts/setupLocalDynamoDB.ts && tsx scripts/setupLocalPostgreSQL.ts",
+    "localdb": "tsx scripts/localdb.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "routes": "tsx scripts/printRoutes.ts"
   },
   "author": "Hadi Ahmad",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
     "@aws-sdk/client-dynamodb": "^3.914.0",
     "@aws-sdk/client-sns": "^3.915.0",
     "@aws-sdk/lib-dynamodb": "^3.914.0",

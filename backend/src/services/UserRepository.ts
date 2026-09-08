@@ -34,6 +34,12 @@ class UserRepository {
     }
   }
 
+  async deleteUser(user_id: string): Promise<boolean> {
+    const client = await getPsqlClient();
+    const res = await client.query('DELETE FROM users WHERE id = $1', [user_id]);
+    return (res.rowCount ?? 0) > 0;
+  }
+
   async addUser(user: UserT): Promise<Result<UserT>> {
     const client = await getPsqlClient();
 

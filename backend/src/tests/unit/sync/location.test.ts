@@ -30,8 +30,9 @@ const locationPayload: LocationDataT = {
 
 vi.mock('../../../data/LocationManager');
 const mockedUpdateLocation = vi.mocked(LocationManager.updateLocation);
-const mockSuccessfulResult: Result<LocationDataT> = { success: true, value: locationPayload }
-const mockFailedResult: Result<LocationDataT> = { success: false, code: 404, details: { error: '', message: '' }}
+type Res = Result<{ location: LocationDataT, triggered_ids: string[], firings: [] }>;
+const mockSuccessfulResult: Res = { success: true, value: { location: locationPayload, triggered_ids: [], firings: [] } }
+const mockFailedResult: Res = { success: false, code: 404, details: { error: '', message: '' }}
 
 describe('LocationAPI', () => {
   describe('POST /sync/location', () => {
@@ -43,7 +44,7 @@ describe('LocationAPI', () => {
         .send(locationPayload);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject(locationPayload);
+      expect(res.body.location).toMatchObject(locationPayload);
     });
 
     it('should reject posting incomplete location data', async () => {

@@ -36,14 +36,9 @@ const updatePayload: AppUsageDataT = {
 
 vi.mock('../../../data/AppUsageManager');
 const mockedUpdateAppUsage = vi.mocked(AppUsageManager.updateAppUsage);
-const mockSuccessfulResult: Result<{ appUsage: AppUsageDataT, triggered_ids: string[] }> = { 
-  success: true, 
-  value: { 
-    appUsage: updatePayload,
-    triggered_ids: ['trigger-1', 'trigger-2']
-  } 
-}
-const mockFailedResult: Result<{ appUsage: AppUsageDataT, triggered_ids: string[] }> = { success: false, code: 404, details: { error: '', message: '' }}
+type Res = Result<{ appUsage: AppUsageDataT, triggered_ids: string[], firings: [] }>;
+const mockSuccessfulResult: Res = { success: true, value: { appUsage: updatePayload, triggered_ids: ['trigger-1', 'trigger-2'], firings: [] } }
+const mockFailedResult: Res = { success: false, code: 404, details: { error: '', message: '' }}
 
 describe('AppUsageAPI', () => {
   describe('POST /sync/app-usage', () => {

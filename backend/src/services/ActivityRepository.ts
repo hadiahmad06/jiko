@@ -29,16 +29,10 @@ class ActivityRepository {
   async createActivity(activity: ActivityT): Promise<Result<ActivityT>> {
     const client = await getPsqlClient();
     const res = await client.query(
-      `INSERT INTO activities (id, user_id, name, description, created_at)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO activities (id, user_id, name, description)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [
-        activity.id,
-        activity.user_id,
-        activity.name,
-        activity.description,
-        activity.created_at,
-      ]
+      [activity.id, activity.user_id, activity.name, activity.description ?? null]
     );
     if (!res.rows[0]) return { success: false, code: 500, details: { error: 'Internal Server Error', message: 'Failed to create activity' }, };
     return { success: true, value: res.rows[0] };
@@ -220,6 +214,28 @@ class ActivityRepository {
     const res = await client.query(query, values);
     if (!res.rows) return { success: false, code: 404, details: { error: 'Not Found', message: 'No rows matched query.' }, };
     return { success: true, value: res.rows };
+  }
+
+  /** Entries with no end_time, i.e. activities currently in progress. */
+  async openEntries(userId: string): Promise<Array<{ id: string; activity_id: string; start_time: Date }>> {
+    const client = await getPsqlClient();
+    const res = await client.query(
+      'SELECT id, activity_id, start_time FROM activity_entries WHERE user_id = $1 AND end_time IS NULL ORDER BY start_time DESC',
+      [userId]
+    );
+    return res.rows as Array<{ id: string; activity_id: string; start_time: Date }>;
+  }
+
+  /** Closes the most recent open entry for an activity. Returns null if none. */
+  async closeOpenEntry(userId: string, activityId: string, endTime: Date, endedBy: 'user' | 'system' | 'trigger', note?: string): Promise<ActivityEntryT | null> {
+    const client = await getPsqlClient();
+    const res = await client.query(
+      `UPDATE activity_entries SET end_time = $3, ended_by = $4, note = COALESCE($5, note)
+       WHERE id = (SELECT id FROM activity_entries WHERE user_id = $1 AND activity_id = $2 AND end_time IS NULL ORDER BY start_time DESC LIMIT 1)
+       RETURNING *`,
+      [userId, activityId, endTime, endedBy, note ?? null]
+    );
+    return (res.rows[0] as ActivityEntryT | undefined) ?? null;
   }
 
   async deleteEntry(entryId: string, userId: string): Promise<boolean> {

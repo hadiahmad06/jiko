@@ -31,6 +31,12 @@ class UserManager {
     return result;
   }
 
+  async deleteUser(user_id: string): Promise<boolean> {
+    const ok = await UserRepository.deleteUser(user_id);
+    if (ok) delete this.cache[user_id];
+    return ok;
+  }
+
   // ! debug only
   getAllCached() {
     return { ...this.cache };

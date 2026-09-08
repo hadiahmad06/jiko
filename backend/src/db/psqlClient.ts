@@ -1,55 +1,76 @@
-import { Client } from 'pg';
+// src/db/psqlClient.ts
+// One pg.Pool per process. Offline mode (IS_OFFLINE=true or NODE_ENV=test) uses
+// the local PG* settings; otherwise RDS with IAM auth tokens.
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { Signer } from '@aws-sdk/rds-signer';
+import { isOffline, localPgConfig } from './config.js';
 
-let client : Client | null = null;
+let pool: Pool | null = null;
 
-async function getPsqlClient() {
-
-  const isOffline = process.env.IS_OFFLINE === 'true';
-
-  if (!client) {
-    if (isOffline) {
-      client = new Client({
-        host: 'localhost',
-        port: 5432,
-        database: 'jiko',
-        user: 'postgres',
-        password: 'postgres',
-      });
-      await client.connect();
-      console.log('Postgres client connected successfully (local Docker)');
-      return client;
-    } else {
-      
-      const REGION = process.env.AWS_REGION || 'us-east-2';
-      const RDS_HOST = process.env.RDS_HOST || '';
-      const RDS_PORT = process.env.RDS_PORT ? Number(process.env.RDS_PORT) : 5432;
-      const RDS_USER = process.env.RDS_USER || '';
-      const RDS_DB_NAME = process.env.RDS_DB_NAME || ''
-
-      const signer = new Signer({
-        region: REGION,
-        hostname: RDS_HOST,
-        port: Number(RDS_PORT),
-        username: RDS_USER,
-      });
-
-      const token = await signer.getAuthToken();
-
-      client = new Client({
-        host: RDS_HOST,
-        port: Number(RDS_PORT),
-        database: RDS_DB_NAME,
-        user: RDS_USER,
-        password: token,
-        ssl: { rejectUnauthorized: false },
-      });
-
-      await client.connect();
-      console.log('Postgres client connected successfully (AWS RDS with IAM authentication)');
-    }
+async function buildPool(): Promise<Pool> {
+  if (isOffline()) {
+    const p = new Pool({ ...localPgConfig(), max: 10 });
+    p.on('error', err => console.error('pg pool error:', err));
+    return p;
   }
-  return client;
+
+  const REGION = process.env.AWS_REGION || 'us-east-2';
+  const host = process.env.RDS_HOST || '';
+  const port = Number(process.env.RDS_PORT || 5432);
+  const user = process.env.RDS_USER || '';
+  const database = process.env.RDS_DB_NAME || '';
+  const signer = new Signer({ region: REGION, hostname: host, port, username: user });
+
+  const p = new Pool({
+    host,
+    port,
+    user,
+    database,
+    // IAM tokens expire after 15 minutes; pg calls this per new connection.
+    password: async () => signer.getAuthToken(),
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+  });
+  p.on('error', err => console.error('pg pool error:', err));
+  console.log('Postgres pool configured (AWS RDS, IAM auth)');
+  return p;
 }
 
-export { getPsqlClient };
+export async function getPool(): Promise<Pool> {
+  if (!pool) pool = await buildPool();
+  return pool;
+}
+
+/** Back-compat name used across repositories. Returns the pool, which has the same `query` API. */
+export async function getPsqlClient(): Promise<Pool> {
+  return getPool();
+}
+
+export async function query<R extends QueryResultRow = QueryResultRow>(text: string, params?: unknown[]): Promise<QueryResult<R>> {
+  const p = await getPool();
+  return p.query<R>(text, params);
+}
+
+/** Runs fn inside a transaction; rolls back on throw. */
+export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const p = await getPool();
+  const client = await p.connect();
+  try {
+    await client.query('BEGIN');
+    const out = await fn(client);
+    await client.query('COMMIT');
+    return out;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function closePool(): Promise<void> {
+  if (pool) {
+    await pool.end();
+    pool = null;
+  }
+}

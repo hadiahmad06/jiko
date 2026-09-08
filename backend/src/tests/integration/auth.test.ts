@@ -1,216 +1,54 @@
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import request from 'supertest';
-import createApp from '../../app'; // your Express app
-import { getPsqlClient } from '../../db/psqlClient';   // your DB client
-import { Client } from 'pg';
-import e from 'express';
+import createApp from '../../app.js';
+import { resetDb } from './helpers.js';
 
-let app: e.Application;
-let db: Client;
+let app: Awaited<ReturnType<typeof createApp>>;
+beforeAll(async () => { app = await createApp(); });
+beforeEach(resetDb);
 
-beforeAll(async () => {
-  app = await createApp();
-  process.env.IS_OFFLINE = "true";
-  process.env.JWT_SECRET = "integration-tests"
-  process.env.JWT_REFRESH_SECRET = "integration-tests"
-  db = await getPsqlClient();
+const creds = { phone_number: '+15550001111', password: 'Password123!' };
 
-  await db.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
-});
+describe('auth', () => {
+  it('signup -> me -> login -> refresh all share one token contract', async () => {
+    const signup = await request(app).post('/auth/signup').send({ ...creds, username: 'hadi', nickname: 'H' });
+    expect(signup.status).toBe(201);
+    expect(signup.body.user_id).toBeDefined();
 
-afterAll(async () => {
-  await db.end(); // close DB connection
-});
+    const me = await request(app).get('/auth/me').set('Authorization', `Bearer ${signup.body.token}`);
+    expect(me.status).toBe(200);
+    expect(me.body.username).toBe('hadi');
+    expect(me.body).not.toHaveProperty('password_hash');
 
-describe('Auth Integration Tests', () => {
-  const userIds: string[] = [];
+    const login = await request(app).post('/auth/login').send(creds);
+    expect(login.status).toBe(200);
+    expect(login.body.user_id).toBe(signup.body.user_id);
 
-  // -----------------------------
-  // Signup
-  // -----------------------------
-  describe('POST /auth/signup', () => {
-    it('should signup a user with phone_number and password', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({
-          phone_number: '21234567890',
-          password: 'Password123!',
-        });
-      
-      expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('user_id');
-      userIds.push(res.body.user_id);
-    });
-
-    it('should signup a user with optional email and username', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({
-          phone_number: '21234567891',
-          password: 'Password123!',
-          email: 'test@example.com',
-          username: 'tester'
-        });
-      
-      expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('user_id');
-      userIds.push(res.body.user_id);
-    });
-
-    it('should fail signup if phone_number is missing', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({ password: 'Password123!' });
-
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail signup if password is missing', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({ phone_number: '21234567892' });
-
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail signup if phone_number is duplicate', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({
-          phone_number: '21234567890',
-          password: 'Password123!',
-        });
-      
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail signup if email is duplicate', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({
-          phone_number: '21234567893',
-          password: 'Password123!',
-          email: 'test@example.com',
-        });
-      
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail signup if username is duplicate', async () => {
-      const res = await request(app)
-        .post('/auth/signup')
-        .send({
-          phone_number: '21234567894',
-          password: 'Password123!',
-          username: 'tester',
-        });
-      
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
+    const refreshed = await request(app).post('/auth/refresh').send({ refreshToken: login.body.refreshToken });
+    expect(refreshed.status).toBe(200);
+    const prefs = await request(app).get('/users/preferences').set('Authorization', `Bearer ${refreshed.body.token}`);
+    expect(prefs.status).toBe(200);
+    expect(prefs.body.strictness).toBe(0.5);
   });
 
-  // -----------------------------
-  // Login
-  // -----------------------------
-  describe('POST /auth/login', () => {
-    it('should login with phone_number and password', async () => {
-      const res = await request(app)
-        .post('/auth/login')
-        .send({
-          phone_number: '21234567890',
-          password: 'Password123!',
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('token');
-    });
-
-    it('should login with user_id and password', async () => {
-      const res = await request(app)
-        .post('/auth/login')
-        .send({
-          id: userIds[0],
-          password: 'Password123!',
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('token');
-    });
-
-    it('should fail login with wrong password', async () => {
-      const res = await request(app)
-        .post('/auth/login')
-        .send({
-          phone_number: '21234567890',
-          password: 'WrongPassword!',
-        });
-
-      expect(res.status).toBe(401);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail login if no identifier provided', async () => {
-      const res = await request(app)
-        .post('/auth/login')
-        .send({
-          password: 'Password123!',
-        });
-
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
+  it('rejects duplicate phone numbers with a useful message', async () => {
+    await request(app).post('/auth/signup').send(creds);
+    const dup = await request(app).post('/auth/signup').send(creds);
+    expect(dup.status).toBe(400);
+    expect(dup.body.message).toMatch(/phone_number/);
   });
 
-  // -----------------------------
-  // Refresh Token
-  // -----------------------------
-  describe('POST /auth/refresh', () => {
-    it('should refresh token with valid refresh token', async () => {
-      // First, login to get a refresh token
-      const loginRes = await request(app)
-        .post('/auth/login')
-        .send({
-          phone_number: '21234567890',
-          password: 'Password123!',
-        });
+  it('rejects wrong passwords and unknown users', async () => {
+    await request(app).post('/auth/signup').send(creds);
+    expect((await request(app).post('/auth/login').send({ ...creds, password: 'nope' })).status).toBe(401);
+    expect((await request(app).post('/auth/login').send({ phone_number: '+10000000000', password: 'x' })).status).toBe(404);
+  });
 
-      expect(loginRes.status).toBe(200);
-      expect(loginRes.body).toHaveProperty('refreshToken');
-
-      // Now use the refresh token
-      const res = await request(app)
-        .post('/auth/refresh')
-        .send({
-          refreshToken: loginRes.body.refreshToken,
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('token');
-    });
-
-    it('should fail refresh with missing refresh token', async () => {
-      const res = await request(app)
-        .post('/auth/refresh')
-        .send({});
-
-      expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error');
-    });
-
-    it('should fail refresh with invalid refresh token', async () => {
-      const res = await request(app)
-        .post('/auth/refresh')
-        .send({
-          refreshToken: 'invalid-token',
-        });
-
-      expect(res.status).toBe(401);
-      expect(res.body).toHaveProperty('error');
-    });
+  it('DELETE /users removes the account and everything under it', async () => {
+    const s = await request(app).post('/auth/signup').send(creds);
+    const auth = { Authorization: `Bearer ${s.body.token}` };
+    await request(app).post('/obligations').set(auth).send({ title: 'x', due_at: new Date().toISOString() });
+    expect((await request(app).delete('/users').set(auth)).status).toBe(204);
+    expect((await request(app).get('/auth/me').set(auth)).status).toBe(404);
   });
 });

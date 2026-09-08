@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import express, { Router } from 'express';
 import { fileURLToPath, pathToFileURL } from 'url';
-import control from './routes/activities.js';
 
 const injectRouters = async (dir: string, app: express.Application) => {
   const items = await fs.readdir(dir);
@@ -46,8 +45,7 @@ export const printRoutes = (stack: any[], prefix = '') => {
 
 const createApp = async () => {
   const app = express();
-  app.use(express.json());
-  app.use('/', control)
+  app.use(express.json({ limit: '2mb' }));
 
 
   const __filename = fileURLToPath(import.meta.url);

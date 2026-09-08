@@ -34,8 +34,9 @@ const healthPayload: HealthDataT = {
 
 vi.mock('../../../data/HealthManager');
 const mockedUpdateHealth = vi.mocked(HealthManager.updateHealth);
-const mockSuccessfulResult: Result<HealthDataT> = { success: true, value: healthPayload }
-const mockFailedResult: Result<HealthDataT> = { success: false, code: 404, details: { error: '', message: '' }}
+type Res = Result<{ health: HealthDataT, triggered_ids: string[], firings: [] }>;
+const mockSuccessfulResult: Res = { success: true, value: { health: healthPayload, triggered_ids: [], firings: [] } }
+const mockFailedResult: Res = { success: false, code: 404, details: { error: '', message: '' }}
 
 describe('HealthAPI', () => {
   describe('POST /sync/health', () => {
@@ -47,7 +48,7 @@ describe('HealthAPI', () => {
         .send(healthPayload);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject(healthPayload);
+      expect(res.body.health).toMatchObject(healthPayload);
     });
 
     it('should reject posting incomplete health data', async () => {

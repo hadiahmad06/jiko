@@ -1,86 +1,48 @@
-import { checkLocationTriggersUnbatched } from '../services/triggers/locationTriggerService.js';
+// src/data/LocationManager.ts
+import { runTriggers, FiringReport } from '../services/triggers/engine.js';
 import { Result } from '../types/common/common.js';
 import { LocationDataT } from '../types/user/sync/LocationData.js';
 import { Queue } from '../types/common/Queue.js';
 
-// Manages location data storage with a fixed-size queue per user
+const HISTORY = 5;
+
 class LocationManager {
-  // { user_id : LocationQueue }
   private locationQueues: Record<string, Queue<LocationDataT>> = {};
 
-  async updateLocation(user_id: string, data: LocationDataT): Promise<Result<LocationDataT>> {
-    try {
-      // Initialize queue for user if it doesn't exist
-      
-      if (!this.locationQueues[user_id]) {
-        this.locationQueues[user_id] = new Queue<LocationDataT>(3); // Store last 3 locations
-} else {
-        const lastKnownLocation = this.locationQueues[user_id].last();
-        if(lastKnownLocation) {
-          try {
-            await checkLocationTriggersUnbatched(user_id, lastKnownLocation, data )
-          } catch (triggerError) {
-            // Log trigger errors but don't fail the location update
-            console.error('Error checking location triggers:', triggerError);
-          }
-        }
-      }
+  last(user_id: string): LocationDataT | null {
+    return this.locationQueues[user_id]?.last() ?? null;
+  }
 
-      // Add new location to the queue
+  async updateLocation(user_id: string, data: LocationDataT): Promise<Result<{ location: LocationDataT; triggered_ids: string[]; firings: FiringReport[] }>> {
+    try {
+      if (!this.locationQueues[user_id]) this.locationQueues[user_id] = new Queue<LocationDataT>(HISTORY);
+      const previous = this.locationQueues[user_id].last() ?? null;
       this.locationQueues[user_id].enqueue(data);
 
-      return { 
-        success: true, 
-        value: data 
-      };
+      let firings: FiringReport[] = [];
+      try {
+        firings = await runTriggers(user_id, { kind: 'location', previous, current: data });
+      } catch (err) {
+        console.error('[location] trigger run failed:', err);
+      }
+      return { success: true, value: { location: data, triggered_ids: firings.map(f => f.trigger_id), firings } };
     } catch (error) {
       console.error('Error updating location:', error);
-      return { 
-        success: false, 
-        code: 500, 
-        details: { 
-          error: 'ServerError', 
-          message: 'Failed to update location data' 
-        } 
-      };
+      return { success: false, code: 500, details: { error: 'ServerError', message: 'Failed to update location data' } };
     }
   }
 
   async getLocationHistory(user_id: string): Promise<Result<LocationDataT[]>> {
-    try {
-      const queue = this.locationQueues[user_id];
-      if (!queue) {
-        return { 
-          success: true, 
-          value: [] 
-        };
-      }
-
-      return { 
-        success: true, 
-        value: queue.getAll() 
-      };
-    } catch (error) {
-      console.error('Error retrieving location history:', error);
-      return { 
-        success: false, 
-        code: 500, 
-        details: { 
-          error: 'ServerError', 
-          message: 'Failed to retrieve location history' 
-        } 
-      };
-    }
+    const queue = this.locationQueues[user_id];
+    return { success: true, value: queue ? queue.getAll() : [] };
   }
 
-  // Debug only
   getAllCached() {
-    const result: Record<string, LocationDataT[]> = {};
-    for (const [userId, queue] of Object.entries(this.locationQueues)) {
-      result[userId] = queue.getAll();
-    }
-    return result;
+    const out: Record<string, LocationDataT[]> = {};
+    for (const [k, q] of Object.entries(this.locationQueues)) out[k] = q.getAll();
+    return out;
   }
+  reset() { this.locationQueues = {}; }
 }
 
 export default new LocationManager();
