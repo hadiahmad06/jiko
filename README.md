@@ -42,16 +42,30 @@ and translates them into insight and feedback. The ultimate goal is to help user
 ---
 
 ## Tech Stack
-**Backend**
-- Node.js  
-- Express  
-- PostgreSQL + DynamoDB  
-- Hosted on **AWS EC2**
+**Backend** ([backend/README.md](backend/README.md))
+- Node.js 22, Express 5, TypeScript, Zod  
+- PostgreSQL 15 + PostGIS (one database; see [DECISIONS.md](DECISIONS.md) for why DynamoDB was dropped)  
+- Optional: Claude for Jiko's voice, AWS SNS for SMS  
+- Target: AWS (RDS + one EC2/container); not deployed yet
 
-**Frontend**
-- macOS app (Objective-C / Swift)  
-- iOS app (Swift / SwiftUI)  
-- Android app (Kotlin)
+**Clients**
+- macOS menu-bar agent, Swift/SwiftUI ([apple/JikoMacOSAgent/README.md](apple/JikoMacOSAgent/README.md)) — working  
+- iOS app (Swift / SwiftUI) — scaffold only  
+- Android (Kotlin) — not started
+
+## Try it in two minutes
+```bash
+cd backend && npm ci && cp .env.example .env && npm run localdb && npm run dev
+# in another shell:
+bash backend/scripts/demo.sh
+```
+The demo signs up a throwaway user, labels Instagram as distracting, adds "OS midterm in 6 hours", fakes 25 minutes of scrolling, and prints what Jiko says and how it reacts to "snooze 30".
+
+## Where things are
+- [SPRINT_PLAN.md](SPRINT_PLAN.md) — what was planned and what shipped  
+- [SPRINT_2.md](SPRINT_2.md) — what's next  
+- [DECISIONS.md](DECISIONS.md) — every non-obvious call, so you can override them  
+- [backend/docs/triggers.md](backend/docs/triggers.md) — the rules engine contract
 
 ---
 

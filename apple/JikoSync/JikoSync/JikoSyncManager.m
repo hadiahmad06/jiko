@@ -103,67 +103,27 @@
 
 - (void)processQueuedData {
     JikoSyncAPI *api = [JikoSyncAPI sharedAPI];
-    
-    // Process app usage data
-    NSArray<JikoDataQueueItem *> *appUsageItems = [[JikoDataQueue sharedQueue] queuedDataOfType:JikoDataTypeAppUsage];
-    if (appUsageItems.count > 0) {
-        NSMutableArray<JikoDataQueueItem *> *itemsToRemove = [NSMutableArray array];
-        
-        for (JikoDataQueueItem *item in appUsageItems) {
-            // Temporary fix for efficiency - only send data when appropriate
-            if ([self shouldSendDataBasedOnAppUsage:item.data]) {
-                [api syncAppUsageData:item.data completion:^(BOOL success, NSError * _Nullable error) {
-                    if (success) {
-                        [itemsToRemove addObject:item];
-                    } else {
-                        NSLog(@"Failed to sync app usage data: %@", error.localizedDescription);
-                    }
-                }];
+    JikoDataQueue *queue = [JikoDataQueue sharedQueue];
+    // Items are removed inside each completion handler, after the server has
+    // accepted them. Never before: the old code removed synchronously and lost data.
+    for (JikoDataQueueItem *item in [queue allQueuedData]) {
+        void (^done)(BOOL, NSError * _Nullable) = ^(BOOL success, NSError * _Nullable error) {
+            if (success) {
+                [queue removeItems:@[item]];
+            } else {
+                NSLog(@"[JikoSync] sync failed (%ld): %@", (long)item.dataType, error.localizedDescription);
             }
-        }
-        
-        if (itemsToRemove.count > 0) {
-            [[JikoDataQueue sharedQueue] removeItems:itemsToRemove];
-        }
-    }
-    
-    // Process location data
-    NSArray<JikoDataQueueItem *> *locationItems = [[JikoDataQueue sharedQueue] queuedDataOfType:JikoDataTypeLocation];
-    if (locationItems.count > 0) {
-        NSMutableArray<JikoDataQueueItem *> *itemsToRemove = [NSMutableArray array];
-        
-        for (JikoDataQueueItem *item in locationItems) {
-            [api syncLocationData:item.data completion:^(BOOL success, NSError * _Nullable error) {
-                if (success) {
-                    [itemsToRemove addObject:item];
-                } else {
-                    NSLog(@"Failed to sync location data: %@", error.localizedDescription);
-                }
-            }];
-        }
-        
-        if (itemsToRemove.count > 0) {
-            [[JikoDataQueue sharedQueue] removeItems:itemsToRemove];
-        }
-    }
-    
-    // Process health data
-    NSArray<JikoDataQueueItem *> *healthItems = [[JikoDataQueue sharedQueue] queuedDataOfType:JikoDataTypeHealth];
-    if (healthItems.count > 0) {
-        NSMutableArray<JikoDataQueueItem *> *itemsToRemove = [NSMutableArray array];
-        
-        for (JikoDataQueueItem *item in healthItems) {
-            [api syncHealthData:item.data completion:^(BOOL success, NSError * _Nullable error) {
-                if (success) {
-                    [itemsToRemove addObject:item];
-                } else {
-                    NSLog(@"Failed to sync health data: %@", error.localizedDescription);
-                }
-            }];
-        }
-        
-        if (itemsToRemove.count > 0) {
-            [[JikoDataQueue sharedQueue] removeItems:itemsToRemove];
+        };
+        switch (item.dataType) {
+            case JikoDataTypeAppUsage:
+                if ([self shouldSendDataBasedOnAppUsage:item.data]) [api syncAppUsageData:item.data completion:done];
+                break;
+            case JikoDataTypeLocation:
+                [api syncLocationData:item.data completion:done];
+                break;
+            case JikoDataTypeHealth:
+                [api syncHealthData:item.data completion:done];
+                break;
         }
     }
 }

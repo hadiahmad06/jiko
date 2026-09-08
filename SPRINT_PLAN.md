@@ -1,5 +1,7 @@
 # Jiko — Sprint 1 Plan
 
+> **Status (2026-09-08, end of autonomous build): shipped.** Phases 0–6 are done, with one structural change from the plan: the MVP runs on Postgres only (DynamoDB dropped, see `DECISIONS.md` D1). Stretch items also shipped: obligations (one table, quick-add parser, ICS import), an interrupt budget with quiet hours, talk-back, a nightly summary, trigger presets, an onboarding flow, optional Claude voice, and a curl demo. Acceptance criteria 1–6 below are all met; criterion 5 was verified by launching the agent and by the model tests (real usage from a live Mac wasn't exercised end to end in this session). See `SPRINT_2.md` for what's next.
+
 **Written:** 2026-09-08 · **Branch:** `backend` · **Owner:** Claude (executing), Hadi (deciding)
 
 **Sprint goal:** one real end-to-end path works and is green in CI:

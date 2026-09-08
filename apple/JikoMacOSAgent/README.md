@@ -14,7 +14,9 @@ Command line:
 
 ```bash
 xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' CODE_SIGN_IDENTITY="-" build
-xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' -only-testing:JikoMacOSAgentTests CODE_SIGN_IDENTITY="-" test
+# hosted unit tests need sandbox + hardened runtime off when signed ad hoc from the CLI (Xcode handles this itself)
+xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' -only-testing:JikoMacOSAgentTests \
+  CODE_SIGN_IDENTITY="-" ENABLE_HARDENED_RUNTIME=NO ENABLE_APP_SANDBOX=NO CODE_SIGN_ENTITLEMENTS="" test
 ```
 
 ## How it works

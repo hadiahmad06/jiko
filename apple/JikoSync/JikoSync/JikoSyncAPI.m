@@ -60,7 +60,7 @@
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request setHTTPMethod:@"POST"];
     
-    NSDictionary *body = @{@"refresh_token": self.refreshToken};
+    NSDictionary *body = @{@"refreshToken": self.refreshToken};
     NSError *jsonError;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:body options:0 error:&jsonError];
     
@@ -98,7 +98,7 @@
                 return;
             }
             
-            NSString *newAuthToken = jsonResponse[@"access_token"];
+            NSString *newAuthToken = jsonResponse[@"token"];
             if (newAuthToken) {
                 self.authToken = newAuthToken;
                 dispatch_async(dispatch_get_main_queue(), ^{

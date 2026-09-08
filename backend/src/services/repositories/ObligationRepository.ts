@@ -39,6 +39,28 @@ class ObligationRepository {
     return { success: true, value: Obligation.parse(res.rows[0]) };
   }
 
+  /** Create-or-update keyed on (user_id, source, external_ref). Returns [created, updated] counts. */
+  async upsertExternal(user_id: string, items: Array<ObligationCreateT & { external_ref: string }>): Promise<{ created: number; updated: number }> {
+    let created = 0, updated = 0;
+    for (const item of items) {
+      const existing = await query<{ id: string; completed: boolean }>(
+        'SELECT id, completed FROM obligations WHERE user_id = $1 AND source = $2 AND external_ref = $3',
+        [user_id, item.source ?? 'ics', item.external_ref]
+      );
+      if (existing.rows[0]) {
+        await query(
+          `UPDATE obligations SET title = $3, description = $4, due_at = $5, start_at = $6, end_at = $7, all_day = $8 WHERE id = $1 AND user_id = $2`,
+          [existing.rows[0].id, user_id, item.title, item.description ?? null, item.due_at ?? null, item.start_at ?? null, item.end_at ?? null, item.all_day ?? false]
+        );
+        updated++;
+      } else {
+        const r = await this.create(user_id, item);
+        if (r.success) created++;
+      }
+    }
+    return { created, updated };
+  }
+
   async update(id: string, user_id: string, data: ObligationUpdateT): Promise<Result<ObligationT>> {
     const entries = Object.entries(data).filter(([, v]) => v !== undefined);
     if (entries.length === 0) return { success: false, code: 400, details: { error: 'BadRequest', message: 'No fields to update' } };

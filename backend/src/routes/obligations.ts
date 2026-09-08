@@ -5,6 +5,8 @@ import { ObligationCreate, ObligationUpdate, ObligationQuery } from '../types/ob
 import { parseOr400, sendResult, serverError } from '../lib/http.js';
 import { parseQuickAdd } from '../services/quickadd.js';
 import { z } from 'zod';
+import { icsToObligations } from '../services/ics.js';
+import express from 'express';
 
 const router = Router();
 
@@ -40,6 +42,18 @@ router.post('/obligations/quick', authMiddleware, async (req, res) => {
     if (!parsed) return res.status(400).json({ error: 'Unparseable', message: "couldn't find a date in that. try 'thing due friday 5pm'." });
     sendResult(res, await ObligationRepository.create(req.uid!, { ...parsed, source: 'quick' }), 201);
   } catch (err) { serverError(res, err, 'quick-adding an obligation'); }
+});
+
+// POST /obligations/import/ics - body is text/calendar (or JSON { ics }); windowed to the next 30 days by default
+router.post('/obligations/import/ics', authMiddleware, express.text({ type: ['text/calendar', 'text/plain'], limit: '5mb' }), async (req, res) => {
+  try {
+    const text = typeof req.body === 'string' ? req.body : typeof req.body?.ics === 'string' ? req.body.ics : null;
+    if (!text || !/BEGIN:VCALENDAR/i.test(text)) return res.status(400).json({ error: 'InvalidBody', message: 'Send an iCalendar file as text/calendar or JSON { ics }.' });
+    const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
+    const items = icsToObligations(text, { to: new Date(Date.now() + days * 86_400_000) });
+    const counts = await ObligationRepository.upsertExternal(req.uid!, items);
+    res.json({ parsed: items.length, ...counts });
+  } catch (err) { serverError(res, err, 'importing a calendar'); }
 });
 
 // GET /obligations/:id

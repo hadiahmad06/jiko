@@ -190,3 +190,19 @@ describe('devices and triggers CRUD', () => {
     expect((await c.get('/triggers/presets')).body.length).toBeGreaterThan(5);
   });
 });
+
+describe('calendar import', () => {
+  it('imports VEVENTs as obligations, idempotently by UID', async () => {
+    const u = await createUser();
+    const c = api(app, u.token);
+    const start = new Date(Date.now() + 2 * 86_400_000).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nUID:x1\nSUMMARY:Lab report due\nDTSTART:${start}\nEND:VEVENT\nBEGIN:VEVENT\nUID:x2\nSUMMARY:Office hours\nDTSTART:${start}\nEND:VEVENT\nEND:VCALENDAR\n`;
+    const first = await c.post('/obligations/import/ics').set('content-type', 'text/calendar').send(ics);
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ parsed: 2, created: 2, updated: 0 });
+    const again = await c.post('/obligations/import/ics', { ics: ics.replace('Office hours', 'Office hours (moved)') });
+    expect(again.body).toMatchObject({ parsed: 2, created: 0, updated: 2 });
+    const list = await c.get('/obligations');
+    expect(list.body.map((o: { title: string; kind: string }) => [o.kind, o.title]).sort()).toEqual([['event', 'Office hours (moved)'], ['task', 'Lab report due']]);
+  });
+});
