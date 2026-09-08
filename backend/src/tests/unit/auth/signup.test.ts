@@ -3,8 +3,8 @@ import { vi } from 'vitest';
 import request from 'supertest';
 import createApp from '../../../app';
 import UserManager from '../../../data/UserManager';
-import { Result } from 'types/common/common';
-import { UserT } from 'types/user/User';
+import { Result } from '../../../types/common/common.js';
+import { UserT } from '../../../types/user/User.js';
 
 let app: any;
 

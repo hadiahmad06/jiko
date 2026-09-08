@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec \"tsx src/index.ts\"",
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",

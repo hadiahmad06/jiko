@@ -1,4 +1,4 @@
-import { Platform } from "../device/Platform";
+import { Platform } from "../device/Platform.js";
 import z from "zod";
 
 // Location data schema

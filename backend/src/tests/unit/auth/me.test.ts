@@ -4,7 +4,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import UserManager from '../../../data/UserManager';
 import createApp from '../../../app'; // path to Express app
-import { UserT } from 'types/user/User';
+import { UserT } from '../../../types/user/User.js';
 
 
 let app: any;

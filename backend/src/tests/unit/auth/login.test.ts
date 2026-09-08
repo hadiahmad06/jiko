@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import UserManager from '../../../data/UserManager';
 import type { UserLookup } from '../../../services/UserRepository';
-import { UserT } from 'types/user/User';
+import { UserT } from '../../../types/user/User.js';
 
 let app: any;
 const password = 'Password123!'
