@@ -77,7 +77,7 @@ Operators: `<`, `<=`, `>`, `>=`, `==`.
 
 | action | params | effect |
 |---|---|---|
-| `notify_user` | `message` (template), `urgent?`, `voice?` | `sendMessage()`; `urgent` bypasses budget and quiet hours; `voice` asks Claude to rewrite (if configured) |
+| `notify_user` | `message` (template), `messages?` (alternates rotated by `fire_count`), `urgent?`, `voice?` | `sendMessage()`; `urgent` bypasses budget and quiet hours; `voice` asks Claude to rewrite (if configured); an ignored nudge never repeats verbatim |
 | `start_activity` | `activity_id`, `note?` | opens an entry unless one is already open |
 | `stop_activity` | `activity_id`, `note?` | closes the most recent open entry, `ended_by = trigger` |
 | `complete_obligation` | `obligation_id` | marks complete |

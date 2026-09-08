@@ -1,0 +1,22 @@
+name: macos-agent
+
+on:
+  push:
+    paths: ['apple/JikoMacOSAgent/**', '.github/workflows/macos-agent.yml']
+  pull_request:
+    paths: ['apple/JikoMacOSAgent/**', '.github/workflows/macos-agent.yml']
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apple/JikoMacOSAgent
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.1.app || sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | tail -1)"
+      - name: Build
+        run: xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=NO build | xcbeautify || xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=NO build
+      - name: Unit tests
+        run: xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination 'platform=macOS' -only-testing:JikoMacOSAgentTests CODE_SIGN_IDENTITY="-" ENABLE_HARDENED_RUNTIME=NO ENABLE_APP_SANDBOX=NO CODE_SIGN_ENTITLEMENTS="" test

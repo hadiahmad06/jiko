@@ -10,6 +10,9 @@ export const NotifyUserAction = z.object({
   params: z.object({
     // Template. Supports {{app}}, {{minutes}}, {{obligation}}, {{obligation_due}}, {{location}}, {{name}}.
     message: z.string().min(1).max(1000),
+    // Optional alternates. The trigger's fire_count picks one, so an ignored nudge
+    // never repeats itself verbatim: [message, ...messages][fire_count % n].
+    messages: z.array(z.string().min(1).max(1000)).max(10).optional(),
     // If true, bypasses the daily interrupt budget (use sparingly: deadlines).
     urgent: z.boolean().optional(),
     // Optional: rewrite the message in the user's chosen voice via the LLM (if configured).

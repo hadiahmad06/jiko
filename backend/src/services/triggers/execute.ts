@@ -51,7 +51,9 @@ export async function executeAction(action: ActionT, ctx: TriggerContext): Promi
   const user_id = ctx.user_id;
   switch (action.action) {
     case 'notify_user': {
-      let body = renderTemplate(action.params.message, await templateVars(ctx));
+      const variants = [action.params.message, ...(action.params.messages ?? [])];
+      const template = variants[(ctx.trigger?.fire_count ?? 0) % variants.length]!;
+      let body = renderTemplate(template, await templateVars(ctx));
       if (action.params.voice) body = await voiceRewrite(body, ctx);
       const r = await sendMessage({ user_id, body, trigger_id: ctx.trigger?.id ?? null, urgent: action.params.urgent ?? false, now: ctx.now });
       return r.sent
