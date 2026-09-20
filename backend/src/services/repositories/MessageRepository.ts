@@ -91,7 +91,7 @@ class MessageRepository {
     const res = await query(
       `SELECT * FROM messages
        WHERE user_id = $1 AND direction = 'inbound' AND metadata->>'kind' = $2
-         AND created_at >= NOW() - make_interval(days => $3)
+         AND created_at >= NOW() - make_interval(days => $3::int)
        ORDER BY created_at DESC LIMIT 1`,
       [user_id, kind, withinDays]
     );

@@ -141,9 +141,9 @@ class CalendarRepository {
     const res = await query(
       `SELECT * FROM calendar_subscriptions
        WHERE enabled
-         AND (last_imported_at IS NULL OR last_imported_at <= $1 - make_interval(hours => refresh_hours))
+         AND (last_imported_at IS NULL OR last_imported_at <= $1::timestamptz - make_interval(hours => refresh_hours))
        ORDER BY last_imported_at ASC NULLS FIRST
-       LIMIT $2`,
+       LIMIT $2::int`,
       [now, limit]
     );
     return res.rows.map(r => CalendarSubscription.parse(r));

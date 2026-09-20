@@ -92,3 +92,6 @@ Fly, Neon and friends hand you a URL; the RDS IAM path is still there for the AW
 
 ## D30. The iOS agent ships location and health, and no screen time
 `CLLocationManager` significant-change updates (a few hundred metres, background-capable, cheap) plus a client-side filter — 120 m or two minutes since the last send — keep the sync rate sane. HealthKit is read once an hour for two numbers: steps since local midnight and minutes actually asleep (time in bed is not sleep), posted to `/sync/health` as one flattened sample so `health_metric` conditions read `steps` and `sleep_minutes` directly. Screen Time needs the FamilyControls entitlement, which Apple has to approve; the app says so in Settings rather than pretending.
+
+## D31. Parameters that feed `make_interval` are cast explicitly
+`last_imported_at <= $1 - make_interval(hours => refresh_hours)` parses as `timestamptz <= interval` because Postgres cannot infer the type of a bare `$1` in that position, and the query fails at runtime rather than at typecheck. Caught by the calendar sweep logging an error during the integration run even though every test passed. Every such parameter now carries its cast (`$1::timestamptz`, `$3::int`), and the new integration suite exercises the sweep path so a repeat would fail a test rather than a log line.
