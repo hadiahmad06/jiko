@@ -1,6 +1,10 @@
+"""Split an export into subconversations. Kept from the fine-tune plan that
+Sprint 2 scoped down to style extraction; see training/README.md."""
+
 import json
-from parsing.imessage import parse_imessage_folder
-from clustering import split_conversations
+
+from processing.parsing.imessage import parse_imessage_folder
+from experiments.clustering import split_conversations
 
 def main():
     folder_path = "imessage/"

@@ -29,11 +29,6 @@ import re
 import sys
 from collections import Counter
 
-try:
-    from parsing.imessage import parse_imessage_folder
-except ImportError:  # running as a module from the repo root
-    from processing.parsing.imessage import parse_imessage_folder
-
 OWN_SENDER = "Me"
 
 # Anything that is not the user's voice: one-time codes, links, attachments,
@@ -59,6 +54,13 @@ FILLERS = [
 
 def own_messages(folder: str, limit: int = 0, skip: int = 0) -> list[str]:
     """Every message the user sent, cleaned of codes, links and tapbacks."""
+    # Imported here so the measuring half of this module works without
+    # beautifulsoup installed.
+    try:
+        from parsing.imessage import parse_imessage_folder
+    except ImportError:  # running as a module from the repo root
+        from processing.parsing.imessage import parse_imessage_folder
+
     parsed = parse_imessage_folder(folder, limit=limit, skip=skip)
     out = []
     for m in parsed:
