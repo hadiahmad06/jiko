@@ -27,17 +27,21 @@ and translates them into insight and feedback. The ultimate goal is to help user
 ---
 
 ## Key Features
-### ✅ Phase 1
-- **App Usage Tracking**  
-  Tracks what apps consume your time most, per device.
+### ✅ Working today
+- **App usage tracking** — what ate your time, per device, per day.
+- **A rules engine** — "when X and Y, say Z", with cooldowns, a daily interrupt budget and quiet hours. Nothing unsolicited leaves without passing all three.
+- **Messages that talk back** — a nudge arrives as a notification, an iMessage or an SMS, and "snooze 30", "done", "stricter" or plain English all land somewhere.
+- **Calendar subscriptions** — paste a Canvas or Google Calendar ICS URL; it re-imports itself daily, so Jiko knows what is actually due.
+- **Goals** — "3h of reading a week": a midweek check when you are behind pace, silence when you are not.
+- **Sunday reflection** — one question a week, and monday's check-in refers to your answer.
+- **Focus-aware** — a macOS Focus, or a pause on any device, holds nudges as a leased quiet window.
+- **Your own voice** — a style guide built locally from your own texts, so the nudges sound like you.
+- **"Why did I get this?"** — every nudge can name the firing behind it.
 
 ### 🚀 Coming Soon
-- **Email, Calendar, and Health Data Integration**  
-  Combine communication, scheduling, and wellbeing data for a holistic attention map.
-- **Focus Notifications**  
-  Smart reminders when you’re drifting from your goals.
-- **Dynamic Balance Model**  
-  Customize how strict or flexible Jiko should be with your free time — balance matters as much as productivity.
+- **Screen Time on iPhone** — needs Apple's FamilyControls entitlement.
+- **Email** — the last unread signal.
+- **A second person using it for a week** — the real test.
 
 ---
 
@@ -45,12 +49,13 @@ and translates them into insight and feedback. The ultimate goal is to help user
 **Backend** ([backend/README.md](backend/README.md))
 - Node.js 22, Express 5, TypeScript, Zod  
 - PostgreSQL 15 + PostGIS (one database; see [DECISIONS.md](DECISIONS.md) for why DynamoDB was dropped)  
-- Optional: Claude for Jiko's voice, AWS SNS for SMS  
-- Target: AWS (RDS + one EC2/container); not deployed yet
+- Optional: Claude for Jiko's voice, AWS SNS for SMS (in and out)  
+- Deployable: Dockerfile + `fly.toml`; migrations run from the release command, and a Postgres advisory lock keeps exactly one instance sweeping
 
 **Clients**
-- macOS menu-bar agent, Swift/SwiftUI ([apple/JikoMacOSAgent/README.md](apple/JikoMacOSAgent/README.md)) — working  
-- iOS app (Swift / SwiftUI) — scaffold only  
+- macOS menu-bar agent, Swift/SwiftUI ([apple/JikoMacOSAgent/README.md](apple/JikoMacOSAgent/README.md)) — working: usage tracking, notifications with inline reply, iMessage delivery, Focus awareness, launch at login  
+- iOS app, Swift/SwiftUI — working: location and health sync, nudges with inline reply, today and settings  
+- `apple/JikoKit` — the Swift package both agents share (API client, models, keychain)  
 - Android (Kotlin) — not started
 
 ## Try it in two minutes
@@ -63,7 +68,8 @@ The demo signs up a throwaway user, labels Instagram as distracting, adds "OS mi
 
 ## Where things are
 - [SPRINT_PLAN.md](SPRINT_PLAN.md) — what was planned and what shipped  
-- [SPRINT_2.md](SPRINT_2.md) — what's next  
+- [SPRINT_2.md](SPRINT_2.md) — the second sprint's backlog (shipped)  
+- [SPRINT_3.md](SPRINT_3.md) — what's next  
 - [DECISIONS.md](DECISIONS.md) — every non-obvious call, so you can override them  
 - [backend/docs/triggers.md](backend/docs/triggers.md) — the rules engine contract
 
