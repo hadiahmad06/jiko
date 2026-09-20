@@ -3,6 +3,7 @@
 //  requires opening a window.
 import Foundation
 import UserNotifications
+import JikoKit
 
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {

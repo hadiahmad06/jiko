@@ -3,6 +3,7 @@
 //  obligation, strictness, how messages arrive, and turns on the rules that
 //  matter.
 import SwiftUI
+import JikoKit
 
 struct OnboardingView: View {
   @EnvironmentObject var state: AppState

@@ -9,6 +9,7 @@
 //  manual pause. Nothing else in the app depends on this working.
 import Foundation
 import AppKit
+import JikoKit
 
 enum FocusState: Equatable {
   case unknown            // no access, or nothing readable

@@ -1,6 +1,7 @@
 //  JikoMenu.swift
 //  The menu-bar popover: status, today in one line, last message, quick reply.
 import SwiftUI
+import JikoKit
 
 struct MenuView: View {
   @EnvironmentObject var state: AppState

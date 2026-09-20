@@ -2,9 +2,9 @@ name: macos-agent
 
 on:
   push:
-    paths: ['apple/JikoMacOSAgent/**', '.github/workflows/macos-agent.yml']
+    paths: ['apple/JikoMacOSAgent/**', 'apple/JikoKit/**', '.github/workflows/macos-agent.yml']
   pull_request:
-    paths: ['apple/JikoMacOSAgent/**', '.github/workflows/macos-agent.yml']
+    paths: ['apple/JikoMacOSAgent/**', 'apple/JikoKit/**', '.github/workflows/macos-agent.yml']
 
 jobs:
   build-and-test:

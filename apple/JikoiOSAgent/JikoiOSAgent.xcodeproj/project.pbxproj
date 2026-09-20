@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0122C2532EA4680200D806AC /* JikoSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 014A28F32EA4421B00DB88E2 /* JikoSync.framework */; };
-		0122C2542EA4680200D806AC /* JikoSync.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 014A28F32EA4421B00DB88E2 /* JikoSync.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AA0000000000000000000003 /* JikoKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000002 /* JikoKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,18 +34,30 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0122C2542EA4680200D806AC /* JikoSync.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		AA0000000000000000000001 /* XCLocalSwiftPackageReference "../JikoKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../JikoKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA0000000000000000000002 /* JikoKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = JikoKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+
 /* Begin PBXFileReference section */
 		014A287A2EA4381600DB88E2 /* JikoiOSAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JikoiOSAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014A288A2EA4381800DB88E2 /* JikoiOSAgentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoiOSAgentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		014A28942EA4381800DB88E2 /* JikoiOSAgentUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JikoiOSAgentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		014A28F32EA4421B00DB88E2 /* JikoSync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = JikoSync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -72,7 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0122C2532EA4680200D806AC /* JikoSync.framework in Frameworks */,
+				AA0000000000000000000003 /* JikoKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,7 +128,6 @@
 		014A28F22EA4421B00DB88E2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				014A28F32EA4421B00DB88E2 /* JikoSync.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -143,6 +153,7 @@
 			);
 			name = JikoiOSAgent;
 			packageProductDependencies = (
+				AA0000000000000000000002 /* JikoKit */,
 			);
 			productName = JikoiOSAgent;
 			productReference = 014A287A2EA4381600DB88E2 /* JikoiOSAgent.app */;
@@ -226,6 +237,9 @@
 			);
 			mainGroup = 014A28712EA4381600DB88E2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA0000000000000000000001 /* XCLocalSwiftPackageReference "../JikoKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 014A287B2EA4381600DB88E2 /* Products */;
 			projectDirPath = "";
@@ -424,6 +438,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JikoiOSAgent/JikoiOSAgent.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"JikoiOSAgent/Preview Content\"";
@@ -432,6 +447,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Jiko uses where you are to notice when you arrive somewhere you meant to work.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Jiko watches for arriving and leaving places you saved, in the background, so a rule can fire when you get there.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Jiko reads your steps and sleep so it can ease off on a day you slept four hours.";
+				INFOPLIST_KEY_UIBackgroundModes = "location remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -443,12 +462,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgent;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -457,6 +471,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JikoiOSAgent/JikoiOSAgent.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"JikoiOSAgent/Preview Content\"";
@@ -465,6 +480,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Jiko uses where you are to notice when you arrive somewhere you meant to work.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Jiko watches for arriving and leaving places you saved, in the background, so a rule can fire when you get there.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Jiko reads your steps and sleep so it can ease off on a day you slept four hours.";
+				INFOPLIST_KEY_UIBackgroundModes = "location remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -476,12 +495,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgent;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -498,12 +512,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoiOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoiOSAgent";
 			};
 			name = Debug;
@@ -521,12 +530,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JikoiOSAgent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JikoiOSAgent";
 			};
 			name = Release;
@@ -542,12 +546,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = JikoiOSAgent;
 			};
 			name = Debug;
@@ -563,12 +562,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hadiahmad.JikoiOSAgentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				SWIFT_OBJC_BRIDGING_HEADER = "JikoiOSAgent/JikoSync-Bridging-Header.h";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"JikoiOSAgent/libs/JikoSyncHeaders",
-				);				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_VERSION = 5.0;				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = JikoiOSAgent;
 			};
 			name = Release;

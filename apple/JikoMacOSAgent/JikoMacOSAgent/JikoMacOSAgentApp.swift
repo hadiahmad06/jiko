@@ -2,6 +2,7 @@
 //  Menu-bar agent. Tracks foreground app time, syncs it, shows Jiko's messages
 //  as notifications you can reply to, and hosts a small window for the rest.
 import SwiftUI
+import JikoKit
 
 @main
 struct JikoMacOSAgentApp: App {

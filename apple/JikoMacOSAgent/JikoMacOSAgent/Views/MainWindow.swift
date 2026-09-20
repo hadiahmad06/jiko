@@ -1,6 +1,7 @@
 //  MainWindow.swift
 //  Everything that doesn't fit in the menu: sign in, onboarding, conversation, rules, apps, settings.
 import SwiftUI
+import JikoKit
 
 struct MainWindow: View {
   @EnvironmentObject var state: AppState

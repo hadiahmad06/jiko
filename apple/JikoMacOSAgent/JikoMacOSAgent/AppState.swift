@@ -5,6 +5,7 @@ import Foundation
 import Combine
 import AppKit
 import ServiceManagement
+import JikoKit
 
 @MainActor
 final class AppState: ObservableObject {
@@ -68,7 +69,7 @@ final class AppState: ObservableObject {
     guard isAuthenticated else { return }
     do {
       me = try await api.me()
-      try await api.registerDevice(DeviceRegistration(id: deviceId, name: Host.current().localizedName))
+      try await api.registerDevice(DeviceRegistration(id: deviceId, platform: "macos", name: Host.current().localizedName))
       await refreshAll()
       needsOnboarding = triggers.isEmpty && !UserDefaults.standard.bool(forKey: "jiko.onboarded")
       startLoops()
@@ -107,7 +108,7 @@ final class AppState: ObservableObject {
     await reportQuietState()
     let logs = tracker.flush()
     var queue = loadOutbox()
-    if !logs.isEmpty { queue.append(AppUsagePayload(timestamp: Date().iso, device_id: deviceId, log: logs)) }
+    if !logs.isEmpty { queue.append(AppUsagePayload(timestamp: Date().iso, platform: "macos", device_id: deviceId, log: logs)) }
     guard !queue.isEmpty else { lastSyncAt = Date(); return }
     var remaining: [AppUsagePayload] = []
     for p in queue {

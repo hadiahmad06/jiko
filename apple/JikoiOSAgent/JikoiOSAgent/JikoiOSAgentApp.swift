@@ -1,27 +1,20 @@
-//
 //  JikoiOSAgentApp.swift
-//  JikoiOSAgent
-//
-//  Created by Hadi Ahmad on 10/18/25.
-//
-
+//  The iOS half of Jiko: location and health in, nudges out. Pure Swift on top
+//  of the shared JikoKit package.
 import SwiftUI
-import JikoSync
 
 @main
 struct JikoiOSAgentApp: App {
-  
-  // Start the agent on launch
-  init() {
-    JikoSyncManager.shared().startSyncing()
-    JikoSyncManager.shared().onEventSynced = { event in
-      print("Synced event: \(event.appIdentifier) at \(event.timestamp)")
-    }
-  }
-  
+  @StateObject private var state = AppState()
+  @Environment(\.scenePhase) private var scenePhase
+
   var body: some Scene {
     WindowGroup {
       ContentView()
+        .environmentObject(state)
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { Task { await state.refreshOnForeground() } }
     }
   }
 }

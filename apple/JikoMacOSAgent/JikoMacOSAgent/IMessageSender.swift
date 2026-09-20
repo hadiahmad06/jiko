@@ -8,6 +8,7 @@
 //  notification.
 import Foundation
 import AppKit
+import JikoKit
 
 enum IMessageResult: Equatable {
   case sent

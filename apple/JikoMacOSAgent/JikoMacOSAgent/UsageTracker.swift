@@ -5,6 +5,7 @@
 //  long sessions report incrementally (every sync interval).
 import AppKit
 import Combine
+import JikoKit
 
 final class UsageTracker: ObservableObject {
   @Published private(set) var currentApp: NSRunningApplication?
