@@ -1,4 +1,0 @@
-module JikoKitPackageTests {
-    header "/Users/hadiahmad/Documents/Development/repositories/active/jiko/apple/JikoKit/.build/arm64-apple-macosx/debug/JikoKitPackageTests.build/JikoKitPackageTests-Swift.h"
-    requires objc
-}

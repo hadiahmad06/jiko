@@ -1,4 +1,0 @@
-module JikoKit {
-    header "/Users/hadiahmad/Documents/Development/repositories/active/jiko/apple/JikoKit/.build/arm64-apple-macosx/debug/JikoKit.build/JikoKit-Swift.h"
-    requires objc
-}

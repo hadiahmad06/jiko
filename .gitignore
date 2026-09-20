@@ -7,6 +7,8 @@ xcuserdata/
 DerivedData/
 apple/**/build/
 apple/**/build_static/
+# SwiftPM build output
+apple/**/.build/
 *.pbxproj.backup
 *.pbxproj.new
 *.a
