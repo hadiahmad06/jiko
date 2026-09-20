@@ -1,8 +1,9 @@
 // src/services/triggers/scheduler.ts
 //
-// Periodic sweep for triggers that aren't woken by a device sync:
-//   - scheduled: next_run_at <= now
-//   - obligation: something is due within the trigger's hours_before window
+// Periodic sweep for the work no device sync wakes up:
+//   - scheduled triggers: next_run_at <= now
+//   - obligation triggers: something is due within the hours_before window
+//   - calendar subscriptions whose refresh window has elapsed
 // Started from index.ts when ENABLE_SCHEDULER=true.
 import cron from 'node-cron';
 import TriggerRepository from '../repositories/TriggerRepository.js';
@@ -13,6 +14,7 @@ import AppUsageManager from '../../data/AppUsageManager.js';
 import HealthManager from '../../data/HealthManager.js';
 import LocationManager from '../../data/LocationManager.js';
 import { query } from '../../db/psqlClient.js';
+import { refreshDueCalendars } from '../calendars.js';
 
 let running = false;
 
@@ -21,6 +23,17 @@ export async function sweepOnce(now = new Date()): Promise<FiringReport[]> {
   running = true;
   const reports: FiringReport[] = [];
   try {
+    // calendar subscriptions first: a freshly imported deadline should be
+    // visible to the triggers evaluated in this same sweep
+    try {
+      const imports = await refreshDueCalendars(now);
+      for (const r of imports) {
+        if (r.status === 'error') console.warn(`[scheduler] calendar ${r.subscription_id} failed: ${r.error}`);
+      }
+    } catch (err) {
+      console.error('[scheduler] calendar refresh failed:', err);
+    }
+
     // scheduled
     for (const trigger of await TriggerRepository.dueScheduled(now)) {
       const ctx = await buildContext(trigger.user_id, { kind: 'scheduled' }, snapshotOpts(trigger.user_id, now));

@@ -85,6 +85,25 @@ export const NoObligationDueWithinCondition = z.object({
   params: z.object({ hours: z.number().positive() }),
 });
 
+// --- goals -----------------------------------------------------------------
+// Progress against a `kind = goal` obligation: minutes logged for its activity
+// in the last `timeframe_days` as a percentage of `target_minutes`.
+export const GoalProgressCondition = z.object({
+  type: z.literal("goal_progress"),
+  params: z.object({
+    goal_id: z.uuid().optional(),        // a specific goal
+    activity_id: z.uuid().optional(),    // or every goal tracking this activity
+    operator: Cmp.default("<"),
+    // Percent of the target, 0-100. `{operator: "<", percent: 60}` = behind.
+    percent: z.number().min(0).max(1000).default(60),
+    // Overrides the goal's own timeframe when set.
+    timeframe_days: z.number().positive().optional(),
+    // Only fire once the window is far enough along to be fair (0-1 of elapsed
+    // timeframe). 0.5 = "don't nag on monday about a weekly goal".
+    min_elapsed_fraction: z.number().min(0).max(1).default(0),
+  }),
+});
+
 // --- activities ------------------------------------------------------------
 export const ActivityInProgressCondition = z.object({
   type: z.literal("activity_in_progress"),
@@ -147,6 +166,7 @@ export type ConditionT =
   | z.infer<typeof NoForegroundActivityCondition>
   | z.infer<typeof ObligationDueWithinCondition>
   | z.infer<typeof NoObligationDueWithinCondition>
+  | z.infer<typeof GoalProgressCondition>
   | z.infer<typeof ActivityInProgressCondition>
   | z.infer<typeof NoActivityInProgressCondition>
   | z.infer<typeof InsideLocationCondition>
@@ -170,6 +190,7 @@ const Leaf = z.discriminatedUnion("type", [
   NoForegroundActivityCondition,
   ObligationDueWithinCondition,
   NoObligationDueWithinCondition,
+  GoalProgressCondition,
   ActivityInProgressCondition,
   NoActivityInProgressCondition,
   InsideLocationCondition,

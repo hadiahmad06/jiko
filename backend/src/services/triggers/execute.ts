@@ -14,10 +14,20 @@ import { renderTemplate } from '../messaging/template.js';
 import { humanizeDelta } from './time.js';
 import { buildDailySummary, formatDailySummary } from '../summary.js';
 import { voiceRewrite } from '../messaging/voice.js';
+import MessageRepository from '../repositories/MessageRepository.js';
 
-export async function templateVars(ctx: TriggerContext): Promise<Record<string, string | number | undefined>> {
+/**
+ * Values a message template can interpolate. `template` is the text about to
+ * be rendered; it decides whether the lookups only some templates need (the
+ * weekly reflection) are worth a query.
+ */
+export async function templateVars(ctx: TriggerContext, template = ''): Promise<Record<string, string | number | undefined>> {
   const m = ctx.matched;
   const due = m.obligation ?? (await ctx.obligationsDueWithin(48))[0];
+  // Last week's answer, so monday can refer to what sunday said.
+  const reflection = /\{\{\s*reflection\s*\}\}/.test(template)
+    ? await MessageRepository.lastOfKind(ctx.user_id, 'reflection', 9)
+    : null;
   return {
     name: await ctx.userName(),
     app: m.app?.app_name,
@@ -27,7 +37,23 @@ export async function templateVars(ctx: TriggerContext): Promise<Record<string, 
     obligation_due: due ? humanizeDelta(ctx.now, new Date((due.due_at ?? due.start_at) as Date)) : undefined,
     metric: m.metric?.name,
     metric_value: m.metric?.value,
+    goal: m.goal?.title,
+    goal_target: m.goal ? humanMinutes(m.goal.target_minutes) : undefined,
+    goal_logged: m.goal ? humanMinutes(m.goal.logged_minutes) : undefined,
+    goal_remaining: m.goal ? humanMinutes(m.goal.remaining_minutes) : undefined,
+    goal_percent: m.goal?.percent,
+    goal_days: m.goal?.timeframe_days,
+    weekday: ctx.now.toLocaleDateString('en-US', { weekday: 'long', timeZone: ctx.prefs.timezone }).toLowerCase(),
+    reflection: reflection?.body,
   };
+}
+
+/** "40 min", "3h", "1h 30m" - the way a person would text it. */
+export function humanMinutes(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
 }
 
 export async function executeActions(actions: ActionListT, ctx: TriggerContext): Promise<ActionResultT[]> {
@@ -53,9 +79,17 @@ export async function executeAction(action: ActionT, ctx: TriggerContext): Promi
     case 'notify_user': {
       const variants = [action.params.message, ...(action.params.messages ?? [])];
       const template = variants[(ctx.trigger?.fire_count ?? 0) % variants.length]!;
-      let body = renderTemplate(template, await templateVars(ctx));
+      let body = renderTemplate(template, await templateVars(ctx, template));
       if (action.params.voice) body = await voiceRewrite(body, ctx);
-      const r = await sendMessage({ user_id, body, trigger_id: ctx.trigger?.id ?? null, urgent: action.params.urgent ?? false, now: ctx.now });
+      const r = await sendMessage({
+        user_id,
+        body,
+        trigger_id: ctx.trigger?.id ?? null,
+        urgent: action.params.urgent ?? false,
+        now: ctx.now,
+        ...(action.params.counts_as_interrupt !== undefined ? { counts_as_interrupt: action.params.counts_as_interrupt } : {}),
+        ...(action.params.tag ? { metadata: { tag: action.params.tag } } : {}),
+      });
       return r.sent
         ? { action: 'notify_user', ok: true, ref: r.message.id, detail: r.message.status }
         : { action: 'notify_user', ok: false, detail: r.reason };
@@ -117,7 +151,7 @@ export async function executeAction(action: ActionT, ctx: TriggerContext): Promi
       return r.sent ? { action: 'daily_summary', ok: true, ref: r.message.id } : { action: 'daily_summary', ok: false, detail: r.reason };
     }
     case 'log': {
-      console.log(`[trigger ${ctx.trigger?.name ?? '?'} user ${user_id}] ${renderTemplate(action.params.message, await templateVars(ctx))}`);
+      console.log(`[trigger ${ctx.trigger?.name ?? '?'} user ${user_id}] ${renderTemplate(action.params.message, await templateVars(ctx, action.params.message))}`);
       return { action: 'log', ok: true };
     }
     default:

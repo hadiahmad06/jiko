@@ -19,6 +19,14 @@ class ObligationRepository {
     return res.rows.map(r => Obligation.parse(r));
   }
 
+  /** Open goal rows (kind = goal). Goals never "come due"; they accumulate. */
+  async openGoals(user_id: string, activity_id?: string): Promise<ObligationT[]> {
+    const res = activity_id
+      ? await query(`SELECT * FROM obligations WHERE user_id = $1 AND kind = 'goal' AND NOT completed AND NOT archived AND activity_id = $2 ORDER BY created_at ASC`, [user_id, activity_id])
+      : await query(`SELECT * FROM obligations WHERE user_id = $1 AND kind = 'goal' AND NOT completed AND NOT archived ORDER BY created_at ASC`, [user_id]);
+    return res.rows.map(r => Obligation.parse(r));
+  }
+
   async get(id: string, user_id: string): Promise<Result<ObligationT>> {
     const res = await query('SELECT * FROM obligations WHERE id = $1 AND user_id = $2', [id, user_id]);
     if (!res.rows[0]) return notFound('Obligation not found');

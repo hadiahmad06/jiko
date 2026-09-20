@@ -25,6 +25,20 @@ export type SyncEvent =
   | { kind: 'obligation'; obligation: ObligationT }
   | { kind: 'manual' };
 
+/** A goal obligation with its window's worth of logged minutes filled in. */
+export interface GoalProgress {
+  goal_id: string;
+  title: string;
+  activity_id: string;
+  target_minutes: number;
+  logged_minutes: number;
+  remaining_minutes: number;
+  percent: number;          // 0-100+, logged / target
+  timeframe_days: number;
+  elapsed_fraction: number; // how far into the window we are, 0-1
+  window_start: Date;
+}
+
 export interface TriggerContext {
   user_id: string;
   now: Date;
@@ -36,6 +50,7 @@ export interface TriggerContext {
     location?: { id: string; name: string; event: 'enter' | 'exit' };
     obligation?: ObligationT;
     metric?: { name: string; value: number };
+    goal?: GoalProgress;
   };
   /** Set while a specific trigger is being evaluated. */
   trigger?: TriggerT;
@@ -44,6 +59,8 @@ export interface TriggerContext {
   appLogs(): AppUsageLogT[];
   labels(): Promise<Record<string, AppLabelT>>;
   obligationsDueWithin(hours: number, kind?: ObligationT['kind'], minLevel?: number): Promise<ObligationT[]>;
+  openGoals(activity_id?: string): Promise<ObligationT[]>;
+  goalProgress(goal: ObligationT, timeframeDays?: number): Promise<GoalProgress | null>;
   locationsContaining(lat: number, lon: number): Promise<string[]>;
   currentLocation(): LocationDataT | null;
   openActivityEntries(): Promise<Array<{ id: string; activity_id: string; start_time: Date }>>;
@@ -72,6 +89,8 @@ export async function buildContext(user_id: string, event: SyncEvent, opts: { no
     appLogs: () => appUsageAll.flatMap(d => d.log),
     labels: () => once('labels', () => UsageRepository.labels(user_id)),
     obligationsDueWithin: (hours, kind, minLevel = 0) => once(`obl:${hours}:${kind ?? ''}:${minLevel}`, () => ObligationRepository.dueWithin(user_id, hours, kind, minLevel)),
+    openGoals: (activity_id) => once(`goals:${activity_id ?? ''}`, () => ObligationRepository.openGoals(user_id, activity_id)),
+    goalProgress: (goal, timeframeDays) => once(`goalp:${goal.id}:${timeframeDays ?? ''}`, () => computeGoalProgress(user_id, goal, now, timeframeDays)),
     locationsContaining: (lat, lon) => once(`loc:${lat.toFixed(5)}:${lon.toFixed(5)}`, () => LocationRepository.containing(user_id, lat, lon)),
     currentLocation: () => (event.kind === 'location' ? event.current : (opts.lastLocation ?? null)),
     openActivityEntries: () => once('open-entries', () => ActivityRepository.openEntries(user_id)),
@@ -82,6 +101,36 @@ export async function buildContext(user_id: string, event: SyncEvent, opts: { no
     }),
   };
   return ctx;
+}
+
+/**
+ * Minutes logged for a goal's activity inside its rolling window. A goal with
+ * no activity or no target can't be measured, so it yields null rather than a
+ * misleading zero.
+ */
+async function computeGoalProgress(user_id: string, goal: ObligationT, now: Date, timeframeDaysOverride?: number): Promise<GoalProgress | null> {
+  const target = goal.target_minutes ?? 0;
+  const days = timeframeDaysOverride ?? goal.timeframe_days ?? 7;
+  if (!goal.activity_id || target <= 0 || days <= 0) return null;
+  const window_start = new Date(now.getTime() - days * 86_400_000);
+  const logged = await ActivityRepository.minutesLogged(user_id, goal.activity_id, window_start, now);
+  // Elapsed within the *current* period, so a weekly goal read on thursday is
+  // ~0.57 rather than always 1.
+  const periodMs = days * 86_400_000;
+  const anchor = goal.created_at ? new Date(goal.created_at).getTime() : window_start.getTime();
+  const elapsed = ((now.getTime() - anchor) % periodMs) / periodMs;
+  return {
+    goal_id: goal.id,
+    title: goal.title,
+    activity_id: goal.activity_id,
+    target_minutes: target,
+    logged_minutes: Math.round(logged),
+    remaining_minutes: Math.max(0, Math.round(target - logged)),
+    percent: Math.round((logged / target) * 100),
+    timeframe_days: days,
+    elapsed_fraction: Number.isFinite(elapsed) ? Math.min(1, Math.max(0, elapsed)) : 1,
+    window_start,
+  };
 }
 
 function latestMetric(health: HealthDataT[], metric: string, now: Date, windowHours: number): number | null {

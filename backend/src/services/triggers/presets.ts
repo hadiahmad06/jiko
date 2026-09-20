@@ -154,6 +154,84 @@ export const TRIGGER_PRESETS = [
     },
   }),
   preset({
+    id: 'weekly_goal',
+    name: 'Weekly goal check',
+    description: 'Midweek nudge when a time goal is behind pace. "you said 3h of reading a week. it is thursday and you are at 40 min."',
+    kind: 'scheduled',
+    params: {
+      activity_id: 'optional: only watch goals for this activity',
+      percent: 'behind if under this percent of the target (default 60)',
+      at: 'ISO datetime of the first run (default: next thursday 18:00 UTC)',
+    },
+    schema: z.object({
+      activity_id: z.uuid().optional(),
+      percent: z.number().min(0).max(100).default(60),
+      at: z.iso.datetime().optional(),
+    }),
+    build: p => {
+      const at = p.at ?? (() => {
+        const d = new Date();
+        d.setUTCHours(18, 0, 0, 0);
+        // next thursday (4), or today if it is thursday and 18:00 hasn't passed
+        const delta = (4 - d.getUTCDay() + 7) % 7;
+        d.setUTCDate(d.getUTCDate() + (delta === 0 && d > new Date() ? 0 : delta || 7));
+        return d.toISOString();
+      })();
+      return {
+        kind: 'scheduled',
+        name: 'Weekly goal check',
+        enabled: true,
+        match: { at, recurrence: { interval: 1, unit: 'weeks' } },
+        condition: { type: 'all', params: { conditions: [
+          { type: 'goal_progress', params: { ...(p.activity_id ? { activity_id: p.activity_id } : {}), operator: '<', percent: p.percent, min_elapsed_fraction: 0.4 } },
+          { type: 'outside_quiet_hours', params: {} },
+        ] } },
+        actions: [{ action: 'notify_user', params: {
+          message: "you said {{goal_target}} of {{goal}}. it's {{weekday}} and you're at {{goal_logged}}.",
+          messages: [
+            "{{goal}}: {{goal_logged}} of {{goal_target}} this week. {{goal_remaining}} left.",
+            "{{goal}} is at {{goal_percent}}%. your call.",
+          ],
+          voice: true,
+        } }],
+        cooldown_seconds: 3 * 86_400,
+        source: 'preset:weekly_goal',
+      };
+    },
+  }),
+  preset({
+    id: 'weekly_reflection',
+    name: 'Sunday reflection',
+    description: 'One question on sunday night. The answer is kept and referenced in monday\'s check-in.',
+    kind: 'scheduled',
+    params: { at: 'ISO datetime of the first run (default: next sunday 20:00 UTC)' },
+    schema: z.object({ at: z.iso.datetime().optional() }),
+    build: p => {
+      const at = p.at ?? (() => {
+        const d = new Date();
+        d.setUTCHours(20, 0, 0, 0);
+        const delta = (7 - d.getUTCDay()) % 7;           // 0 = sunday
+        d.setUTCDate(d.getUTCDate() + (delta === 0 && d > new Date() ? 7 : delta));
+        return d.toISOString();
+      })();
+      return {
+        kind: 'scheduled',
+        name: 'Sunday reflection',
+        enabled: true,
+        match: { at, recurrence: { interval: 1, unit: 'weeks' } },
+        condition: true,
+        actions: [{ action: 'notify_user', params: {
+          message: 'what worked this week?',
+          messages: ['what actually worked this week?', 'one thing that worked this week?'],
+          tag: 'reflection',
+          counts_as_interrupt: false,
+        } }],
+        cooldown_seconds: 3 * 86_400,
+        source: 'preset:weekly_reflection',
+      };
+    },
+  }),
+  preset({
     id: 'deadline_reminder',
     name: 'Deadline reminder',
     description: 'A heads-up when a task is due within N hours, once per task.',
@@ -186,7 +264,14 @@ export const TRIGGER_PRESETS = [
         enabled: true,
         match: { at, recurrence: { interval: 1, unit: 'days' } },
         condition: { type: 'obligation_due_within', params: { hours: 36 } },
-        actions: [{ action: 'notify_user', params: { message: 'morning. {{obligation}} is due {{obligation_due}}. plan?', voice: true } }],
+        actions: [{ action: 'notify_user', params: {
+          message: 'morning. {{obligation}} is due {{obligation_due}}. plan?',
+          messages: [
+            'morning. you said "{{reflection}}" last night. {{obligation}} is due {{obligation_due}}.',
+            '{{obligation}}, {{obligation_due}}. same plan as last week?',
+          ],
+          voice: true,
+        } }],
         cooldown_seconds: 0,
         source: 'preset:morning_checkin',
       };

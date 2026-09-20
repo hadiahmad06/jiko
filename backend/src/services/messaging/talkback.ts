@@ -44,6 +44,17 @@ export async function handleInbound(user_id: string, inbound: MessageT): Promise
   let intent: TalkbackOutcome['intent'];
   let reply: string;
 
+  // An answer to a tagged question (the Sunday reflection) is kept as an
+  // answer, not run through the command parser.
+  const answersTag = typeof last?.metadata?.tag === 'string' ? (last.metadata.tag as string) : null;
+  if (answersTag === 'reflection' && !RE.help.test(text) && !RE.stop.test(text)) {
+    await MessageRepository.tag(inbound.id, user_id, { kind: 'reflection', answers: last!.id });
+    effects.push('stored this week\'s reflection');
+    const reflectionReply = text.length > 40 ? 'noted. i\'ll bring it up monday.' : 'noted.';
+    await sendMessage({ user_id, body: reflectionReply, reply_to_id: inbound.id, counts_as_interrupt: false, urgent: true, metadata: { talkback: 'reflection' } });
+    return { intent: 'ack', reply: reflectionReply, effects };
+  }
+
   if (RE.help.test(text)) {
     intent = 'help';
     reply = "you can say: 'snooze 30', 'done', 'status', 'quiet', 'stricter', 'gentler', or 'stop'. or just talk.";

@@ -28,6 +28,56 @@ function ctx(over: Partial<TriggerContext> = {}, prefs: Partial<ReturnType<typeo
   } as TriggerContext;
 }
 
+const goal = (over: Record<string, unknown> = {}) => ({
+  id: '22222222-2222-4222-8222-222222222222',
+  user_id: 'u',
+  kind: 'goal',
+  title: 'reading',
+  activity_id: '33333333-3333-4333-8333-333333333333',
+  target_minutes: 180,
+  timeframe_days: 7,
+  created_at: new Date('2026-09-01T00:00:00Z'),
+  ...over,
+} as never);
+
+const progress = (over: Record<string, unknown> = {}) => ({
+  goal_id: '22222222-2222-4222-8222-222222222222',
+  title: 'reading',
+  activity_id: '33333333-3333-4333-8333-333333333333',
+  target_minutes: 180,
+  logged_minutes: 40,
+  remaining_minutes: 140,
+  percent: 22,
+  timeframe_days: 7,
+  elapsed_fraction: 0.6,
+  window_start: new Date('2026-09-01T15:30:00Z'),
+  ...over,
+} as never);
+
+describe('goal_progress', () => {
+  it('fires when logged minutes are under the target percentage', async () => {
+    const c = ctx({ openGoals: async () => [goal()], goalProgress: async () => progress() });
+    expect(await evaluateCondition({ type: 'goal_progress', params: { operator: '<', percent: 60, min_elapsed_fraction: 0 } }, c)).toBe(true);
+    expect(c.matched.goal?.logged_minutes).toBe(40);
+  });
+
+  it('stays quiet when the goal is on pace', async () => {
+    const c = ctx({ openGoals: async () => [goal()], goalProgress: async () => progress({ logged_minutes: 150, percent: 83 }) });
+    expect(await evaluateCondition({ type: 'goal_progress', params: { operator: '<', percent: 60, min_elapsed_fraction: 0 } }, c)).toBe(false);
+  });
+
+  it('stays quiet early in the window', async () => {
+    const c = ctx({ openGoals: async () => [goal()], goalProgress: async () => progress({ elapsed_fraction: 0.1 }) });
+    expect(await evaluateCondition({ type: 'goal_progress', params: { operator: '<', percent: 60, min_elapsed_fraction: 0.4 } }, c)).toBe(false);
+  });
+
+  it('ignores goals that cannot be measured', async () => {
+    const c = ctx({ openGoals: async () => [goal({ activity_id: null })], goalProgress: async () => null });
+    expect(await evaluateCondition({ type: 'goal_progress', params: { operator: '<', percent: 60, min_elapsed_fraction: 0 } }, c)).toBe(false);
+    expect(c.matched.goal).toBeUndefined();
+  });
+});
+
 describe('evaluateCondition', () => {
   it('booleans and combinators', async () => {
     const c = ctx();

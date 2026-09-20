@@ -17,6 +17,12 @@ export const NotifyUserAction = z.object({
     urgent: z.boolean().optional(),
     // Optional: rewrite the message in the user's chosen voice via the LLM (if configured).
     voice: z.boolean().optional(),
+    // Optional label stored on the message. Talk-back uses it to know what a
+    // reply is an answer to, e.g. "reflection".
+    tag: z.string().max(40).optional(),
+    // If false, the message doesn't spend an interrupt (summaries, questions
+    // the user opted into).
+    counts_as_interrupt: z.boolean().optional(),
   }),
 });
 

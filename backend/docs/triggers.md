@@ -63,6 +63,7 @@ A past `at` on a scheduled trigger is due immediately (one catch-up run). Recurr
 | `no_foreground_activity` | `duration_minutes` | no foreground session ended within the window |
 | `obligation_due_within` | `hours`, `kind?`, `min_intervention_level?` | an open obligation is due/starting within `hours` (sets `matched.obligation`) |
 | `no_obligation_due_within` | `hours` | inverse |
+| `goal_progress` | `goal_id?` or `activity_id?`, `operator`, `percent`, `timeframe_days?`, `min_elapsed_fraction?` | an open `kind = goal` obligation's logged minutes / `target_minutes` compares true (sets `matched.goal`); goals with no activity or no target are skipped |
 | `activity_in_progress` | `activity_id?` | an entry with no `end_time` exists |
 | `no_activity_in_progress` | | inverse |
 | `inside_location` / `outside_location` | `location_id` | current point is / isn't inside the geofence (unknown position counts as outside) |
@@ -77,7 +78,7 @@ Operators: `<`, `<=`, `>`, `>=`, `==`.
 
 | action | params | effect |
 |---|---|---|
-| `notify_user` | `message` (template), `messages?` (alternates rotated by `fire_count`), `urgent?`, `voice?` | `sendMessage()`; `urgent` bypasses budget and quiet hours; `voice` asks Claude to rewrite (if configured); an ignored nudge never repeats verbatim |
+| `notify_user` | `message` (template), `messages?` (alternates rotated by `fire_count`), `urgent?`, `voice?`, `tag?`, `counts_as_interrupt?` | `sendMessage()`; `urgent` bypasses budget and quiet hours; `voice` asks Claude to rewrite (if configured); an ignored nudge never repeats verbatim |
 | `start_activity` | `activity_id`, `note?` | opens an entry unless one is already open |
 | `stop_activity` | `activity_id`, `note?` | closes the most recent open entry, `ended_by = trigger` |
 | `complete_obligation` | `obligation_id` | marks complete |
@@ -88,16 +89,19 @@ Operators: `<`, `<=`, `>`, `>=`, `==`.
 | `daily_summary` | `days_ago?` | sends the one-line summary; never counts against the budget |
 | `log` | `message` (template) | server log only; handy in tests |
 
-Template variables: `{{name}}`, `{{app}}`, `{{minutes}}`, `{{location}}`, `{{obligation}}`, `{{obligation_due}}` ("in 6 hours"), `{{metric}}`, `{{metric_value}}`. Unknown variables render empty.
+Template variables: `{{name}}`, `{{app}}`, `{{minutes}}`, `{{location}}`, `{{obligation}}`, `{{obligation_due}}` ("in 6 hours"), `{{metric}}`, `{{metric_value}}`, `{{goal}}`, `{{goal_target}}`, `{{goal_logged}}`, `{{goal_remaining}}`, `{{goal_percent}}`, `{{goal_days}}`, `{{weekday}}`, `{{reflection}}` (the last stored answer to the Sunday question). Unknown variables render empty.
+
+`tag` labels the outbound message. A reply to a tagged question is stored as an answer rather than parsed as a command: `tag: "reflection"` is what makes the Sunday question's reply available to `{{reflection}}` the following week.
 
 ## Messages and budget
 
 `sendMessage()` (`src/services/messaging/outbox.ts`) is the only door out. Unless `urgent` or `counts_as_interrupt: false`, it checks quiet hours then the daily budget, writes a `messages` row, and hands it to the deliverer for the user's `delivery_channel`:
 
 - `agent` (default): stays `queued`; a device pulls `GET /messages/queued` and `POST /messages/ack`.
+- `imessage`: stays `queued` as well; the macOS agent sends it through Messages.app to the user's own number, and falls back to a notification if Automation permission is missing.
 - `console`: printed, marked `sent`.
 - `webhook`: POSTed to `JIKO_WEBHOOK_URL`.
-- `sms`: AWS SNS to the user's phone number.
+- `sms`: AWS SNS to the user's phone number. Replies come back through `POST /webhooks/sms`.
 
 `GET /messages/budget` reports `{ used, budget, remaining, quiet_hours_active }`.
 

@@ -86,6 +86,23 @@ class MessageRepository {
     return res.rows[0]?.n ?? 0;
   }
 
+  /** The most recent inbound answer of a given kind, e.g. a weekly reflection. */
+  async lastOfKind(user_id: string, kind: string, withinDays = 14): Promise<MessageT | null> {
+    const res = await query(
+      `SELECT * FROM messages
+       WHERE user_id = $1 AND direction = 'inbound' AND metadata->>'kind' = $2
+         AND created_at >= NOW() - make_interval(days => $3)
+       ORDER BY created_at DESC LIMIT 1`,
+      [user_id, kind, withinDays]
+    );
+    return res.rows[0] ? Message.parse(res.rows[0]) : null;
+  }
+
+  /** Attach metadata to a message already stored (talk-back labelling a reply). */
+  async tag(id: string, user_id: string, patch: Record<string, unknown>): Promise<void> {
+    await query('UPDATE messages SET metadata = metadata || $3::jsonb WHERE id = $1 AND user_id = $2', [id, user_id, JSON.stringify(patch)]);
+  }
+
   /** Recent conversation (both directions), oldest first, for LLM context. */
   async recent(user_id: string, limit = 12): Promise<MessageT[]> {
     const res = await query(`SELECT * FROM (SELECT * FROM messages WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2) t ORDER BY created_at ASC`, [user_id, limit]);

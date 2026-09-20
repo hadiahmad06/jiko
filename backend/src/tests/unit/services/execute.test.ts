@@ -8,6 +8,7 @@ vi.mock('../../../services/ActivityRepository.js', () => ({ default: {} }));
 vi.mock('../../../services/repositories/ObligationRepository.js', () => ({ default: {} }));
 vi.mock('../../../services/repositories/PreferencesRepository.js', () => ({ default: {} }));
 vi.mock('../../../services/repositories/TriggerRepository.js', () => ({ default: {} }));
+vi.mock('../../../services/repositories/MessageRepository.js', () => ({ default: { lastOfKind: vi.fn(async () => null) } }));
 
 import { executeActions } from '../../../services/triggers/execute.js';
 import { TriggerContext } from '../../../services/triggers/context.js';
@@ -40,6 +41,19 @@ describe('notify_user', () => {
     sendMessage.mockResolvedValue({ sent: false, reason: 'budget_exhausted' });
     const r = await executeActions(actions, ctx(0));
     expect(r).toEqual([{ action: 'notify_user', ok: false, detail: 'budget_exhausted' }]);
+  });
+
+  it('interpolates the stored reflection only when the template asks for it', async () => {
+    const { default: MessageRepository } = await import('../../../services/repositories/MessageRepository.js');
+    const lastOfKind = MessageRepository.lastOfKind as unknown as ReturnType<typeof vi.fn>;
+    lastOfKind.mockResolvedValue({ body: 'slept more' });
+
+    await executeActions([{ action: 'notify_user' as const, params: { message: 'no lookup here' } }], ctx(0));
+    expect(lastOfKind).not.toHaveBeenCalled();
+
+    await executeActions([{ action: 'notify_user' as const, params: { message: 'you said "{{reflection}}"' } }], ctx(0));
+    expect(lastOfKind).toHaveBeenCalledTimes(1);
+    expect((sendMessage.mock.calls.at(-1)![0] as { body: string }).body).toBe('you said "slept more"');
   });
 
   it('rejects malformed actions per item and keeps going', async () => {

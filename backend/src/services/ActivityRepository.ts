@@ -226,6 +226,24 @@ class ActivityRepository {
     return res.rows as Array<{ id: string; activity_id: string; start_time: Date }>;
   }
 
+  /**
+   * Minutes logged against an activity between two instants. Entries are
+   * clipped to the window, and an entry still running counts up to `until`.
+   */
+  async minutesLogged(userId: string, activityId: string, since: Date, until: Date): Promise<number> {
+    const client = await getPsqlClient();
+    const res = await client.query(
+      `SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (
+           LEAST(COALESCE(end_time, $4), $4) - GREATEST(start_time, $3)
+         )) / 60), 0)::float AS minutes
+       FROM activity_entries
+       WHERE user_id = $1 AND activity_id = $2
+         AND COALESCE(end_time, $4) > $3 AND start_time < $4`,
+      [userId, activityId, since, until]
+    );
+    return Math.max(0, Number(res.rows[0]?.minutes ?? 0));
+  }
+
   /** Closes the most recent open entry for an activity. Returns null if none. */
   async closeOpenEntry(userId: string, activityId: string, endTime: Date, endedBy: 'user' | 'system' | 'trigger', note?: string): Promise<ActivityEntryT | null> {
     const client = await getPsqlClient();

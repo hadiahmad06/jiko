@@ -97,6 +97,22 @@ export async function evaluateCondition(c: ConditionT, ctx: TriggerContext): Pro
     case 'no_obligation_due_within':
       return (await ctx.obligationsDueWithin(c.params.hours)).length === 0;
 
+    // --- goals
+    case 'goal_progress': {
+      const goals = c.params.goal_id
+        ? (await ctx.openGoals()).filter(g => g.id === c.params.goal_id)
+        : await ctx.openGoals(c.params.activity_id);
+      for (const goal of goals) {
+        const p = await ctx.goalProgress(goal, c.params.timeframe_days);
+        if (!p) continue;                                       // no activity or no target: not measurable
+        if (p.elapsed_fraction < c.params.min_elapsed_fraction) continue;  // too early in the window to be fair
+        if (!cmp(c.params.operator, p.percent, c.params.percent)) continue;
+        if (!ctx.matched.goal) ctx.matched.goal = p;
+        return true;
+      }
+      return false;
+    }
+
     // --- activities
     case 'activity_in_progress': {
       const open = await ctx.openActivityEntries();
