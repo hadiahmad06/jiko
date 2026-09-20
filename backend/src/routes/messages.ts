@@ -6,6 +6,8 @@ import { InboundMessage, MessageQuery, MessageAck } from '../types/message/Messa
 import { parseOr400, serverError } from '../lib/http.js';
 import { handleInbound } from '../services/messaging/talkback.js';
 import { sendMessage, budgetStatus } from '../services/messaging/outbox.js';
+import TriggerRepository from '../services/repositories/TriggerRepository.js';
+import { describeFiring } from '../services/triggers/reason.js';
 
 const router = Router();
 
@@ -35,6 +37,34 @@ router.post('/messages/ack', authMiddleware, async (req, res) => {
 router.get('/messages/budget', authMiddleware, async (req, res) => {
   try { res.json(await budgetStatus(req.uid!)); }
   catch (err) { serverError(res, err, 'fetching budget'); }
+});
+
+// GET /messages/:id/why - the firing behind a nudge, in one sentence
+router.get('/messages/:id/why', authMiddleware, async (req, res) => {
+  try {
+    const message = await MessageRepository.get(req.params.id as string, req.uid!);
+    if (!message) return res.status(404).json({ error: 'NotFound', message: 'Message not found' });
+
+    const firing = await TriggerRepository.firingForMessage(message.id, req.uid!);
+    if (!firing) {
+      // Replies, summaries and self-sends have no firing behind them.
+      const source = typeof message.metadata?.talkback === 'string'
+        ? 'you said something and i answered.'
+        : typeof message.metadata?.kind === 'string' && message.metadata.kind === 'daily_summary'
+          ? 'end of day. this one never counts against your budget.'
+          : message.trigger_id ? 'a rule sent this, but the firing has since been deleted.' : 'you asked for this one.';
+      return res.json({ message_id: message.id, trigger: null, firing: null, reason: source });
+    }
+
+    const trigger = await TriggerRepository.get(firing.trigger_id, req.uid!);
+    const context = firing.context as { reason?: string };
+    res.json({
+      message_id: message.id,
+      trigger: trigger.success ? { id: trigger.value.id, name: trigger.value.name, kind: trigger.value.kind, source: trigger.value.source } : null,
+      firing: { id: firing.id, fired_at: firing.fired_at, context: firing.context },
+      reason: context.reason ?? describeFiring(firing.context as never),
+    });
+  } catch (err) { serverError(res, err, 'explaining a message'); }
 });
 
 // POST /messages - user talks to Jiko

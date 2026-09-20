@@ -11,15 +11,34 @@ import HealthManager from '../data/HealthManager.js';
 import LocationManager from '../data/LocationManager.js';
 import { z } from 'zod';
 import { TRIGGER_PRESETS, instantiatePreset } from '../services/triggers/presets.js';
+import { describeFiring } from '../services/triggers/reason.js';
 
 const router = Router();
 
-// GET /triggers?kind=
+// GET /triggers?kind=&include=last_firing
+// `include=last_firing` attaches { fired_at, reason, context } so a Rules list
+// can say why each one last spoke up.
 router.get('/triggers', authMiddleware, async (req, res) => {
   try {
     const kind = req.query.kind ? TriggerKind.safeParse(req.query.kind) : null;
     if (kind && !kind.success) return res.status(400).json({ error: 'InvalidQuery', message: 'unknown kind' });
-    res.json(await TriggerRepository.list(req.uid!, kind?.data));
+    const triggers = await TriggerRepository.list(req.uid!, kind?.data);
+    if (req.query.include !== 'last_firing') return res.json(triggers);
+    const last = await TriggerRepository.lastFirings(req.uid!);
+    res.json(triggers.map(t => {
+      const firing = last[t.id];
+      return {
+        ...t,
+        last_firing: firing
+          ? {
+              id: firing.id,
+              fired_at: firing.fired_at,
+              reason: (firing.context as { reason?: string }).reason ?? describeFiring(firing.context as never),
+              context: firing.context,
+            }
+          : null,
+      };
+    }));
   } catch (err) { serverError(res, err, 'listing triggers'); }
 });
 

@@ -136,6 +136,7 @@ actor JikoAPI {
     return try await request("POST", "messages", body: body)
   }
   func budget() async throws -> Budget { try await request("GET", "messages/budget") }
+  func why(_ messageId: String) async throws -> MessageWhy { try await request("GET", "messages/\(messageId)/why") }
   /// Leased: send it again while the Focus or pause lasts.
   func setQuiet(active: Bool, minutes: Int, reason: String?) async throws {
     var body: [String: Any] = ["active": active, "minutes": minutes]
@@ -154,7 +155,7 @@ actor JikoAPI {
   func quickAdd(_ text: String) async throws -> Obligation { try await request("POST", "obligations/quick", body: QuickAdd(text: text, timezone: TimeZone.current.identifier)) }
   func complete(_ id: String) async throws -> Obligation { try await request("POST", "obligations/\(id)/complete") }
   func presets() async throws -> [TriggerPreset] { try await request("GET", "triggers/presets") }
-  func triggers() async throws -> [Trigger] { try await request("GET", "triggers") }
+  func triggers() async throws -> [Trigger] { try await request("GET", "triggers", query: ["include": "last_firing"]) }
   func enablePreset(_ id: String, params: [String: Any] = [:]) async throws -> Trigger { try await request("POST", "triggers/presets/\(id)", body: params) }
   func setTriggerEnabled(_ id: String, _ enabled: Bool) async throws -> Trigger { try await request("PATCH", "triggers/\(id)", body: ["enabled": enabled]) }
   func deleteTrigger(_ id: String) async throws { let _: Empty = try await request("DELETE", "triggers/\(id)") }

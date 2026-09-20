@@ -125,6 +125,13 @@ Two other things can hold a message back. `preferences.quiet_hours` is the fixed
 
 Replies never count against the budget.
 
+## Why did I get this?
+
+Every firing stores the matched context *and* a rendered one-line `reason` ("20 min on TikTok, and OS midterm is open (due in 6 hours)."), built while the numbers are still the ones the condition saw. Two ways to read it back:
+
+- `GET /triggers?include=last_firing` attaches `{ id, fired_at, reason, context }` to each rule, for a Rules list that says why it last spoke up.
+- `GET /messages/:id/why` finds the firing whose action produced that message and returns the trigger, the firing and the reason. Messages with no firing behind them (replies, summaries, self-sends) get an honest sentence instead.
+
 ## Testing a trigger
 
 `POST /triggers/:id/test` evaluates the trigger against the user's cached sync data right now. `{ "force": true }` skips match/cooldown/condition and just runs the actions (recorded as a forced firing). `GET /triggers/:id/firings` shows history with the matched context and each action's result.

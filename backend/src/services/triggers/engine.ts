@@ -10,6 +10,7 @@ import { SyncEvent, TriggerContext, buildContext, usageWindow } from './context.
 import { evaluateCondition } from './condition.js';
 import { executeActions } from './execute.js';
 import { nextRun } from './schedule.js';
+import { describeFiring, FiringContext } from './reason.js';
 
 export interface FiringReport {
   trigger_id: string;
@@ -52,16 +53,26 @@ export async function runOne(trigger: TriggerT, ctx: TriggerContext): Promise<Fi
 
   const results = await executeActions(trigger.actions, ctx);
   const next = trigger.kind === 'scheduled' ? nextRun(trigger.match, ctx.now) : undefined;
-  await TriggerRepository.recordFiring(trigger.id, ctx.user_id, {
+  const due = ctx.matched.obligation?.due_at ?? ctx.matched.obligation?.start_at ?? null;
+  const context: FiringContext = {
     event: ctx.event.kind,
     matched: {
-      app: ctx.matched.app,
-      location: ctx.matched.location,
-      obligation_id: ctx.matched.obligation?.id,
-      obligation_title: ctx.matched.obligation?.title,
-      metric: ctx.matched.metric,
+      ...(ctx.matched.app ? { app: ctx.matched.app } : {}),
+      ...(ctx.matched.location ? { location: ctx.matched.location } : {}),
+      ...(ctx.matched.obligation ? { obligation_id: ctx.matched.obligation.id, obligation_title: ctx.matched.obligation.title } : {}),
+      ...(due ? { obligation_due: new Date(due).toISOString() } : {}),
+      ...(ctx.matched.metric ? { metric: ctx.matched.metric } : {}),
+      ...(ctx.matched.goal ? { goal: {
+        title: ctx.matched.goal.title,
+        logged_minutes: ctx.matched.goal.logged_minutes,
+        target_minutes: ctx.matched.goal.target_minutes,
+        percent: ctx.matched.goal.percent,
+      } } : {}),
     },
-  }, results, trigger.kind === 'scheduled' ? next : undefined);
+  };
+  // Rendered now, while the numbers are the ones the condition saw.
+  context.reason = describeFiring(context, ctx.now);
+  await TriggerRepository.recordFiring(trigger.id, ctx.user_id, context, results, trigger.kind === 'scheduled' ? next : undefined);
   return { trigger_id: trigger.id, name: trigger.name, results };
 }
 

@@ -89,6 +89,36 @@ class TriggerRepository {
     return res.rows.map(r => TriggerFiring.parse(r));
   }
 
+  /** The most recent firing of each of a user's triggers, keyed by trigger id. */
+  async lastFirings(user_id: string): Promise<Record<string, TriggerFiringT>> {
+    const res = await query(
+      `SELECT DISTINCT ON (trigger_id) * FROM trigger_firings
+       WHERE user_id = $1 ORDER BY trigger_id, fired_at DESC`,
+      [user_id]
+    );
+    const out: Record<string, TriggerFiringT> = {};
+    for (const row of res.rows) {
+      const parsed = TriggerFiring.parse(row);
+      out[parsed.trigger_id] = parsed;
+    }
+    return out;
+  }
+
+  /** The firing whose actions produced this message, if any. */
+  async firingForMessage(message_id: string, user_id: string): Promise<TriggerFiringT | null> {
+    const res = await query(
+      `SELECT f.* FROM trigger_firings f
+       WHERE f.user_id = $1
+         AND EXISTS (
+           SELECT 1 FROM jsonb_array_elements(f.results) r
+           WHERE r->>'ref' = $2
+         )
+       ORDER BY f.fired_at DESC LIMIT 1`,
+      [user_id, message_id]
+    );
+    return res.rows[0] ? TriggerFiring.parse(res.rows[0]) : null;
+  }
+
   async firingsSince(trigger_id: string, since: Date): Promise<number> {
     const res = await query<{ n: string }>('SELECT COUNT(*)::int AS n FROM trigger_firings WHERE trigger_id = $1 AND fired_at >= $2', [trigger_id, since]);
     return Number(res.rows[0]?.n ?? 0);

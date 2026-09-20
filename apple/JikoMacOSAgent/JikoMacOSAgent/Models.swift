@@ -149,6 +149,28 @@ struct Trigger: Codable, Identifiable, Equatable {
   var source: String
   var fire_count: Int
   var last_fired_at: String?
+  var last_firing: LastFiring?
+}
+
+struct LastFiring: Codable, Equatable {
+  var id: String
+  var fired_at: String
+  var reason: String
+
+  var firedDate: Date { ISO8601DateFormatter.jiko.date(from: fired_at) ?? Date() }
+}
+
+/// GET /messages/:id/why
+struct MessageWhy: Codable, Equatable {
+  var message_id: String
+  var reason: String
+  var trigger: WhyTrigger?
+
+  struct WhyTrigger: Codable, Equatable {
+    var id: String
+    var name: String
+    var kind: String
+  }
 }
 
 struct DeviceRegistration: Codable {

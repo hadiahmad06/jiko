@@ -110,9 +110,23 @@ struct ConversationView: View {
 
 struct MessageBubble: View {
   let message: Message
+  @State private var why: String?
+  @State private var loadingWhy = false
 
   private var bubbleColor: Color { message.isFromJiko ? Color.gray.opacity(0.18) : Color.accentColor.opacity(0.85) }
   private var textColor: Color { message.isFromJiko ? Color.primary : Color.white }
+
+  /// Only a nudge Jiko sent on its own has a firing worth explaining.
+  private var canExplain: Bool { message.isFromJiko && message.trigger_id != nil }
+
+  private func loadWhy() {
+    guard !loadingWhy, why == nil else { return }
+    loadingWhy = true
+    Task {
+      why = (try? await JikoAPI.shared.why(message.id))?.reason ?? "couldn't reach the server for that."
+      loadingWhy = false
+    }
+  }
 
   var body: some View {
     HStack {
@@ -127,6 +141,15 @@ struct MessageBubble: View {
         Text(message.createdDate.formatted(date: .abbreviated, time: .shortened))
           .font(.caption2)
           .foregroundStyle(.tertiary)
+        if canExplain {
+          if let why {
+            Text(why).font(.caption2).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          } else {
+            Button(loadingWhy ? "checking…" : "why did I get this?") { loadWhy() }
+              .buttonStyle(.link).font(.caption2).disabled(loadingWhy)
+          }
+        }
       }
       if message.isFromJiko { Spacer(minLength: 60) }
     }
@@ -195,9 +218,14 @@ struct RulesView: View {
         ForEach(state.triggers) { t in
           HStack {
             Toggle(isOn: Binding(get: { t.enabled }, set: { v in Task { await state.setTrigger(t, enabled: v) } })) {
-              VStack(alignment: .leading) {
+              VStack(alignment: .leading, spacing: 2) {
                 Text(t.name)
                 Text("\(t.kind) · fired \(t.fire_count)×").font(.caption).foregroundStyle(.secondary)
+                if let last = t.last_firing {
+                  Text("last time: \(last.reason) (\(last.firedDate.formatted(date: .abbreviated, time: .shortened)))")
+                    .font(.caption2).foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
               }
             }
             Spacer()
