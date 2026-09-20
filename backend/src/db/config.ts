@@ -22,3 +22,8 @@ export function localPgConfig(): PgConfig {
 export function isOffline(): boolean {
   return process.env.IS_OFFLINE === 'true' || process.env.NODE_ENV === 'test';
 }
+
+/** A managed Postgres (Fly, Neon, RDS proxy) hands us one URL. It wins. */
+export function connectionString(): string | null {
+  return process.env.DATABASE_URL || null;
+}

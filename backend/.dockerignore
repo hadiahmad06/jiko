@@ -1,0 +1,11 @@
+node_modules
+dist
+evals
+.env
+.env.*
+!.env.example
+*.log
+.git
+.github
+docs
+src/tests

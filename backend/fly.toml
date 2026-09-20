@@ -1,0 +1,39 @@
+# fly.toml - jiko backend
+# Deploy: fly launch --no-deploy (once), then `fly deploy`.
+# Postgres: `fly postgres create` + `fly postgres attach`, which sets DATABASE_URL.
+#
+# Every instance runs the scheduler loop; a Postgres advisory lock makes sure
+# only one of them actually sweeps, so scaling out is safe.
+
+app = "jiko-backend"
+primary_region = "ewr"
+
+[build]
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  ENABLE_SCHEDULER = "true"
+  SCHEDULER_INTERVAL_SECONDS = "30"
+  TRUST_PROXY_HOPS = "1"
+
+[deploy]
+  release_command = "npm run db:migrate"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"     # the scheduler has to stay awake
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

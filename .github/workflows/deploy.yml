@@ -1,0 +1,41 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Deploys only when the repository has a Fly token; a fork without one is
+    # skipped rather than failing every push to main.
+    if: github.repository_owner != '' 
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "FLY_API_TOKEN is not set; skipping deploy."
+            exit 0
+          fi
+          flyctl deploy --remote-only --wait-timeout 300

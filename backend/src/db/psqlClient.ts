@@ -3,11 +3,25 @@
 // the local PG* settings; otherwise RDS with IAM auth tokens.
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { Signer } from '@aws-sdk/rds-signer';
-import { isOffline, localPgConfig } from './config.js';
+import { connectionString, isOffline, localPgConfig } from './config.js';
 
 let pool: Pool | null = null;
 
 async function buildPool(): Promise<Pool> {
+  const url = connectionString();
+  if (url) {
+    // Managed Postgres. `?sslmode=require` in the URL is respected by pg; the
+    // flag below is for providers whose certificate chain pg can't verify.
+    const p = new Pool({
+      connectionString: url,
+      max: Number(process.env.PG_POOL_MAX || 10),
+      ...(process.env.PGSSL_NO_VERIFY === 'true' ? { ssl: { rejectUnauthorized: false } } : {}),
+    });
+    p.on('error', err => console.error('pg pool error:', err));
+    console.log('Postgres pool configured (DATABASE_URL)');
+    return p;
+  }
+
   if (isOffline()) {
     const p = new Pool({ ...localPgConfig(), max: 10 });
     p.on('error', err => console.error('pg pool error:', err));

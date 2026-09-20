@@ -13,10 +13,43 @@ import { runOne, FiringReport } from './engine.js';
 import AppUsageManager from '../../data/AppUsageManager.js';
 import HealthManager from '../../data/HealthManager.js';
 import LocationManager from '../../data/LocationManager.js';
-import { query } from '../../db/psqlClient.js';
+import { getPool, query } from '../../db/psqlClient.js';
 import { refreshDueCalendars } from '../calendars.js';
 
 let running = false;
+
+// Postgres advisory lock key. Two instances can both run the API; only one
+// sweeps, or every scheduled nudge is sent twice. The lock is transaction
+// scoped, so a crashed instance releases it when its connection drops.
+const SWEEP_LOCK_KEY = Number(process.env.JIKO_SWEEP_LOCK_KEY || 8_675_309);
+
+/**
+ * Runs `fn` only if this process wins the sweep lock. Returns null when
+ * another instance holds it. Falls back to running (single-instance
+ * behaviour) if the lock query itself fails.
+ */
+async function withSweepLock<T>(fn: () => Promise<T>): Promise<T | null> {
+  let pool;
+  try {
+    pool = await getPool();
+  } catch {
+    return fn();
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const res = await client.query<{ ok: boolean }>('SELECT pg_try_advisory_xact_lock($1) AS ok', [SWEEP_LOCK_KEY]);
+    if (!res.rows[0]?.ok) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    // The lock is held until this transaction ends, i.e. until fn resolves.
+    return await fn();
+  } finally {
+    try { await client.query('COMMIT'); } catch { /* connection already gone */ }
+    client.release();
+  }
+}
 
 export async function sweepOnce(now = new Date()): Promise<FiringReport[]> {
   if (running) return [];
@@ -77,8 +110,14 @@ function snapshotOpts(user_id: string, now: Date) {
   };
 }
 
+/** One sweep, but only on the instance that holds the advisory lock. */
+export async function sweepIfLeader(now = new Date()): Promise<FiringReport[]> {
+  const out = await withSweepLock(() => sweepOnce(now));
+  return out ?? [];
+}
+
 export function startScheduler(everySeconds = Number(process.env.SCHEDULER_INTERVAL_SECONDS || 30)) {
   const expr = everySeconds < 60 ? `*/${everySeconds} * * * * *` : `*/${Math.floor(everySeconds / 60)} * * * *`;
-  console.log(`[scheduler] sweeping every ${everySeconds}s`);
-  return cron.schedule(expr, () => { void sweepOnce(); });
+  console.log(`[scheduler] sweeping every ${everySeconds}s (leader-locked)`);
+  return cron.schedule(expr, () => { void sweepIfLeader(); });
 }
