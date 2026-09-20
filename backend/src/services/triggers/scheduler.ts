@@ -15,6 +15,7 @@ import HealthManager from '../../data/HealthManager.js';
 import LocationManager from '../../data/LocationManager.js';
 import { getPool, query } from '../../db/psqlClient.js';
 import { refreshDueCalendars } from '../calendars.js';
+import { log } from '../../lib/log.js';
 
 let running = false;
 
@@ -61,10 +62,10 @@ export async function sweepOnce(now = new Date()): Promise<FiringReport[]> {
     try {
       const imports = await refreshDueCalendars(now);
       for (const r of imports) {
-        if (r.status === 'error') console.warn(`[scheduler] calendar ${r.subscription_id} failed: ${r.error}`);
+        if (r.status === 'error') log.warn('calendar import failed', { event: 'calendar_import', subscription_id: r.subscription_id, error: r.error });
       }
     } catch (err) {
-      console.error('[scheduler] calendar refresh failed:', err);
+      log.fail('calendar refresh failed', err, { event: 'calendar_refresh' });
     }
 
     // scheduled
@@ -94,7 +95,7 @@ export async function sweepOnce(now = new Date()): Promise<FiringReport[]> {
       }
     }
   } catch (err) {
-    console.error('[scheduler] sweep failed:', err);
+    log.fail('sweep failed', err, { event: 'sweep' });
   } finally {
     running = false;
   }
@@ -118,6 +119,6 @@ export async function sweepIfLeader(now = new Date()): Promise<FiringReport[]> {
 
 export function startScheduler(everySeconds = Number(process.env.SCHEDULER_INTERVAL_SECONDS || 30)) {
   const expr = everySeconds < 60 ? `*/${everySeconds} * * * * *` : `*/${Math.floor(everySeconds / 60)} * * * *`;
-  console.log(`[scheduler] sweeping every ${everySeconds}s (leader-locked)`);
+  log.info('scheduler started', { event: 'scheduler_start', interval_seconds: everySeconds });
   return cron.schedule(expr, () => { void sweepIfLeader(); });
 }

@@ -45,6 +45,7 @@ class MessageRepository {
     if (q.status) { vals.push(q.status); conds.push(`status = $${vals.length}`); }
     if (q.direction) { vals.push(q.direction); conds.push(`direction = $${vals.length}`); }
     if (q.since) { vals.push(q.since); conds.push(`created_at > $${vals.length}`); }
+    if (q.before) { vals.push(q.before); conds.push(`created_at < $${vals.length}`); }
     vals.push(q.limit);
     const res = await query(`SELECT * FROM messages WHERE ${conds.join(' AND ')} ORDER BY created_at DESC LIMIT $${vals.length}`, vals);
     return res.rows.map(r => Message.parse(r));

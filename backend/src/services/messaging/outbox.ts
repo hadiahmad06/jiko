@@ -9,6 +9,8 @@ import { MessageT } from '../../types/message/Message.js';
 import { inRange, localHHMM, startOfLocalDay } from '../triggers/time.js';
 import { delivererFor } from './delivery.js';
 import { DeliveryChannelT } from '../../types/user/UserPreferences.js';
+import { log } from '../../lib/log.js';
+import { effectiveBudget } from './budget.js';
 
 export interface SendOptions {
   user_id: string;
@@ -42,11 +44,22 @@ export async function sendMessage(opts: SendOptions): Promise<SendResult> {
 
   if (!opts.urgent && counts) {
     if (inRange(localHHMM(now, prefs.timezone), prefs.quiet_hours.start, prefs.quiet_hours.end)) {
+      log.info('message held', { event: 'held', reason: 'quiet_hours', user_id: opts.user_id, trigger_id: opts.trigger_id ?? undefined });
       return { sent: false, reason: 'quiet_hours' };
     }
-    if (quietModeActive(prefs, now)) return { sent: false, reason: 'quiet_mode' };
+    if (quietModeActive(prefs, now)) {
+      log.info('message held', { event: 'held', reason: 'quiet_mode', user_id: opts.user_id, trigger_id: opts.trigger_id ?? undefined, until: prefs.quiet_until });
+      return { sent: false, reason: 'quiet_mode' };
+    }
     const used = await MessageRepository.interruptsSince(opts.user_id, startOfLocalDay(now, prefs.timezone));
-    if (used >= prefs.interrupt_budget_per_day) return { sent: false, reason: 'budget_exhausted' };
+    const adapted = await effectiveBudget(opts.user_id, prefs.interrupt_budget_per_day, now);
+    if (used >= adapted.effective) {
+      log.info('message held', {
+        event: 'held', reason: 'budget_exhausted', user_id: opts.user_id, used,
+        budget: adapted.budget, effective: adapted.effective, why: adapted.reason,
+      });
+      return { sent: false, reason: 'budget_exhausted' };
+    }
   }
 
   const channel = opts.channel ?? prefs.delivery_channel;
@@ -63,6 +76,15 @@ export async function sendMessage(opts: SendOptions): Promise<SendResult> {
     ? (await query<{ phone_number: string }>('SELECT phone_number FROM users WHERE id = $1', [opts.user_id])).rows[0]?.phone_number
     : undefined;
   const outcome = await delivererFor(channel).deliver(message, { phone_number: phone ?? null });
+  log.info('message out', {
+    event: 'message_out',
+    user_id: opts.user_id,
+    message_id: message.id,
+    trigger_id: opts.trigger_id ?? undefined,
+    channel,
+    status: outcome.status,
+    ...(outcome.detail ? { detail: outcome.detail } : {}),
+  });
   if (outcome.status !== 'queued') {
     await MessageRepository.ack(opts.user_id, [message.id], outcome.status);
     message.status = outcome.status;
@@ -75,10 +97,14 @@ export async function budgetStatus(user_id: string, now = new Date()) {
   const prefs = await PreferencesRepository.get(user_id);
   const used = await MessageRepository.interruptsSince(user_id, startOfLocalDay(now, prefs.timezone));
   const quiet = inRange(localHHMM(now, prefs.timezone), prefs.quiet_hours.start, prefs.quiet_hours.end);
+  const adapted = await effectiveBudget(user_id, prefs.interrupt_budget_per_day, now);
   return {
     used,
-    budget: prefs.interrupt_budget_per_day,
-    remaining: Math.max(0, prefs.interrupt_budget_per_day - used),
+    budget: adapted.effective,
+    // What the user set, when Jiko has decided to spend less of it today.
+    budget_set: adapted.budget,
+    budget_reason: adapted.reason,
+    remaining: Math.max(0, adapted.effective - used),
     quiet_hours_active: quiet,
     quiet_mode_active: quietModeActive(prefs, now),
     quiet_until: prefs.quiet_until ?? null,

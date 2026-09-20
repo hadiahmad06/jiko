@@ -12,11 +12,18 @@ import { recordFeedback } from '../services/messaging/feedback.js';
 
 const router = Router();
 
-// GET /messages?status=&direction=&since=&limit=
+// GET /messages?status=&direction=&since=&before=&limit=
+// Newest first. A full page sets `X-Jiko-Next-Before`; pass it back as
+// `before` for the next page. Months of history stay one page at a time.
 router.get('/messages', authMiddleware, async (req, res) => {
   try {
     const q = parseOr400(res, MessageQuery, req.query, 'Query'); if (!q) return;
-    res.json(await MessageRepository.list(req.uid!, q));
+    const items = await MessageRepository.list(req.uid!, q);
+    if (items.length === q.limit) {
+      const oldest = items[items.length - 1]!;
+      res.setHeader('X-Jiko-Next-Before', new Date(oldest.created_at).toISOString());
+    }
+    res.json(items);
   } catch (err) { serverError(res, err, 'listing messages'); }
 });
 

@@ -98,3 +98,12 @@ Fly, Neon and friends hand you a URL; the RDS IAM path is still there for the AW
 
 ## D32. A wrong nudge disables its rule after three strikes, and says so
 `POST /messages/:id/feedback` stores `wrong` or `good` on the message. Three `wrong` verdicts against one trigger inside seven days turn it off, and Jiko sends a line saying which rule it turned off and why. The counting is a query over `messages.metadata`, not a new table: the verdict belongs to the message the user was looking at. This is deliberately not learning — no weights, no scoring, no silent tuning — because a rule that quietly changes behaviour is impossible to argue with, and being arguable is the point. `wrong_recently` appears next to each rule in both agents.
+
+## D33. Logs are one JSON object per line, with the events worth grepping named
+`src/lib/log.ts` emits JSON in production and readable text everywhere else, and the four events that answer real questions are named: `request`, `firing`, `held` (with the reason: quiet hours, quiet mode, budget) and `message_out`. "Why did nothing fire for me at 3pm?" is now `fly logs | jq 'select(.user_id == "…")'` instead of a database session. `LOG_LEVEL` defaults to `error` under test so the suites stay readable.
+
+## D34. `GET /messages` pages backwards with a header cursor
+A full page sets `X-Jiko-Next-Before` to the oldest message's timestamp; passing it back as `?before=` walks the conversation one page at a time. The response body stays a plain array, so the existing agents keep working without a change; only clients that want history need to read the header. A timestamp cursor (not an offset) means new messages arriving mid-scroll cannot shift the page boundary.
+
+## D35. The interrupt budget is a ceiling Jiko can decide not to spend
+`adaptBudget()` halves the day's budget when three quarters of the last three days' nudges went unanswered, takes one off when half the replies were a bare "ok", and restores the full number whenever something is due inside 24 hours. It never exceeds the user's setting and never drops below one, the decision is a pure function with its own tests, and `GET /messages/budget` reports both `budget` (today) and `budget_set` (the ceiling) plus the reason, so the user can see why Jiko went quieter instead of guessing. `JIKO_ADAPTIVE_BUDGET=off` turns it off.

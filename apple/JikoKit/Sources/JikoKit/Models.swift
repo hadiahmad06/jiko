@@ -144,7 +144,10 @@ public struct TalkbackResponse: Codable {
 
 public struct Budget: Codable, Equatable {
   public var used: Int
+  /// What Jiko will spend today; `budget_set` is the ceiling the user chose.
   public var budget: Int
+  public var budget_set: Int?
+  public var budget_reason: String?
   public var remaining: Int
   public var quiet_hours_active: Bool
   public var quiet_mode_active: Bool?

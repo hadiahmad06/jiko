@@ -32,6 +32,9 @@ export const MessageQuery = z.object({
   status: MessageStatus.optional(),
   direction: MessageDirection.optional(),
   since: z.coerce.date().optional(),
+  /** Cursor: only messages older than this. Paired with the `X-Jiko-Next-Before`
+   *  response header, it walks backwards through a long conversation. */
+  before: z.coerce.date().optional(),
   limit: z.coerce.number().int().positive().max(200).default(50),
 });
 export type MessageQueryT = z.infer<typeof MessageQuery>;

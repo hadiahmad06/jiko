@@ -105,7 +105,9 @@ Template variables: `{{name}}`, `{{app}}`, `{{minutes}}`, `{{location}}`, `{{obl
 
 Two other things can hold a message back. `preferences.quiet_hours` is the fixed nightly window. `quiet_until` is a **lease** a device sets through `PUT /users/quiet { active, minutes, reason }` — the macOS agent renews it every sync while a Focus is on or the user has hit pause, so an agent that stops running lets Jiko resume on its own rather than silencing it forever. Both are bypassed by `urgent` and by replies.
 
-`GET /messages/budget` reports `{ used, budget, remaining, quiet_hours_active, quiet_mode_active, quiet_until, quiet_reason }`.
+The budget the user sets is a **ceiling**, not a target. `adaptBudget()` spends less of it when the nudges are not landing — most of the last three days' nudges ignored halves it, mostly bare "ok" replies takes one off — and spends all of it whenever something is due in the next 24 hours. It never exceeds the user's number and never drops below one. Set `JIKO_ADAPTIVE_BUDGET=off` to disable.
+
+`GET /messages/budget` reports `{ used, budget, budget_set, budget_reason, remaining, quiet_hours_active, quiet_mode_active, quiet_until, quiet_reason }`, where `budget` is today's effective number and `budget_set` is what the user chose.
 
 ## Talk-back
 

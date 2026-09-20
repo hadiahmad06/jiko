@@ -11,6 +11,7 @@ import { evaluateCondition } from './condition.js';
 import { executeActions } from './execute.js';
 import { nextRun } from './schedule.js';
 import { describeFiring, FiringContext } from './reason.js';
+import { log } from '../../lib/log.js';
 
 export interface FiringReport {
   trigger_id: string;
@@ -36,7 +37,7 @@ export async function runTriggers(user_id: string, event: SyncEvent, opts: RunOp
       const report = await runOne(trigger, ctx);
       if (report) reports.push(report);
     } catch (err) {
-      console.error(`[engine] trigger ${trigger.id} (${trigger.name}) failed:`, err);
+      log.fail('trigger failed', err, { event: 'trigger_error', trigger_id: trigger.id, name: trigger.name, user_id });
     }
   }
   return reports;
@@ -73,6 +74,15 @@ export async function runOne(trigger: TriggerT, ctx: TriggerContext): Promise<Fi
   // Rendered now, while the numbers are the ones the condition saw.
   context.reason = describeFiring(context, ctx.now);
   await TriggerRepository.recordFiring(trigger.id, ctx.user_id, context, results, trigger.kind === 'scheduled' ? next : undefined);
+  log.info('trigger fired', {
+    event: 'firing',
+    trigger_id: trigger.id,
+    name: trigger.name,
+    kind: trigger.kind,
+    user_id: ctx.user_id,
+    reason: context.reason,
+    results: results.map(r => `${r.action}:${r.ok ? 'ok' : r.detail ?? 'failed'}`),
+  });
   return { trigger_id: trigger.id, name: trigger.name, results };
 }
 

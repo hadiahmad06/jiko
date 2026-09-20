@@ -3,6 +3,7 @@ import path from 'path';
 import express, { NextFunction, Request, Response, Router } from 'express';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { authLimiter, globalLimiter, messagesLimiter, syncLimiter } from './middleware/rateLimit.js';
+import { requestLog } from './middleware/requestLog.js';
 
 const injectRouters = async (dir: string, app: express.Application) => {
   const items = await fs.readdir(dir);
@@ -71,6 +72,7 @@ const createApp = async () => {
   // Behind a load balancer the client IP is in X-Forwarded-For; trust one hop.
   app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 
+  app.use(requestLog);
   app.use(bodyParsers());
   app.use(bodyErrors);
 

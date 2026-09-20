@@ -315,3 +315,50 @@ describe('wrong-nudge feedback', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('message pagination', () => {
+  it('walks backwards with the cursor header and never repeats a message', async () => {
+    const u = await createUser();
+    const c = api(app, u.token);
+    for (let i = 0; i < 7; i++) {
+      await c.post('/messages/send', { body: `note ${i}`, counts_as_interrupt: false });
+    }
+
+    const first = await c.get('/messages?limit=3');
+    expect(first.body).toHaveLength(3);
+    const cursor = first.headers['x-jiko-next-before'] as string;
+    expect(cursor).toBeTruthy();
+
+    const second = await c.get(`/messages?limit=3&before=${encodeURIComponent(cursor)}`);
+    expect(second.body).toHaveLength(3);
+    const ids = new Set([...first.body, ...second.body].map((m: { id: string }) => m.id));
+    expect(ids.size).toBe(6);
+
+    // the last page is short and carries no cursor
+    const third = await c.get(`/messages?limit=3&before=${encodeURIComponent(second.headers['x-jiko-next-before'] as string)}`);
+    expect(third.body).toHaveLength(1);
+    expect(third.headers['x-jiko-next-before']).toBeUndefined();
+  });
+});
+
+describe('adaptive budget', () => {
+  it('spends less after a run of ignored nudges, and everything when something is due', async () => {
+    const u = await createUser();
+    const c = api(app, u.token);
+    await c.patch('/users/preferences', { quiet_hours: { start: '03:00', end: '03:01' }, interrupt_budget_per_day: 4, timezone: 'UTC' });
+
+    // four unsolicited nudges yesterday, none of them answered
+    for (let i = 0; i < 4; i++) {
+      await c.post('/messages/send', { body: `nudge ${i}` });
+    }
+    await query(`UPDATE messages SET created_at = NOW() - INTERVAL '1 day' WHERE user_id = $1`, [u.id]);
+
+    const quiet = await c.get('/messages/budget');
+    expect(quiet.body).toMatchObject({ budget_set: 4, budget: 2, budget_reason: 'mostly_ignored' });
+
+    // a deadline buys back the full budget
+    await c.post('/obligations', { title: 'pset 3', due_at: new Date(Date.now() + 6 * 3600_000).toISOString() });
+    const urgent = await c.get('/messages/budget');
+    expect(urgent.body).toMatchObject({ budget_set: 4, budget: 4, budget_reason: 'deadline' });
+  });
+});
