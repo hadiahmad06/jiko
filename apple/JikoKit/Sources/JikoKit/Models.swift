@@ -333,6 +333,36 @@ extension Date {
   public var iso: String { ISO8601DateFormatter.jiko.string(from: self) }
 }
 
+public struct Place: Codable, Identifiable, Equatable {
+  public var id: String
+  public var name: String
+  public var latitude: Double
+  public var longitude: Double
+  public var radius_m: Int
+  public var archived: Bool
+}
+
+public struct PlaceCreate: Codable {
+  public var name: String
+  public var latitude: Double
+  public var longitude: Double
+  public var radius_m: Int
+
+  public init(name: String, latitude: Double, longitude: Double, radius_m: Int = 150) {
+    self.name = name; self.latitude = latitude; self.longitude = longitude; self.radius_m = radius_m
+  }
+}
+
+public struct Activity: Codable, Identifiable, Equatable {
+  public var id: String
+  public var name: String
+}
+
+public struct ActivityCreate: Codable {
+  public var name: String
+  public init(name: String) { self.name = name }
+}
+
 // MARK: - calendars
 
 public struct CalendarSubscription: Codable, Identifiable, Equatable {

@@ -11,6 +11,7 @@ struct ContentView: View {
       TabView {
         ConversationView().tabItem { Label("Jiko", systemImage: "message") }
         TodayView().tabItem { Label("Today", systemImage: "checklist") }
+        RulesView().tabItem { Label("Rules", systemImage: "bolt") }
         SettingsView().tabItem { Label("Settings", systemImage: "gear") }
       }
     } else {

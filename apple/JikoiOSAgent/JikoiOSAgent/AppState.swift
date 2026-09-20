@@ -17,6 +17,10 @@ final class AppState: ObservableObject {
   @Published var messages: [Message] = []
   @Published var budget: Budget?
   @Published var upcoming: [Obligation] = []
+  @Published var triggers: [Trigger] = []
+  @Published var presets: [TriggerPreset] = []
+  @Published var places: [Place] = []
+  @Published var activities: [Activity] = []
 
   @Published var lastSyncAt: Date?
   @Published var lastSyncError: String?
@@ -150,8 +154,59 @@ final class AppState: ObservableObject {
   }
 
   func refreshAll() async {
-    upcoming = (try? await api.upcoming()) ?? []
+    async let u = api.upcoming()
+    async let t = api.triggers()
+    async let p = api.presets()
+    async let pl = api.places()
+    async let a = api.activities()
+    upcoming = (try? await u) ?? []
+    triggers = (try? await t) ?? []
+    presets = (try? await p) ?? []
+    places = (try? await pl) ?? []
+    activities = (try? await a) ?? []
     await pollMessages()
+  }
+
+  // MARK: - places and rules
+
+  /// Save wherever the phone is right now as a named place, so a location
+  /// rule has something to point at.
+  func savePlaceHere(name: String, radius: Int = 150) async throws -> Place {
+    guard let fix = location.last else { throw APIError.notSent("no location yet. give it a minute after turning location on.") }
+    let place = try await api.createPlace(PlaceCreate(
+      name: name,
+      latitude: fix.coordinate.latitude,
+      longitude: fix.coordinate.longitude,
+      radius_m: radius
+    ))
+    places = (try? await api.places()) ?? places
+    return place
+  }
+
+  func deletePlace(_ p: Place) async {
+    try? await api.deletePlace(p.id)
+    places = (try? await api.places()) ?? places
+  }
+
+  func createActivity(_ name: String) async throws -> Activity {
+    let a = try await api.createActivity(name)
+    activities = (try? await api.activities()) ?? activities
+    return a
+  }
+
+  func enablePreset(_ id: String, params: [String: Any] = [:]) async {
+    _ = try? await api.enablePreset(id, params: params)
+    triggers = (try? await api.triggers()) ?? triggers
+  }
+
+  func setTrigger(_ t: Trigger, enabled: Bool) async {
+    _ = try? await api.setTriggerEnabled(t.id, enabled)
+    triggers = (try? await api.triggers()) ?? triggers
+  }
+
+  func deleteTrigger(_ t: Trigger) async {
+    try? await api.deleteTrigger(t.id)
+    triggers = (try? await api.triggers()) ?? triggers
   }
 
   // MARK: - actions

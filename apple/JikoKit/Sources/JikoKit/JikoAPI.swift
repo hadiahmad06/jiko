@@ -170,6 +170,14 @@ public actor JikoAPI {
   public func setTriggerEnabled(_ id: String, _ enabled: Bool) async throws -> Trigger { try await request("PATCH", "triggers/\(id)", body: ["enabled": enabled]) }
   public func deleteTrigger(_ id: String) async throws { let _: Empty = try await request("DELETE", "triggers/\(id)") }
 
+  // MARK: - places and activities
+
+  public func places() async throws -> [Place] { try await request("GET", "locations") }
+  public func createPlace(_ p: PlaceCreate) async throws -> Place { try await request("POST", "locations", body: p) }
+  public func deletePlace(_ id: String) async throws { let _: Empty = try await request("DELETE", "locations/\(id)") }
+  public func activities() async throws -> [Activity] { try await request("GET", "activities") }
+  public func createActivity(_ name: String) async throws -> Activity { try await request("POST", "activities", body: ActivityCreate(name: name)) }
+
   // MARK: - calendars
 
   public func calendars() async throws -> [CalendarSubscription] { try await request("GET", "calendars") }
