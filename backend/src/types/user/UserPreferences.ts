@@ -18,6 +18,9 @@ export const UserPreferences = z.object({
   interrupt_budget_per_day: z.number().int().min(0).default(4),
   quiet_hours: z.object({ start: HHMM, end: HHMM }).default({ start: "23:00", end: "08:00" }),
   voice: Voice.default("older_sibling"),
+  // Style instructions for `voice = own_voice`, produced from the user's own
+  // texts by training/processing/style_guide.py. Style only, never content.
+  voice_guide: z.string().max(4000).nullable().default(null),
   delivery_channel: DeliveryChannel.default("agent"),
   updated_at: z.coerce.date().optional(),
 });

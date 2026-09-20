@@ -18,7 +18,8 @@
     "test:watch": "vitest watch --project unit",
     "localdb": "tsx scripts/localdb.ts",
     "db:migrate": "tsx scripts/migrate.ts",
-    "routes": "tsx scripts/printRoutes.ts"
+    "routes": "tsx scripts/printRoutes.ts",
+    "eval:voice": "tsx scripts/evalVoice.ts"
   },
   "author": "Hadi Ahmad",
   "license": "ISC",

@@ -42,8 +42,10 @@ async function complete(system: string, messages: Anthropic.MessageParam[], maxT
 }
 
 export const anthropicVoice: VoiceProvider = {
-  async rewrite({ text, voice, strictness, history, name }) {
-    const system = `${JIKO_SYSTEM}\n\nVoice: ${VOICE_GUIDES[voice as VoiceT] ?? VOICE_GUIDES.older_sibling}\n${strictnessNote(strictness)}\nThe user's name is ${name}.`;
+  async rewrite({ text, voice, strictness, history, name, guide, hints }) {
+    const voiceLine = guide?.trim() || VOICE_GUIDES[voice as VoiceT] || VOICE_GUIDES.older_sibling;
+    const hintLines = hints?.length ? `\n${hints.join('\n')}` : '';
+    const system = `${JIKO_SYSTEM}\n\nVoice: ${voiceLine}\n${strictnessNote(strictness)}${hintLines}\nThe user's name is ${name}.`;
     const messages: Anthropic.MessageParam[] = [
       ...history,
       { role: 'user', content: `Rewrite this nudge in your voice. Keep every fact in it, add nothing. Output only the message.\n\nNUDGE: ${text}` },
