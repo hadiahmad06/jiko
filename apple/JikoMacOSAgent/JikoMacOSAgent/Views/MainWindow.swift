@@ -111,8 +111,10 @@ struct ConversationView: View {
 
 struct MessageBubble: View {
   let message: Message
+  @EnvironmentObject var state: AppState
   @State private var why: String?
   @State private var loadingWhy = false
+  @State private var verdict: String?
 
   private var bubbleColor: Color { message.isFromJiko ? Color.gray.opacity(0.18) : Color.accentColor.opacity(0.85) }
   private var textColor: Color { message.isFromJiko ? Color.primary : Color.white }
@@ -127,6 +129,17 @@ struct MessageBubble: View {
       why = (try? await JikoAPI.shared.why(message.id))?.reason ?? "couldn't reach the server for that."
       loadingWhy = false
     }
+  }
+
+  /// Marking a nudge wrong is the only feedback Jiko acts on: three in a week
+  /// and the rule behind it turns itself off.
+  private func mark() async {
+    guard let result = try? await JikoAPI.shared.feedback(message.id, verdict: "wrong") else {
+      verdict = "couldn't reach the server for that."
+      return
+    }
+    verdict = result.disabled_trigger ? "noted. that rule is off now." : "noted."
+    await state.refreshAll()
   }
 
   var body: some View {
@@ -149,6 +162,12 @@ struct MessageBubble: View {
           } else {
             Button(loadingWhy ? "checking…" : "why did I get this?") { loadWhy() }
               .buttonStyle(.link).font(.caption2).disabled(loadingWhy)
+          }
+          if let verdict {
+            Text(verdict).font(.caption2).foregroundStyle(.secondary)
+          } else {
+            Button("that was wrong") { Task { await mark() } }
+              .buttonStyle(.link).font(.caption2)
           }
         }
       }
@@ -222,6 +241,10 @@ struct RulesView: View {
               VStack(alignment: .leading, spacing: 2) {
                 Text(t.name)
                 Text("\(t.kind) · fired \(t.fire_count)×").font(.caption).foregroundStyle(.secondary)
+                if let wrong = t.wrong_recently, wrong > 0 {
+                  Text("\(wrong) wrong this week\(t.wrong_limit.map { " of \($0)" } ?? "")")
+                    .font(.caption2).foregroundStyle(.orange)
+                }
                 if let last = t.last_firing {
                   Text("last time: \(last.reason) (\(last.firedDate.formatted(date: .abbreviated, time: .shortened)))")
                     .font(.caption2).foregroundStyle(.tertiary)

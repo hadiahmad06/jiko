@@ -260,6 +260,9 @@ public struct Trigger: Codable, Identifiable, Equatable {
   public var fire_count: Int
   public var last_fired_at: String?
   public var last_firing: LastFiring?
+  /// Times the user marked one of this rule's nudges wrong in the last week.
+  public var wrong_recently: Int?
+  public var wrong_limit: Int?
 }
 
 public struct LastFiring: Codable, Equatable {
@@ -281,6 +284,15 @@ public struct MessageWhy: Codable, Equatable {
     public var name: String
     public var kind: String
   }
+}
+
+/// POST /messages/:id/feedback
+public struct MessageFeedback: Codable, Equatable {
+  public var message_id: String
+  public var verdict: String
+  public var trigger_id: String?
+  public var wrong_in_window: Int
+  public var disabled_trigger: Bool
 }
 
 public struct DeviceRegistration: Codable {

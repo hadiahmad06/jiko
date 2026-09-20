@@ -103,6 +103,29 @@ class MessageRepository {
     await query('UPDATE messages SET metadata = metadata || $3::jsonb WHERE id = $1 AND user_id = $2', [id, user_id, JSON.stringify(patch)]);
   }
 
+  /** How many nudges from a trigger the user marked wrong since a timestamp. */
+  async wrongSince(trigger_id: string, since: Date): Promise<number> {
+    const res = await query<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM messages
+       WHERE trigger_id = $1 AND direction = 'outbound'
+         AND metadata->>'feedback' = 'wrong' AND created_at >= $2`,
+      [trigger_id, since]
+    );
+    return res.rows[0]?.n ?? 0;
+  }
+
+  /** Wrong-marked counts per trigger for a user, for the Rules list. */
+  async wrongCountsByTrigger(user_id: string, since: Date): Promise<Record<string, number>> {
+    const res = await query<{ trigger_id: string; n: number }>(
+      `SELECT trigger_id, COUNT(*)::int AS n FROM messages
+       WHERE user_id = $1 AND direction = 'outbound' AND trigger_id IS NOT NULL
+         AND metadata->>'feedback' = 'wrong' AND created_at >= $2
+       GROUP BY trigger_id`,
+      [user_id, since]
+    );
+    return Object.fromEntries(res.rows.map(r => [r.trigger_id, r.n]));
+  }
+
   /** Recent conversation (both directions), oldest first, for LLM context. */
   async recent(user_id: string, limit = 12): Promise<MessageT[]> {
     const res = await query(`SELECT * FROM (SELECT * FROM messages WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2) t ORDER BY created_at ASC`, [user_id, limit]);

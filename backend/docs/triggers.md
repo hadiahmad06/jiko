@@ -125,6 +125,10 @@ Two other things can hold a message back. `preferences.quiet_hours` is the fixed
 
 Replies never count against the budget.
 
+## That was wrong
+
+`POST /messages/:id/feedback { verdict: "wrong" | "good", note? }` records the verdict on the message. Three `wrong` verdicts against the same trigger inside `JIKO_WRONG_WINDOW_DAYS` (7) disable it, and Jiko says so — a rule that goes quiet without explaining itself is indistinguishable from a bug. `GET /triggers?include=last_firing` reports `wrong_recently` and `wrong_limit` per rule. Only outbound messages can be graded.
+
 ## Why did I get this?
 
 Every firing stores the matched context *and* a rendered one-line `reason` ("20 min on TikTok, and OS midterm is open (due in 6 hours)."), built while the numbers are still the ones the condition saw. Two ways to read it back:

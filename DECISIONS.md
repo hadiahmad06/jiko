@@ -95,3 +95,6 @@ Fly, Neon and friends hand you a URL; the RDS IAM path is still there for the AW
 
 ## D31. Parameters that feed `make_interval` are cast explicitly
 `last_imported_at <= $1 - make_interval(hours => refresh_hours)` parses as `timestamptz <= interval` because Postgres cannot infer the type of a bare `$1` in that position, and the query fails at runtime rather than at typecheck. Caught by the calendar sweep logging an error during the integration run even though every test passed. Every such parameter now carries its cast (`$1::timestamptz`, `$3::int`), and the new integration suite exercises the sweep path so a repeat would fail a test rather than a log line.
+
+## D32. A wrong nudge disables its rule after three strikes, and says so
+`POST /messages/:id/feedback` stores `wrong` or `good` on the message. Three `wrong` verdicts against one trigger inside seven days turn it off, and Jiko sends a line saying which rule it turned off and why. The counting is a query over `messages.metadata`, not a new table: the verdict belongs to the message the user was looking at. This is deliberately not learning — no weights, no scoring, no silent tuning — because a rule that quietly changes behaviour is impossible to argue with, and being arguable is the point. `wrong_recently` appears next to each rule in both agents.

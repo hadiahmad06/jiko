@@ -141,6 +141,12 @@ public actor JikoAPI {
   }
   public func budget() async throws -> Budget { try await request("GET", "messages/budget") }
   public func why(_ messageId: String) async throws -> MessageWhy { try await request("GET", "messages/\(messageId)/why") }
+  /// One tap on a nudge. Three "wrong" in a week turns the rule off.
+  public func feedback(_ messageId: String, verdict: String, note: String? = nil) async throws -> MessageFeedback {
+    var body: [String: Any] = ["verdict": verdict]
+    if let note, !note.isEmpty { body["note"] = note }
+    return try await request("POST", "messages/\(messageId)/feedback", body: body)
+  }
   /// Leased: send it again while the Focus or pause lasts.
   public func setQuiet(active: Bool, minutes: Int, reason: String?) async throws {
     var body: [String: Any] = ["active": active, "minutes": minutes]

@@ -121,6 +121,7 @@ struct MessageBubble: View {
   let message: Message
   @State private var why: String?
   @State private var loadingWhy = false
+  @State private var verdict: String?
 
   private var canExplain: Bool { message.isFromJiko && message.trigger_id != nil }
 
@@ -142,6 +143,11 @@ struct MessageBubble: View {
             Button(loadingWhy ? "checking…" : "why did I get this?") { loadWhy() }
               .font(.caption2).disabled(loadingWhy)
           }
+          if let verdict {
+            Text(verdict).font(.caption2).foregroundStyle(.secondary)
+          } else {
+            Button("that was wrong") { Task { await mark() } }.font(.caption2)
+          }
         }
       }
       if message.isFromJiko { Spacer(minLength: 60) }
@@ -155,6 +161,14 @@ struct MessageBubble: View {
       why = (try? await JikoAPI.shared.why(message.id))?.reason ?? "couldn't reach the server for that."
       loadingWhy = false
     }
+  }
+
+  private func mark() async {
+    guard let result = try? await JikoAPI.shared.feedback(message.id, verdict: "wrong") else {
+      verdict = "couldn't reach the server for that."
+      return
+    }
+    verdict = result.disabled_trigger ? "noted. that rule is off now." : "noted."
   }
 }
 

@@ -8,6 +8,7 @@ import { handleInbound } from '../services/messaging/talkback.js';
 import { sendMessage, budgetStatus } from '../services/messaging/outbox.js';
 import TriggerRepository from '../services/repositories/TriggerRepository.js';
 import { describeFiring } from '../services/triggers/reason.js';
+import { recordFeedback } from '../services/messaging/feedback.js';
 
 const router = Router();
 
@@ -65,6 +66,32 @@ router.get('/messages/:id/why', authMiddleware, async (req, res) => {
       reason: context.reason ?? describeFiring(firing.context as never),
     });
   } catch (err) { serverError(res, err, 'explaining a message'); }
+});
+
+// POST /messages/:id/feedback { verdict: 'wrong' | 'good', note? }
+// One tap on a nudge. Three "wrong" in a week turns the rule off.
+router.post('/messages/:id/feedback', authMiddleware, async (req, res) => {
+  try {
+    const body = parseOr400(res, z.object({
+      verdict: z.enum(['wrong', 'good']),
+      note: z.string().max(500).optional(),
+    }), req.body); if (!body) return;
+
+    const message = await MessageRepository.get(req.params.id as string, req.uid!);
+    if (!message) return res.status(404).json({ error: 'NotFound', message: 'Message not found' });
+    if (message.direction !== 'outbound') {
+      return res.status(400).json({ error: 'InvalidBody', message: 'Only Jiko\'s own messages can be graded.' });
+    }
+
+    const outcome = await recordFeedback(req.uid!, message, body.verdict, body.note);
+    res.json({
+      message_id: message.id,
+      verdict: outcome.verdict,
+      trigger_id: outcome.trigger_id,
+      wrong_in_window: outcome.wrong_in_window,
+      disabled_trigger: outcome.disabled_trigger,
+    });
+  } catch (err) { serverError(res, err, 'recording feedback'); }
 });
 
 // POST /messages - user talks to Jiko

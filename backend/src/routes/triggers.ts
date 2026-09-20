@@ -12,6 +12,8 @@ import LocationManager from '../data/LocationManager.js';
 import { z } from 'zod';
 import { TRIGGER_PRESETS, instantiatePreset } from '../services/triggers/presets.js';
 import { describeFiring } from '../services/triggers/reason.js';
+import MessageRepository from '../services/repositories/MessageRepository.js';
+import { WRONG_LIMIT, WRONG_WINDOW_DAYS } from '../services/messaging/feedback.js';
 
 const router = Router();
 
@@ -25,10 +27,13 @@ router.get('/triggers', authMiddleware, async (req, res) => {
     const triggers = await TriggerRepository.list(req.uid!, kind?.data);
     if (req.query.include !== 'last_firing') return res.json(triggers);
     const last = await TriggerRepository.lastFirings(req.uid!);
+    const wrong = await MessageRepository.wrongCountsByTrigger(req.uid!, new Date(Date.now() - WRONG_WINDOW_DAYS * 86_400_000));
     res.json(triggers.map(t => {
       const firing = last[t.id];
       return {
         ...t,
+        wrong_recently: wrong[t.id] ?? 0,
+        wrong_limit: WRONG_LIMIT,
         last_firing: firing
           ? {
               id: firing.id,

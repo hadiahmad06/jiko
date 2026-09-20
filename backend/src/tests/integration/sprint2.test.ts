@@ -268,3 +268,50 @@ describe('inbound sms webhook', () => {
     expect(res.body).toMatchObject({ ok: true, matched: false });
   });
 });
+
+describe('wrong-nudge feedback', () => {
+  it('records a verdict and turns a rule off after three wrong ones in a week', async () => {
+    const u = await createUser();
+    const c = api(app, u.token);
+    await c.patch('/users/preferences', { quiet_hours: { start: '03:00', end: '03:01' }, interrupt_budget_per_day: 9, timezone: 'UTC' });
+    await c.put('/usage/apps/labels', { labels: [{ bundle_id: IG, label: 'distracting' }] });
+    const trig = await c.post('/triggers/presets/doomscroll', { minutes: 20, cooldown_minutes: 0 });
+
+    const nudge = async () => {
+      await c.post('/sync/app-usage', usagePayload(IG, 25, { appName: 'Instagram' }));
+      const queued = (await c.get('/messages/queued')).body;
+      const last = queued[queued.length - 1];
+      await c.post('/messages/ack', { ids: [last.id], status: 'delivered' });
+      return last;
+    };
+
+    const first = await c.post(`/messages/${(await nudge()).id}/feedback`, { verdict: 'wrong', note: 'i was replying to my mom' });
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ wrong_in_window: 1, disabled_trigger: false });
+
+    const second = await c.post(`/messages/${(await nudge()).id}/feedback`, { verdict: 'wrong' });
+    expect(second.body.wrong_in_window).toBe(2);
+    expect((await c.get(`/triggers/${trig.body.id}`)).body.enabled).toBe(true);
+
+    const third = await c.post(`/messages/${(await nudge()).id}/feedback`, { verdict: 'wrong' });
+    expect(third.body).toMatchObject({ wrong_in_window: 3, disabled_trigger: true });
+    expect((await c.get(`/triggers/${trig.body.id}`)).body.enabled).toBe(false);
+
+    // it says so rather than going quiet
+    const outbound = (await c.get('/messages?direction=outbound')).body;
+    expect(outbound.some((m: { body: string }) => m.body.includes('turning it off'))).toBe(true);
+    // and the explanation never spends an interrupt
+    expect((await c.get('/messages/budget')).body.used).toBe(3);
+
+    const rules = await c.get('/triggers?include=last_firing');
+    expect(rules.body[0]).toMatchObject({ wrong_recently: 3, wrong_limit: 3 });
+  });
+
+  it('refuses to grade the user\'s own message', async () => {
+    const u = await createUser();
+    const c = api(app, u.token);
+    const mine = await c.post('/messages', { body: 'hey' });
+    const res = await c.post(`/messages/${mine.body.message.id}/feedback`, { verdict: 'wrong' });
+    expect(res.status).toBe(400);
+  });
+});
