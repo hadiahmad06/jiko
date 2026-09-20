@@ -297,6 +297,25 @@ struct SettingsView: View {
           Button("Save") { Task { await state.setQuietHours(QuietHours(start: quietStart, end: quietEnd)) } }
         }
       }
+      Section("Focus") {
+        switch state.focus {
+        case .on(let name):
+          Text("\(name ?? "A Focus") is on. Jiko is holding nudges.").font(.callout)
+        case .off:
+          Text("No Focus on right now.").font(.callout).foregroundStyle(.secondary)
+        case .unknown:
+          Text("Jiko can treat a macOS Focus as quiet hours, but macOS needs you to hand over the Focus folder once.")
+            .font(.caption).foregroundStyle(.secondary)
+        }
+        HStack {
+          Button(state.focus == .unknown ? "Let Jiko see my Focus" : "Re-grant access") {
+            Task { await state.enableFocusAwareness() }
+          }
+          if state.focus != .unknown {
+            Button("Stop using Focus") { state.disableFocusAwareness() }
+          }
+        }
+      }
       Section("Startup") {
         Toggle("Launch Jiko at login", isOn: Binding(get: { state.launchAtLogin }, set: { state.setLaunchAtLogin($0) }))
         if let problem = state.launchAtLoginProblem {

@@ -26,7 +26,12 @@ export interface SendOptions {
 
 export type SendResult =
   | { sent: true; message: MessageT }
-  | { sent: false; reason: 'budget_exhausted' | 'quiet_hours' | 'empty' };
+  | { sent: false; reason: 'budget_exhausted' | 'quiet_hours' | 'quiet_mode' | 'empty' };
+
+/** True while a device-reported Focus or pause is still leased. */
+export function quietModeActive(prefs: { quiet_until?: Date | null }, now: Date): boolean {
+  return Boolean(prefs.quiet_until && new Date(prefs.quiet_until).getTime() > now.getTime());
+}
 
 export async function sendMessage(opts: SendOptions): Promise<SendResult> {
   const body = opts.body.trim();
@@ -39,6 +44,7 @@ export async function sendMessage(opts: SendOptions): Promise<SendResult> {
     if (inRange(localHHMM(now, prefs.timezone), prefs.quiet_hours.start, prefs.quiet_hours.end)) {
       return { sent: false, reason: 'quiet_hours' };
     }
+    if (quietModeActive(prefs, now)) return { sent: false, reason: 'quiet_mode' };
     const used = await MessageRepository.interruptsSince(opts.user_id, startOfLocalDay(now, prefs.timezone));
     if (used >= prefs.interrupt_budget_per_day) return { sent: false, reason: 'budget_exhausted' };
   }
@@ -69,5 +75,13 @@ export async function budgetStatus(user_id: string, now = new Date()) {
   const prefs = await PreferencesRepository.get(user_id);
   const used = await MessageRepository.interruptsSince(user_id, startOfLocalDay(now, prefs.timezone));
   const quiet = inRange(localHHMM(now, prefs.timezone), prefs.quiet_hours.start, prefs.quiet_hours.end);
-  return { used, budget: prefs.interrupt_budget_per_day, remaining: Math.max(0, prefs.interrupt_budget_per_day - used), quiet_hours_active: quiet };
+  return {
+    used,
+    budget: prefs.interrupt_budget_per_day,
+    remaining: Math.max(0, prefs.interrupt_budget_per_day - used),
+    quiet_hours_active: quiet,
+    quiet_mode_active: quietModeActive(prefs, now),
+    quiet_until: prefs.quiet_until ?? null,
+    quiet_reason: prefs.quiet_reason ?? null,
+  };
 }

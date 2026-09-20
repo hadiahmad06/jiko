@@ -24,6 +24,20 @@ class PreferencesRepository {
     return UserPreferences.parse(res.rows[0]);
   }
 
+  /**
+   * Start or clear a leased quiet window. `minutes` is a lease the device
+   * renews; a device that stops reporting lets Jiko resume on its own.
+   */
+  async setQuiet(user_id: string, opts: { minutes: number | null; reason?: string | null }, now = new Date()): Promise<UserPreferencesT> {
+    await this.get(user_id);
+    const until = opts.minutes === null ? null : new Date(now.getTime() + opts.minutes * 60_000);
+    const res = await query(
+      'UPDATE user_preferences SET quiet_until = $2, quiet_reason = $3 WHERE user_id = $1 RETURNING *',
+      [user_id, until, until ? (opts.reason ?? null) : null]
+    );
+    return UserPreferences.parse(res.rows[0]);
+  }
+
   async reset(user_id: string): Promise<UserPreferencesT> {
     await query('DELETE FROM user_preferences WHERE user_id = $1', [user_id]);
     return this.get(user_id);

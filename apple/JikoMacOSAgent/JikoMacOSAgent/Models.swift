@@ -65,6 +65,9 @@ struct Budget: Codable, Equatable {
   var budget: Int
   var remaining: Int
   var quiet_hours_active: Bool
+  var quiet_mode_active: Bool?
+  var quiet_until: String?
+  var quiet_reason: String?
 }
 
 struct QuietHours: Codable, Equatable {

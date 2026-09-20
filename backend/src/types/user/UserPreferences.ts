@@ -22,11 +22,19 @@ export const UserPreferences = z.object({
   // texts by training/processing/style_guide.py. Style only, never content.
   voice_guide: z.string().max(4000).nullable().default(null),
   delivery_channel: DeliveryChannel.default("agent"),
+  // A device-reported quiet window (macOS Focus, or a manual pause). Leased:
+  // the device renews it, so nothing goes silent permanently by accident.
+  quiet_until: z.coerce.date().nullable().default(null),
+  quiet_reason: z.string().max(120).nullable().default(null),
   updated_at: z.coerce.date().optional(),
 });
 export type UserPreferencesT = z.infer<typeof UserPreferences>;
 
-export const UserPreferencesUpdate = UserPreferences.omit({ user_id: true, updated_at: true }).partial().strict();
+// quiet_until / quiet_reason are set through PUT /users/quiet, not here.
+export const UserPreferencesUpdate = UserPreferences
+  .omit({ user_id: true, updated_at: true, quiet_until: true, quiet_reason: true })
+  .partial()
+  .strict();
 export type UserPreferencesUpdateT = z.infer<typeof UserPreferencesUpdate>;
 
 /** Budget implied by a strictness level when the user hasn't set one explicitly. */

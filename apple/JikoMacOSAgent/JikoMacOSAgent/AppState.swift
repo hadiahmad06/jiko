@@ -35,6 +35,8 @@ final class AppState: ObservableObject {
   /// after a restart.
   @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
   @Published var launchAtLoginProblem: String?
+  /// Last read of the system Focus state; .unknown until the user grants access.
+  @Published var focus: FocusState = .unknown
 
   let tracker = UsageTracker()
   private let api = JikoAPI.shared
@@ -42,6 +44,7 @@ final class AppState: ObservableObject {
   private var pollTimer: Timer?
   private let deviceId: String
   private let outboxURL: URL
+  private var lastReportedQuiet = false
 
   static let syncInterval: TimeInterval = 60
   static let pollInterval: TimeInterval = 15
@@ -101,6 +104,7 @@ final class AppState: ObservableObject {
 
   func syncNow() async {
     guard isAuthenticated else { return }
+    await reportQuietState()
     let logs = tracker.flush()
     var queue = loadOutbox()
     if !logs.isEmpty { queue.append(AppUsagePayload(timestamp: Date().iso, device_id: deviceId, log: logs)) }
@@ -258,8 +262,44 @@ final class AppState: ObservableObject {
     }
   }
 
-  func pause(minutes: Int) { pausedUntil = Date().addingTimeInterval(Double(minutes) * 60) }
-  func resume() { pausedUntil = nil }
+  /// A Focus, or a manual pause, told to the server as a short lease. Renewed
+  /// every sync, so if this agent stops running Jiko starts talking again.
+  private func reportQuietState() async {
+    focus = FocusMonitor.shared.state()
+    let paused = pausedUntil.map { $0 > Date() } ?? false
+    let quiet = focus.isOn || paused
+    let reason = paused ? "paused" : focus.displayName.map { "focus: \($0)" } ?? "focus"
+    // Lease slightly longer than the sync interval so a late sync doesn't
+    // leave a gap mid-Focus.
+    let lease = paused
+      ? max(1, Int(ceil((pausedUntil!.timeIntervalSinceNow) / 60)))
+      : Int(Self.syncInterval / 60) + 2
+    if quiet == lastReportedQuiet && !quiet { return }   // nothing to renew
+    lastReportedQuiet = quiet
+    try? await api.setQuiet(active: quiet, minutes: lease, reason: quiet ? reason : nil)
+  }
+
+  func pause(minutes: Int) {
+    pausedUntil = Date().addingTimeInterval(Double(minutes) * 60)
+    Task { await reportQuietState() }
+  }
+
+  func resume() {
+    pausedUntil = nil
+    Task { await reportQuietState() }
+  }
+
+  /// Ask for read access to the Focus database once, from Settings.
+  func enableFocusAwareness() async {
+    guard FocusMonitor.shared.requestAccess() else { return }
+    focus = FocusMonitor.shared.state()
+    await reportQuietState()
+  }
+
+  func disableFocusAwareness() {
+    FocusMonitor.shared.forgetAccess()
+    focus = .unknown
+  }
 
   func finishOnboarding() { UserDefaults.standard.set(true, forKey: "jiko.onboarded"); needsOnboarding = false }
 

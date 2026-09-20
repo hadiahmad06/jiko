@@ -103,7 +103,9 @@ Template variables: `{{name}}`, `{{app}}`, `{{minutes}}`, `{{location}}`, `{{obl
 - `webhook`: POSTed to `JIKO_WEBHOOK_URL`.
 - `sms`: AWS SNS to the user's phone number. Replies come back through `POST /webhooks/sms`.
 
-`GET /messages/budget` reports `{ used, budget, remaining, quiet_hours_active }`.
+Two other things can hold a message back. `preferences.quiet_hours` is the fixed nightly window. `quiet_until` is a **lease** a device sets through `PUT /users/quiet { active, minutes, reason }` — the macOS agent renews it every sync while a Focus is on or the user has hit pause, so an agent that stops running lets Jiko resume on its own rather than silencing it forever. Both are bypassed by `urgent` and by replies.
+
+`GET /messages/budget` reports `{ used, budget, remaining, quiet_hours_active, quiet_mode_active, quiet_until, quiet_reason }`.
 
 ## Talk-back
 

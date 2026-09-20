@@ -136,6 +136,12 @@ actor JikoAPI {
     return try await request("POST", "messages", body: body)
   }
   func budget() async throws -> Budget { try await request("GET", "messages/budget") }
+  /// Leased: send it again while the Focus or pause lasts.
+  func setQuiet(active: Bool, minutes: Int, reason: String?) async throws {
+    var body: [String: Any] = ["active": active, "minutes": minutes]
+    if let reason { body["reason"] = reason }
+    let _: Empty = try await request("PUT", "users/quiet", body: body)
+  }
 
   // MARK: - preferences, usage, obligations, triggers
 
