@@ -1,0 +1,42 @@
+name: voice-eval
+
+on:
+  schedule:
+    - cron: '0 15 * * 1'   # monday, 15:00 UTC
+  workflow_dispatch:
+    inputs:
+      min:
+        description: 'Minimum pass rate (0-1)'
+        default: '0.8'
+
+# Real API calls, so never on push: run it weekly and either side of a prompt
+# change, and read the JSON diff rather than the pass rate alone.
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Run the eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY is not set; skipping."
+            exit 0
+          fi
+          npm run eval:voice -- --min "${{ inputs.min || '0.8' }}" --out evals/latest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: voice-eval
+          path: backend/evals/*.json
+          retention-days: 90
