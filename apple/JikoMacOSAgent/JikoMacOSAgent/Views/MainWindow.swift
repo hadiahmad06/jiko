@@ -262,6 +262,8 @@ struct SettingsView: View {
   @State private var voice = "older_sibling"
   @State private var quietStart = "23:00"
   @State private var quietEnd = "08:00"
+  @State private var channel = "agent"
+  private let channels = [("agent", "Notifications"), ("imessage", "iMessage"), ("sms", "SMS")]
   private let voices = [("older_sibling", "Older sibling"), ("drill_sergeant", "Drill sergeant"), ("dry_coworker", "Dry coworker"), ("gentle", "Gentle"), ("own_voice", "My own voice")]
 
   var body: some View {
@@ -276,12 +278,29 @@ struct SettingsView: View {
           .onChange(of: voice) { _, v in Task { await state.setVoice(v) } }
         Text("Only applies when the server has an LLM key; otherwise you get the plain templates.").font(.caption).foregroundStyle(.secondary)
       }
+      Section("How messages arrive") {
+        Picker("Deliver as", selection: $channel) { ForEach(channels, id: \.0) { Text($0.1).tag($0.0) } }
+          .onChange(of: channel) { _, v in Task { await state.setDeliveryChannel(v) } }
+        if channel == "imessage" {
+          Text("Jiko texts your own number through Messages. macOS will ask once for permission to control Messages.")
+            .font(.caption).foregroundStyle(.secondary)
+        }
+        if let problem = state.imessageProblem {
+          Text(problem).font(.caption).foregroundStyle(.orange)
+        }
+      }
       Section("Quiet hours") {
         HStack {
           TextField("23:00", text: $quietStart).frame(width: 70)
           Text("to")
           TextField("08:00", text: $quietEnd).frame(width: 70)
           Button("Save") { Task { await state.setQuietHours(QuietHours(start: quietStart, end: quietEnd)) } }
+        }
+      }
+      Section("Startup") {
+        Toggle("Launch Jiko at login", isOn: Binding(get: { state.launchAtLogin }, set: { state.setLaunchAtLogin($0) }))
+        if let problem = state.launchAtLoginProblem {
+          Text(problem).font(.caption).foregroundStyle(.orange)
         }
       }
       Section("Account") {
@@ -294,7 +313,7 @@ struct SettingsView: View {
     }
     .formStyle(.grouped)
     .onAppear {
-      if let p = state.preferences { strictness = p.strictness; voice = p.voice; quietStart = p.quiet_hours.start; quietEnd = p.quiet_hours.end }
+      if let p = state.preferences { strictness = p.strictness; voice = p.voice; quietStart = p.quiet_hours.start; quietEnd = p.quiet_hours.end; channel = p.delivery_channel }
     }
   }
 }

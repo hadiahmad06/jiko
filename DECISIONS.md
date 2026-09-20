@@ -47,3 +47,12 @@ The stash of uncommitted Apple work (data models, queue, API client) is committe
 
 ## D15. Location radius column renamed to `radius_m`
 Makes the unit explicit and stops it colliding with the sync payload's `radius` (GPS accuracy).
+
+## D16. Rate limits are per user when a token is present, per IP otherwise
+`express-rate-limit` with four buckets: sync (120/min, devices are chatty), messages (60/min), auth (20 per 15 min, per IP), and a 300/min catch-all. The key is the JWT subject when the request carries a valid token, so one user on a shared NAT cannot rate-limit another. Limits are off under `NODE_ENV=test` and when `JIKO_RATE_LIMIT=off`; each bucket's size is overridable (`JIKO_RATE_LIMIT_SYNC` and friends). Body caps are split by path: 2 MB for `/sync/*` (batched logs), 128 KB everywhere else; oversize bodies get a 413 in the standard error shape.
+
+## D17. Inbound SMS arrives as an SNS envelope on an unauthenticated webhook
+`POST /webhooks/sms` accepts an SNS `SubscriptionConfirmation` (only auto-confirmed when `JIKO_SMS_AUTO_CONFIRM=true`, otherwise the URL is logged for a human), an SNS `Notification` wrapping AWS End User Messaging's `{originationNumber, messageBody}`, or a plain `{from, body}` post for local testing. The carrier has no bearer token, so the guards are a shared secret (`JIKO_SMS_WEBHOOK_SECRET`, in `?secret=` or `x-jiko-secret`) and the phone-number lookup: a number that matches no user is dropped with a 200. `inboundMessageId` is stored as `metadata.provider_id` and replayed deliveries are ignored.
+
+## D18. `imessage` is a delivery channel the macOS agent fulfils, not a server-side sender
+The backend treats `delivery_channel = imessage` exactly like `agent` (the message stays queued), and the agent decides what to do with it: `channel == "imessage"` goes to Messages.app over AppleScript addressed to the user's own number, anything else becomes a notification. A failed send (Automation permission denied, no iMessage account) falls back to a notification rather than dropping the nudge, and the reason surfaces in Settings. **Cost:** Apple-events entitlements and a temporary exception for `com.apple.MobileSMS`, which a sandboxed Mac App Store build would have to justify. **To reverse:** delete the `imessage` deliverer and the agent's `IMessageSender`; nothing else reads the channel.

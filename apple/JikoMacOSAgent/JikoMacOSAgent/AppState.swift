@@ -4,6 +4,7 @@
 import Foundation
 import Combine
 import AppKit
+import ServiceManagement
 
 @MainActor
 final class AppState: ObservableObject {
@@ -28,6 +29,12 @@ final class AppState: ObservableObject {
   @Published var presets: [TriggerPreset] = []
   @Published var triggers: [Trigger] = []
   @Published var needsOnboarding = false
+  /// Set when an iMessage send failed, so Settings can explain why.
+  @Published var imessageProblem: String?
+  /// Mirrors SMAppService; a menu-bar agent is useless if it doesn't come back
+  /// after a restart.
+  @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
+  @Published var launchAtLoginProblem: String?
 
   let tracker = UsageTracker()
   private let api = JikoAPI.shared
@@ -121,7 +128,7 @@ final class AppState: ObservableObject {
     do {
       let queued = try await api.queuedMessages()
       if !queued.isEmpty {
-        for m in queued { Notifier.shared.show(m) }
+        for m in queued { await deliver(m) }
         try await api.ack(queued.map(\.id))
       }
       let all = try await api.messages(limit: 60)
@@ -132,6 +139,44 @@ final class AppState: ObservableObject {
       lastSyncError = error.localizedDescription
       if case APIError.unauthenticated = error { isAuthenticated = false }
     }
+  }
+
+  /// Show a queued message the way the user asked for it. iMessage falls back
+  /// to a notification rather than dropping the nudge.
+  private func deliver(_ m: Message) async {
+    guard m.channel == "imessage" else { Notifier.shared.show(m); return }
+    guard let number = me?.phoneNumber, !number.isEmpty else {
+      imessageProblem = "No phone number on your account, so this went to notifications."
+      Notifier.shared.show(m)
+      return
+    }
+    switch await IMessageSender.shared.send(m.body, to: number) {
+    case .sent:
+      imessageProblem = nil
+    case .denied:
+      imessageProblem = "Messages automation is off. System Settings > Privacy & Security > Automation > Jiko."
+      Notifier.shared.show(m)
+    case .notConfigured:
+      imessageProblem = "Messages.app has no iMessage account signed in."
+      Notifier.shared.show(m)
+    case .failed(let detail):
+      imessageProblem = detail
+      Notifier.shared.show(m)
+    }
+  }
+
+  func setDeliveryChannel(_ channel: String) async {
+    if channel == "imessage" {
+      let outcome = await IMessageSender.shared.requestPermission()
+      if outcome == .denied {
+        imessageProblem = "Messages automation is off. System Settings > Privacy & Security > Automation > Jiko."
+      } else {
+        imessageProblem = nil
+      }
+    } else {
+      imessageProblem = nil
+    }
+    preferences = try? await api.updatePreferences(PreferencesPatch(delivery_channel: channel))
   }
 
   func refreshAll() async {
@@ -198,6 +243,19 @@ final class AppState: ObservableObject {
   func deleteTrigger(_ t: Trigger) async {
     try? await api.deleteTrigger(t.id)
     triggers = (try? await api.triggers()) ?? triggers
+  }
+
+  /// Register or unregister the login item. Returns to the previous value if
+  /// the system refuses (unsigned build, or the user denied it in Settings).
+  func setLaunchAtLogin(_ on: Bool) {
+    do {
+      if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+      launchAtLogin = SMAppService.mainApp.status == .enabled
+      launchAtLoginProblem = launchAtLogin == on ? nil : "macOS has this pending in System Settings > General > Login Items."
+    } catch {
+      launchAtLogin = SMAppService.mainApp.status == .enabled
+      launchAtLoginProblem = error.localizedDescription
+    }
   }
 
   func pause(minutes: Int) { pausedUntil = Date().addingTimeInterval(Double(minutes) * 60) }

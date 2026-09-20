@@ -1,7 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
-import express, { Router } from 'express';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { authLimiter, globalLimiter, messagesLimiter, syncLimiter } from './middleware/rateLimit.js';
 
 const injectRouters = async (dir: string, app: express.Application) => {
   const items = await fs.readdir(dir);
@@ -43,10 +44,40 @@ export const printRoutes = (stack: any[], prefix = '') => {
   });
 };
 
+/**
+ * Device sync posts batches of logs; everything else is a short JSON object.
+ * One global parser with two caps, chosen by path.
+ */
+const bodyParsers = () => {
+  const sync = express.json({ limit: process.env.JIKO_SYNC_BODY_LIMIT || '2mb' });
+  const normal = express.json({ limit: process.env.JIKO_BODY_LIMIT || '128kb' });
+  return (req: Request, res: Response, next: NextFunction) =>
+    req.path.startsWith('/sync/') ? sync(req, res, next) : normal(req, res, next);
+};
+
+/** Turn body-parser failures into the same error shape as everything else. */
+const bodyErrors = (err: any, _req: Request, res: Response, next: NextFunction) => {
+  if (err?.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'PayloadTooLarge', message: 'Request body is too large.' });
+  }
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ error: 'InvalidBody', message: 'Body is not valid JSON.' });
+  }
+  return next(err);
+};
+
 const createApp = async () => {
   const app = express();
-  app.use(express.json({ limit: '2mb' }));
+  // Behind a load balancer the client IP is in X-Forwarded-For; trust one hop.
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 
+  app.use(bodyParsers());
+  app.use(bodyErrors);
+
+  app.use('/sync', syncLimiter);
+  app.use('/messages', messagesLimiter);
+  app.use(['/auth/login', '/auth/signup', '/auth/request-otp', '/auth/refresh'], authLimiter);
+  app.use(globalLimiter);
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);

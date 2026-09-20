@@ -6,7 +6,7 @@ const HHMM = z.string().regex(/^\d{2}:\d{2}$/);
 export const Voice = z.enum(["older_sibling", "drill_sergeant", "dry_coworker", "gentle", "own_voice"]);
 export type VoiceT = z.infer<typeof Voice>;
 
-export const DeliveryChannel = z.enum(["agent", "sms", "webhook", "console"]);
+export const DeliveryChannel = z.enum(["agent", "imessage", "sms", "webhook", "console"]);
 export type DeliveryChannelT = z.infer<typeof DeliveryChannel>;
 
 export const UserPreferences = z.object({

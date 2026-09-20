@@ -1,7 +1,9 @@
 // src/services/messaging/delivery.ts
 //
 // Delivery adapters. `agent` leaves the message queued for a device to pull
-// (GET /messages/queued); `console` prints; `webhook` POSTs; `sms` uses SNS.
+// (GET /messages/queued); `imessage` does the same, but the macOS agent hands
+// it to Messages.app instead of showing a notification; `console` prints;
+// `webhook` POSTs; `sms` uses SNS.
 import { MessageT } from '../../types/message/Message.js';
 import { DeliveryChannelT } from '../../types/user/UserPreferences.js';
 
@@ -15,6 +17,15 @@ export interface Deliverer {
 }
 
 const agent: Deliverer = { async deliver() { return { status: 'queued' }; } };
+
+// Same contract as `agent`: the device pulls it. The difference is what the
+// device does with it (Messages.app, addressed to the user's own number).
+const imessage: Deliverer = {
+  async deliver(_msg, ctx) {
+    if (!ctx.phone_number) return { status: 'failed', detail: 'user has no phone number' };
+    return { status: 'queued' };
+  },
+};
 
 const consoleDeliverer: Deliverer = {
   async deliver(msg) {
@@ -54,7 +65,7 @@ const sms: Deliverer = {
   },
 };
 
-const deliverers: Record<DeliveryChannelT, Deliverer> = { agent, console: consoleDeliverer, webhook, sms };
+const deliverers: Record<DeliveryChannelT, Deliverer> = { agent, imessage, console: consoleDeliverer, webhook, sms };
 
 let override: Deliverer | null = null;
 /** Tests can swap the deliverer. */

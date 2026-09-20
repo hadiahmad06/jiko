@@ -8,5 +8,13 @@
 	<true/>
 	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
+	<!-- Sending a nudge through Messages.app (delivery_channel = imessage). -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.apple-events</key>
+	<array>
+		<string>com.apple.MobileSMS</string>
+		<string>com.apple.iChat</string>
+	</array>
 </dict>
 </plist>

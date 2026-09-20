@@ -53,7 +53,7 @@ export async function sendMessage(opts: SendOptions): Promise<SendResult> {
     metadata: { ...(opts.metadata ?? {}), counts_as_interrupt: counts, urgent: Boolean(opts.urgent) },
   });
 
-  const phone = channel === 'sms'
+  const phone = channel === 'sms' || channel === 'imessage'
     ? (await query<{ phone_number: string }>('SELECT phone_number FROM users WHERE id = $1', [opts.user_id])).rows[0]?.phone_number
     : undefined;
   const outcome = await delivererFor(channel).deliver(message, { phone_number: phone ?? null });

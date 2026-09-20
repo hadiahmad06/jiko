@@ -127,7 +127,7 @@ actor JikoAPI {
 
   // MARK: - messages
 
-  func queuedMessages() async throws -> [Message] { try await request("GET", "messages/queued", query: ["channel": "agent"]) }
+  func queuedMessages() async throws -> [Message] { try await request("GET", "messages/queued") }
   func messages(limit: Int = 50) async throws -> [Message] { try await request("GET", "messages", query: ["limit": String(limit)]) }
   func ack(_ ids: [String], status: String = "delivered") async throws { let _: Empty = try await request("POST", "messages/ack", body: ["ids": ids, "status": status] as [String: Any]) }
   func send(_ text: String, replyTo: String?) async throws -> TalkbackResponse {
