@@ -4,8 +4,12 @@ The Fly path in `fly.toml` still works. This is the self-hosted alternative that
 is actually running: one ARM VM, native packages, systemd. No containers.
 
 **Host:** Oracle Linux 9.8, `aarch64`, 2 cores, 10.9 GB RAM, public IP
-`64.181.196.147`. The box is shared with a Minecraft server holding an 8 GB
-heap, which is why everything here is memory-capped.
+`64.181.196.147`. Live at **https://64-181-196-147.sslip.io**.
+
+The box previously shared its RAM with a Minecraft server holding an 8 GB heap.
+That server was retired on 2026-09-20 and everything was retuned for a
+Jiko-only machine; the history matters only because it explains why the units
+carry memory limits at all.
 
 ## What is installed
 
@@ -50,14 +54,38 @@ restarts the service and curls `/health`. Migrations run through a systemd
 one-shot rather than an inline `env` call so `DATABASE_URL` never appears in
 `ps`.
 
-## Memory
+## Memory and tuning
 
-`jiko.service` sets `MemoryHigh=384M` / `MemoryMax=768M`, and builds run under
-`NODE_OPTIONS=--max-old-space-size=768`. The neighbouring JVM is started with
-`-Xms8G -Xmx8G` on a 10.9 GB box, so the machine lives close to its swap. The
-caps mean a leak in Jiko gets Jiko OOM-killed instead of the Minecraft server.
+Retuned 2026-09-20 once the box became Jiko-only. Postgres was on its install
+defaults (128 MB of shared buffers, sized for a machine it was sharing); it now
+has real numbers, set with `ALTER SYSTEM` so `ALTER SYSTEM RESET <name>` undoes
+any of them:
 
-Steady state measured after a restart: jiko 38 MB, postgres 131 MB, caddy 24 MB.
+| | |
+| --- | --- |
+| `shared_buffers` | 2 GB |
+| `effective_cache_size` | 6 GB |
+| `maintenance_work_mem` | 512 MB |
+| `work_mem` | 16 MB |
+| `max_connections` | 50 |
+| `random_page_cost` | 1.1 |
+| `max_parallel_workers` | 2 (two vCPUs) |
+
+`jiko.service` keeps a limit, raised to `MemoryHigh=1G` / `MemoryMax=2G` in
+`/etc/systemd/system/jiko.service.d/jiko-memory.conf` — no longer to protect a
+neighbour, just so a runaway process cannot take the machine down. Builds run
+under `NODE_OPTIONS=--max-old-space-size=768`.
+
+`vm.swappiness` is 10 and `vm.vfs_cache_pressure` 50
+(`/etc/sysctl.d/99-jiko.conf`), so Postgres' buffers stay resident. Swap use
+went from 3.5 GB to about 300 MB after the change.
+
+journald is capped at 1 GB with a 30-day retention
+(`/etc/systemd/journald.conf.d/99-jiko.conf`): one JSON line per request and
+per firing adds up over a multi-day run.
+
+Steady state after the retune: jiko 40 MB, postgres 69 MB, caddy 25 MB, with
+10 GB available.
 
 ## Backups
 
@@ -95,22 +123,19 @@ without owning a domain — which the iOS agent needs, since App Transport
 Security refuses plain HTTP. Point the hostname at your own domain when you have
 one; it is the only line to change.
 
-**The certificate is not issued yet.** Both ACME challenges fail with "Timeout
-during connect": the instance firewall allows 80 and 443, but the VCN security
-list in the OCI console does not. Caddy retries for up to 30 days, so the
-certificate appears on its own once the ingress rules exist — nothing to re-run.
+The certificate was issued 2026-09-20 05:12 UTC and runs to 2026-12-19; Caddy
+renews it on its own. It needed ingress rules for TCP 80 and 443 in the VCN
+security list (the instance firewall alone is not enough) — those are in place.
+Because ACME retries on a backoff, a `curl` in the first minute after adding the
+rules can still fail; the certificate lands on the next attempt.
 
-### The one manual step
+`firewalld` now allows only ssh, http and https. The Minecraft ports
+(25565/tcp, 24454/udp) were removed on 2026-09-20; re-add with
+`sudo firewall-cmd --permanent --add-port=25565/tcp --add-port=24454/udp && sudo firewall-cmd --reload`.
 
-In the OCI console: **Networking → Virtual Cloud Networks → your VCN → Security
-Lists → the default list → Add Ingress Rules**, twice —
-
-| Source | Protocol | Destination port |
-| --- | --- | --- |
-| `0.0.0.0/0` | TCP | 80 |
-| `0.0.0.0/0` | TCP | 443 |
-
-Then `curl https://64-181-196-147.sslip.io/health` from anywhere.
+`GET /debug-routes` returns 404 under `NODE_ENV=production`. It reads
+`req.app._router`, which Express 5 removed, so on a public URL it was a 500 that
+told a stranger the app was broken. `npm run routes` prints the same table.
 
 ## Pointing the agents at it
 

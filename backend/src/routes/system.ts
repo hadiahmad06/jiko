@@ -23,7 +23,13 @@ router.get('/version', (req, res) => {
 });
 
 // GET /debug-routes - get api docs
+// Not in production: `req.app._router` was removed in Express 5, so this
+// throws a 500 on a public URL. `npm run routes` prints the same table from
+// the source and is what the docs point at.
 router.get('/debug-routes', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'NotFound' });
+  }
   try {
     const routes: Array<{ method: string; path: string }> = [];
     req.app._router.stack.forEach((middleware: any) => {
