@@ -25,7 +25,7 @@ function tzOffsetMinutes(date: Date, timezone: string): number {
 }
 
 /** Build a UTC instant for a local date/time in a timezone. */
-function localToUtc(y: number, mo: number, d: number, h: number, mi: number, timezone: string): Date {
+export function localToUtc(y: number, mo: number, d: number, h: number, mi: number, timezone: string): Date {
   const guess = new Date(Date.UTC(y, mo, d, h, mi));
   const off = tzOffsetMinutes(guess, timezone);
   return new Date(guess.getTime() - off * 60_000);

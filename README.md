@@ -31,7 +31,8 @@ and translates them into insight and feedback. The ultimate goal is to help user
 - **App usage tracking** — what ate your time, per device, per day.
 - **A rules engine** — "when X and Y, say Z", with cooldowns, a daily interrupt budget and quiet hours. Nothing unsolicited leaves without passing all three.
 - **Messages that talk back** — a nudge arrives as a notification, an iMessage or an SMS, and "snooze 30", "done", "stricter" or plain English all land somewhere.
-- **Calendar subscriptions** — paste a Canvas or Google Calendar ICS URL; it re-imports itself daily, so Jiko knows what is actually due.
+- **Connected accounts** — connect Google and Canvas once and Jiko knows what is actually due: calendar events, emails that name a dated deadline or interview, and Canvas assignments (already-submitted ones are marked done). Any other calendar works by pasting its ICS link.
+- **Web setup** — `/setup` on the server: create an account, connect accounts, set how strict Jiko is, then install the apps.
 - **Goals** — "3h of reading a week": a midweek check when you are behind pace, silence when you are not.
 - **Sunday reflection** — one question a week, and monday's check-in refers to your answer.
 - **Focus-aware** — a macOS Focus, or a pause on any device, holds nudges as a leased quiet window.
@@ -40,8 +41,7 @@ and translates them into insight and feedback. The ultimate goal is to help user
 
 ### 🚀 Coming Soon
 - **Screen Time on iPhone** — needs Apple's FamilyControls entitlement.
-- **Email** — the last unread signal.
-- **A second person using it for a week** — the real test.
+- **A second person using it for a week** — the real test. Starts once onboarding is deployed (Sprint 3 item 15).
 
 ---
 
@@ -50,7 +50,8 @@ and translates them into insight and feedback. The ultimate goal is to help user
 - Node.js 22, Express 5, TypeScript, Zod  
 - PostgreSQL 15 + PostGIS (one database; see [DECISIONS.md](DECISIONS.md) for why DynamoDB was dropped)  
 - Optional: Claude for Jiko's voice, AWS SNS for SMS (in and out)  
-- Deployable: Dockerfile + `fly.toml`; migrations run from the release command, and a Postgres advisory lock keeps exactly one instance sweeping
+- Google OAuth (Gmail + Calendar, read-only) and the Canvas API for connected accounts  
+- Deployed on a self-hosted Oracle Cloud ARM VM (see [backend/docs/deploy-oracle.md](backend/docs/deploy-oracle.md)); a Dockerfile + `fly.toml` path also exists. A Postgres advisory lock keeps exactly one instance sweeping
 
 **Clients**
 - macOS menu-bar agent, Swift/SwiftUI ([apple/JikoMacOSAgent/README.md](apple/JikoMacOSAgent/README.md)) — working: usage tracking, notifications with inline reply, iMessage delivery, Focus awareness, launch at login  
@@ -69,7 +70,8 @@ The demo signs up a throwaway user, labels Instagram as distracting, adds "OS mi
 ## Where things are
 - [SPRINT_PLAN.md](SPRINT_PLAN.md) — what was planned and what shipped  
 - [SPRINT_2.md](SPRINT_2.md) — the second sprint's backlog (shipped)  
-- [SPRINT_3.md](SPRINT_3.md) — what's next  
+- [SPRINT_3.md](SPRINT_3.md) — the current sprint and its status  
+- [backend/docs/integrations.md](backend/docs/integrations.md) — connected accounts and the Google Cloud setup  
 - [DECISIONS.md](DECISIONS.md) — every non-obvious call, so you can override them  
 - [backend/docs/triggers.md](backend/docs/triggers.md) — the rules engine contract
 

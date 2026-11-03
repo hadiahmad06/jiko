@@ -52,3 +52,18 @@ struct PayloadTests {
     #expect(back["n"] as? Int == 3)
   }
 }
+
+struct IntegrationTests {
+  @Test func decodesTheIntegrationsList() throws {
+    let json = """
+    {"integrations":[{"provider":"google","account":"a@b.com","base_url":null,"scopes":["openid"],"status":"needs_reauth","enabled":true,
+      "last_synced_at":"2026-11-03T12:00:00.000Z","last_status":"error","last_error":"Reconnect Google.","last_created":0,"last_updated":0,
+      "connected_at":"2026-11-01T12:00:00.000Z"}],
+     "available":{"google":true,"canvas":true}}
+    """
+    let r = try JSONDecoder().decode(IntegrationsResponse.self, from: Data(json.utf8))
+    #expect(r.available.google)
+    #expect(r.connected("google")?.needsReconnect == true)
+    #expect(r.connected("canvas") == nil)
+  }
+}

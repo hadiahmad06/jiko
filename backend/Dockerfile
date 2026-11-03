@@ -7,6 +7,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
+COPY public ./public
 RUN npm run build
 
 FROM node:22-alpine AS runtime
@@ -23,6 +24,7 @@ COPY --from=build /app/dist ./dist
 COPY db ./db
 COPY scripts ./scripts
 COPY src ./src
+COPY public ./public
 COPY tsconfig.json ./
 USER node
 EXPOSE 3000

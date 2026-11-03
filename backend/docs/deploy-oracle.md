@@ -137,6 +137,12 @@ rules can still fail; the certificate lands on the next attempt.
 `req.app._router`, which Express 5 removed, so on a public URL it was a 500 that
 told a stranger the app was broken. `npm run routes` prints the same table.
 
+## Connected accounts
+
+Google and Canvas need `JIKO_TOKEN_KEY` and `JIKO_PUBLIC_URL` in `/opt/jiko/jiko.env`, and Google additionally needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` from a Google Cloud project. The full steps are in [integrations.md](integrations.md). `JIKO_TOKEN_KEY` is not in the nightly dump, by design. Keep a copy somewhere other than this box, or every connected account has to reconnect after a rebuild.
+
+The web setup page is at **https://64-181-196-147.sslip.io/setup** (and `/` redirects there).
+
 ## Pointing the agents at it
 
 Both agents read `jiko.baseURL` from `UserDefaults`

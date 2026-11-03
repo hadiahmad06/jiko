@@ -325,6 +325,9 @@ struct SettingsView: View {
           .onChange(of: strictness) { _, v in Task { await state.setStrictness(v) } }
         if let p = state.preferences { Text("\(p.interrupt_budget_per_day) unsolicited messages per day max.").font(.caption).foregroundStyle(.secondary) }
       }
+      Section("Connected accounts") {
+        ConnectedAccountsView()
+      }
       Section("Voice") {
         Picker("Jiko sounds like", selection: $voice) { ForEach(voices, id: \.0) { Text($0.1).tag($0.0) } }
           .onChange(of: voice) { _, v in Task { await state.setVoice(v) } }

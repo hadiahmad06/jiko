@@ -61,10 +61,12 @@ Read [docs/triggers.md](docs/triggers.md) for the full model, [docs/data-model.m
 | `src/services/repositories/` | One module per table. All SQL. |
 | `src/services/triggers/` | Engine, conditions, actions, scheduler sweep, presets, schedule math. |
 | `src/services/messaging/` | Outbox (budget + quiet hours), delivery adapters, talk-back, Claude voice. |
+| `src/services/integrations/` | Connected accounts: Google OAuth (Gmail + Calendar), Canvas, the sync that turns them into obligations. See [docs/integrations.md](docs/integrations.md). |
 | `src/services/summary.ts` | The one-line daily summary. |
 | `src/services/quickadd.ts` | "OS midterm thu 2pm" → obligation. |
 | `src/types/` | Zod schemas; types are inferred from them. |
-| `src/lib/` | JWT, HTTP helpers. |
+| `src/lib/` | JWT (and OAuth state), HTTP helpers, `secretBox` (token encryption), logging. |
+| `public/` | The web setup page served at `/setup`: sign up, connect accounts, tune, get the apps. |
 | `db/migrations/` | Numbered SQL, applied by `src/db/migrate.ts`. |
 | `scripts/` | `localdb`, `migrate`, `printRoutes`. |
 
@@ -80,12 +82,14 @@ Read [docs/triggers.md](docs/triggers.md) for the full model, [docs/data-model.m
 
 **Budget.** `preferences.interrupt_budget_per_day` and `quiet_hours` gate every unsolicited message in `sendMessage()`. Replies and `urgent` nudges bypass. Strictness sets the default budget.
 
+**Connected accounts.** Google (Calendar + Gmail) and Canvas sync into obligations every 30–60 minutes, so deadlines arrive without the user typing them. Credentials are sealed with `JIKO_TOKEN_KEY`. Setup and Google Cloud steps: [docs/integrations.md](docs/integrations.md).
+
 **Voice.** If `ANTHROPIC_API_KEY` is set, nudges with `voice: true` are rewritten in the user's chosen voice and free-form replies get a real answer. Otherwise templates.
 
 ## Environment
 
-See [.env.example](.env.example). `IS_OFFLINE=true` uses local Postgres via `PG*`; `false` uses RDS with IAM auth via `RDS_*`.
+See [.env.example](.env.example), which lists every variable the code reads. Connected accounts need `JIKO_TOKEN_KEY`, `JIKO_PUBLIC_URL` and (for Google) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`. `IS_OFFLINE=true` uses local Postgres via `PG*`; `false` uses RDS with IAM auth via `RDS_*`.
 
 ## Deploying
 
-Not wired yet. `npm run build && npm start` produces a plain Node process; it needs Postgres reachable, the JWT secrets, and `ENABLE_SCHEDULER=true` on exactly one instance.
+The live deployment is a self-hosted Oracle VM: [docs/deploy-oracle.md](docs/deploy-oracle.md). `npm run build && npm start` produces a plain Node process; it needs Postgres reachable, the JWT secrets, and `ENABLE_SCHEDULER=true` on exactly one instance.

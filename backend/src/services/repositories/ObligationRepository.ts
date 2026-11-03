@@ -47,26 +47,35 @@ class ObligationRepository {
     return { success: true, value: Obligation.parse(res.rows[0]) };
   }
 
-  /** Create-or-update keyed on (user_id, source, external_ref). Returns [created, updated] counts. */
-  async upsertExternal(user_id: string, items: Array<ObligationCreateT & { external_ref: string }>): Promise<{ created: number; updated: number }> {
-    let created = 0, updated = 0;
+  /**
+   * Create-or-update keyed on (user_id, source, external_ref).
+   * `completed: true` on an item (Canvas: submitted/excused) closes the existing
+   * row and is never created fresh; `false` never reopens one the user closed.
+   */
+  async upsertExternal(user_id: string, items: Array<ObligationCreateT & { external_ref: string; completed?: boolean }>): Promise<{ created: number; updated: number; completed: number }> {
+    let created = 0, updated = 0, completed = 0;
     for (const item of items) {
+      const { completed: done, ...fields } = item;
       const existing = await query<{ id: string; completed: boolean }>(
         'SELECT id, completed FROM obligations WHERE user_id = $1 AND source = $2 AND external_ref = $3',
-        [user_id, item.source ?? 'ics', item.external_ref]
+        [user_id, fields.source ?? 'ics', fields.external_ref]
       );
       if (existing.rows[0]) {
         await query(
           `UPDATE obligations SET title = $3, description = $4, due_at = $5, start_at = $6, end_at = $7, all_day = $8 WHERE id = $1 AND user_id = $2`,
-          [existing.rows[0].id, user_id, item.title, item.description ?? null, item.due_at ?? null, item.start_at ?? null, item.end_at ?? null, item.all_day ?? false]
+          [existing.rows[0].id, user_id, fields.title, fields.description ?? null, fields.due_at ?? null, fields.start_at ?? null, fields.end_at ?? null, fields.all_day ?? false]
         );
+        if (done && !existing.rows[0].completed) {
+          await query('UPDATE obligations SET completed = TRUE, completed_at = COALESCE(completed_at, NOW()) WHERE id = $1 AND user_id = $2', [existing.rows[0].id, user_id]);
+          completed++;
+        }
         updated++;
-      } else {
-        const r = await this.create(user_id, item);
+      } else if (!done) {
+        const r = await this.create(user_id, fields);
         if (r.success) created++;
       }
     }
-    return { created, updated };
+    return { created, updated, completed };
   }
 
   async update(id: string, user_id: string, data: ObligationUpdateT): Promise<Result<ObligationT>> {

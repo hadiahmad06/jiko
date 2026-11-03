@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Set up Jiko</title>
+  <link rel="stylesheet" href="/setup/setup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>jiko</h1>
+      <p class="lede">set up takes about three minutes. you can change all of it later from the app.</p>
+      <ol class="steps" aria-label="Progress">
+        <li data-step="account">account</li>
+        <li data-step="connect">connect</li>
+        <li data-step="tune">tune</li>
+        <li data-step="apps">apps</li>
+      </ol>
+    </header>
+
+    <!-- 1. account -->
+    <section id="account" hidden>
+      <h2 class="bubble">hey. i'm jiko. who are you?</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-mode="signup" aria-selected="true">new here</button>
+        <button type="button" role="tab" data-mode="login" aria-selected="false">i have an account</button>
+      </div>
+      <form id="account-form" novalidate>
+        <label data-only="signup">what should i call you
+          <input name="nickname" autocomplete="nickname" maxlength="40">
+        </label>
+        <label>phone number
+          <input name="phone" type="tel" autocomplete="tel" placeholder="+1 555 123 4567" required>
+          <small data-only="signup">your sign-in name. if you pick iMessage on the Mac, this is the number i text.</small>
+        </label>
+        <label>password
+          <input name="password" type="password" autocomplete="current-password" required>
+          <small data-only="signup">8+ characters with an uppercase letter, a lowercase letter, a number and a symbol.</small>
+        </label>
+        <p class="error" role="alert" hidden></p>
+        <button type="submit" class="primary">continue</button>
+      </form>
+    </section>
+
+    <!-- 2. connect -->
+    <section id="connect" hidden>
+      <h2 class="bubble">what should i keep an eye on?</h2>
+      <p class="muted">i only interrupt when something is due. these are where "due" comes from. connect what you use; skip what you don't.</p>
+
+      <article class="card" id="card-google">
+        <div class="card-head">
+          <div><h3>Google</h3><p class="muted">Calendar events, plus emails that mention an interview, deadline or appointment with a date.</p></div>
+          <span class="status"></span>
+        </div>
+        <p class="fine">read-only. i read subject lines and Google's one-line preview, never full emails, and i never send anything.</p>
+        <div class="actions"><button type="button" class="primary" data-act="google-connect">connect google</button></div>
+        <p class="error" role="alert" hidden></p>
+      </article>
+
+      <article class="card" id="card-canvas">
+        <div class="card-head">
+          <div><h3>Canvas</h3><p class="muted">Assignments, quizzes and due dates. Anything you've already submitted is marked done, so i won't nag about it.</p></div>
+          <span class="status"></span>
+        </div>
+        <form id="canvas-form" novalidate>
+          <label>your school's Canvas address
+            <input name="base_url" placeholder="canvas.yourschool.edu" autocomplete="url" required>
+          </label>
+          <details>
+            <summary>how to get an access token (1 minute)</summary>
+            <ol>
+              <li>Open Canvas in a browser and click <b>Account</b> → <b>Settings</b>.</li>
+              <li>Scroll to <b>Approved Integrations</b> and click <b>+ New Access Token</b>.</li>
+              <li>Purpose: <i>Jiko</i>. Pick an expiry date after the end of term, or leave it blank.</li>
+              <li>Click <b>Generate Token</b>, copy the long token, and paste it below. Canvas shows it only once.</li>
+            </ol>
+            <p class="fine">some schools turn off personal tokens. if the button is missing, skip this and ask me to use the calendar feed instead.</p>
+          </details>
+          <label>access token
+            <input name="token" type="password" autocomplete="off" spellcheck="false" required>
+          </label>
+          <div class="actions"><button type="submit" class="primary">connect canvas</button></div>
+        </form>
+        <div class="actions connected-actions" hidden><button type="button" data-act="canvas-sync">sync now</button><button type="button" class="quiet" data-act="canvas-disconnect">disconnect</button></div>
+        <p class="error" role="alert" hidden></p>
+      </article>
+
+      <details class="card">
+        <summary><h3>another calendar</h3> <span class="muted">Apple, Outlook, anything with a calendar link</span></summary>
+        <form id="ics-form" novalidate>
+          <label>calendar link (https:// or webcal://)
+            <input name="url" placeholder="webcal://…" required>
+          </label>
+          <div class="actions"><button type="submit">add calendar</button></div>
+          <p class="error" role="alert" hidden></p>
+          <p class="ok" hidden></p>
+        </form>
+      </details>
+
+      <div class="nav"><button type="button" class="primary" data-go="tune">next</button></div>
+    </section>
+
+    <!-- 3. tune -->
+    <section id="tune" hidden>
+      <h2 class="bubble">how mean should i be?</h2>
+      <label class="slider">
+        <input type="range" name="strictness" min="0" max="1" step="0.1" value="0.5">
+        <span class="ends"><span>gentle</span><span>ruthless</span></span>
+      </label>
+      <p id="strictness-note" class="muted"></p>
+      <label>quiet hours, when i say nothing at all
+        <span class="row"><input type="time" name="quiet_start" value="23:00"> to <input type="time" name="quiet_end" value="08:00"></span>
+      </label>
+      <p class="fine">timezone: <span id="tz"></span></p>
+      <p class="error" role="alert" hidden></p>
+      <div class="nav"><button type="button" data-go="connect">back</button><button type="button" class="primary" data-act="tune-save">save</button></div>
+    </section>
+
+    <!-- 4. apps -->
+    <section id="apps" hidden>
+      <h2 class="bubble">last thing. put me somewhere i can reach you.</h2>
+      <div class="card">
+        <h3>Mac</h3>
+        <p class="muted">The menu-bar app watches which app is in front and shows my messages as notifications you can reply to. This is what makes the nudges work.</p>
+        <ol>
+          <li>Install Jiko for Mac (Hadi will send it to you).</li>
+          <li>Click the lotus in the menu bar → <b>Sign in…</b></li>
+          <li>Server: <code class="server"></code></li>
+          <li>Sign in with the same phone number and password. Your connected accounts are already there.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>iPhone <span class="muted">(optional)</span></h3>
+        <p class="muted">Adds places (arrive/leave rules) and sleep. Sign in the same way, with the same server address.</p>
+      </div>
+      <p class="muted">what you'll get: a nudge when you're scrolling and something is due soon, a reminder before deadlines, and one line every night. if a nudge is wrong, tap <b>that was wrong</b>. three of those and that rule turns itself off.</p>
+      <div class="nav"><button type="button" data-go="connect">back to connections</button><button type="button" class="quiet" data-act="signout">sign out</button></div>
+    </section>
+  </main>
+  <script src="/setup/setup.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 //  OnboardingView.swift
-//  Four questions, asked the way Jiko would ask them. Sets labels, one
-//  obligation, strictness, how messages arrive, and turns on the rules that
-//  matter.
+//  Five steps, asked the way Jiko would ask them. Sets labels, one
+//  obligation, connected accounts (Google, Canvas), strictness, how messages
+//  arrive, and turns on the rules that matter.
 import SwiftUI
 import JikoKit
 
@@ -13,7 +13,7 @@ struct OnboardingView: View {
   @State private var strictness = 0.5
   @State private var channel = "agent"
   @State private var busy = false
-  private let lastStep = 3
+  private let lastStep = 4
 
   private var candidates: [SeenApp] {
     // what's already been seen on this Mac, plus the usual suspects
@@ -37,8 +37,11 @@ struct OnboardingView: View {
           Text("pick the apps that eat your time. you can change this later.").font(.caption).foregroundStyle(.secondary)
         case 1:
           TextField("\"OS midterm thu 2pm\", \"pset 3 due friday\". or leave it blank.", text: $dueText).textFieldStyle(.roundedBorder)
-          Text("jiko only interrupts when there's a reason. this is the reason.").font(.caption).foregroundStyle(.secondary)
+          Text("jiko only interrupts when there's a reason. this is the reason. (next step can pull these in for you.)").font(.caption).foregroundStyle(.secondary)
         case 2:
+          ScrollView { ConnectedAccountsView().padding(.trailing, 8) }.frame(height: 300)
+          Text("optional. skip what you don't use; it's all in Settings later.").font(.caption).foregroundStyle(.secondary)
+        case 3:
           Slider(value: $strictness, in: 0...1, step: 0.1) { Text("Strictness") } minimumValueLabel: { Text("gentle") } maximumValueLabel: { Text("ruthless") }
           Text(strictness < 0.3 ? "one nudge a day, softly." : strictness < 0.7 ? "a few nudges a day, direct." : "as many as it takes. no softeners.").font(.caption).foregroundStyle(.secondary)
         default:
@@ -71,7 +74,8 @@ struct OnboardingView: View {
     switch step {
     case 0: return "hey. i'm jiko. what are you trying to stop doing?"
     case 1: return "got it. what's due this week?"
-    case 2: return "how mean should i be?"
+    case 2: return "want me to read your calendar and canvas, so you don't have to tell me what's due?"
+    case 3: return "how mean should i be?"
     default: return "last one. how should i reach you?"
     }
   }

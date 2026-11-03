@@ -30,6 +30,8 @@ final class AppState: ObservableObject {
   @Published var presets: [TriggerPreset] = []
   @Published var triggers: [Trigger] = []
   @Published var needsOnboarding = false
+  @Published var integrations: IntegrationsResponse?
+  @Published var integrationProblem: String?
   /// Set when an iMessage send failed, so Settings can explain why.
   @Published var imessageProblem: String?
   /// Mirrors SMAppService; a menu-bar agent is useless if it doesn't come back
@@ -71,7 +73,10 @@ final class AppState: ObservableObject {
       me = try await api.me()
       try await api.registerDevice(DeviceRegistration(id: deviceId, platform: "macos", name: Host.current().localizedName))
       await refreshAll()
-      needsOnboarding = triggers.isEmpty && !UserDefaults.standard.bool(forKey: "jiko.onboarded")
+      // The web setup can create rules before the Mac ever signs in; the Mac step
+      // (which apps are distracting) still has to happen here, so key on doomscroll.
+      needsOnboarding = !UserDefaults.standard.bool(forKey: "jiko.onboarded")
+        && !triggers.contains { $0.source == "preset:doomscroll" }
       startLoops()
     } catch {
       lastSyncError = error.localizedDescription
@@ -96,7 +101,7 @@ final class AppState: ObservableObject {
   func signOut() async {
     syncTimer?.invalidate(); pollTimer?.invalidate()
     await api.signOut()
-    isAuthenticated = false; me = nil; messages = []; budget = nil; summary = nil; triggers = []; needsOnboarding = false
+    isAuthenticated = false; me = nil; messages = []; budget = nil; summary = nil; triggers = []; needsOnboarding = false; integrations = nil
   }
 
   func updateBaseURL(_ s: String) async { baseURL = s; await api.setBaseURL(s) }
@@ -197,6 +202,7 @@ final class AppState: ObservableObject {
     seenApps = (try? await a) ?? []
     presets = (try? await pr) ?? []
     triggers = (try? await t) ?? []
+    integrations = try? await api.integrations()
     await pollMessages()
   }
 
@@ -236,6 +242,9 @@ final class AppState: ObservableObject {
   func setQuietHours(_ q: QuietHours) async { preferences = try? await api.updatePreferences(PreferencesPatch(quiet_hours: q)) }
 
   func enablePreset(_ id: String, params: [String: Any] = [:]) async {
+    if triggers.isEmpty { triggers = (try? await api.triggers()) ?? [] }
+    // the web setup may have turned this one on already
+    guard !triggers.contains(where: { $0.source == "preset:\(id)" }) else { return }
     _ = try? await api.enablePreset(id, params: params)
     triggers = (try? await api.triggers()) ?? triggers
   }
@@ -300,6 +309,65 @@ final class AppState: ObservableObject {
   func disableFocusAwareness() {
     FocusMonitor.shared.forgetAccess()
     focus = .unknown
+  }
+
+  // MARK: - connected accounts
+
+  func refreshIntegrations() async {
+    integrations = try? await api.integrations()
+  }
+
+  /// Opens Google's consent page in the browser, then watches for the account to
+  /// appear (Google redirects to the server, not back to this app).
+  func connectGoogle() async {
+    integrationProblem = nil
+    do {
+      let before = integrations?.connected("google")?.last_synced_at
+      NSWorkspace.shared.open(try await api.googleConnectURL())
+      for _ in 0..<60 {
+        try await Task.sleep(for: .seconds(3))
+        await refreshIntegrations()
+        if let g = integrations?.connected("google"), !g.needsReconnect, g.last_synced_at != nil, g.last_synced_at != before {
+          upcoming = (try? await api.upcoming()) ?? upcoming
+          return
+        }
+      }
+    } catch { integrationProblem = error.localizedDescription }
+  }
+
+  func connectCanvas(baseURL: String, token: String) async -> Bool {
+    integrationProblem = nil
+    do {
+      let r = try await api.connectCanvas(baseURL: baseURL, token: token)
+      if r.sync.status != "ok" { integrationProblem = r.sync.error ?? "Connected, but the first sync failed." }
+      await refreshIntegrations()
+      upcoming = (try? await api.upcoming()) ?? upcoming
+      return true
+    } catch {
+      integrationProblem = Self.serverMessage(error)
+      return false
+    }
+  }
+
+  func syncIntegration(_ provider: String) async {
+    integrationProblem = nil
+    do {
+      let r = try await api.syncIntegration(provider)
+      if let e = r.sync.error { integrationProblem = e }
+    } catch { integrationProblem = Self.serverMessage(error) }
+    await refreshIntegrations()
+    upcoming = (try? await api.upcoming()) ?? upcoming
+  }
+
+  func disconnectIntegration(_ provider: String) async {
+    do { try await api.disconnectIntegration(provider) } catch { integrationProblem = Self.serverMessage(error) }
+    await refreshIntegrations()
+  }
+
+  /// The server's own sentence ("Canvas rejected that token...") rather than "400: ...".
+  static func serverMessage(_ error: Error) -> String {
+    if case APIError.http(_, let msg) = error, !msg.isEmpty { return msg }
+    return error.localizedDescription
   }
 
   func finishOnboarding() { UserDefaults.standard.set(true, forKey: "jiko.onboarded"); needsOnboarding = false }

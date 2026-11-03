@@ -1,6 +1,6 @@
 # Data model
 
-All tables in Postgres; see `db/migrations/0001_baseline.sql` for the authoritative DDL. Every user-owned table has `user_id` with `ON DELETE CASCADE`, so `DELETE /users` removes everything.
+All tables in Postgres; see `db/migrations/` (baseline in `0001_baseline.sql`) for the authoritative DDL. Every user-owned table has `user_id` with `ON DELETE CASCADE`, so `DELETE /users` removes everything.
 
 ```mermaid
 erDiagram
@@ -19,6 +19,8 @@ erDiagram
     users ||--o{ app_usage_daily : rolls_up
     users ||--o{ app_labels : labels
     users ||--o{ seen_apps : has_seen
+    users ||--o{ calendar_subscriptions : subscribes
+    users ||--o{ integrations : connects
 ```
 
 | Table | Purpose | Notable columns |
@@ -36,6 +38,8 @@ erDiagram
 | `app_usage_daily` | durable rollup per user/day/device/app | `seconds`, `opens`; day is in the user's timezone at ingest time |
 | `app_labels` | per-user app classification | `label` distracting/work/neutral |
 | `seen_apps` | catalogue for the labelling UI | `first_seen`, `last_seen` |
+| `calendar_subscriptions` | stored ICS links, re-imported on a schedule (0002) | `url`, `window_days`, `refresh_hours`, `last_status` |
+| `integrations` | connected Google / Canvas accounts, one per provider (0005) | `secret_enc` / `access_token_enc` sealed with `JIKO_TOKEN_KEY`, `scopes`, `status` active/needs_reauth/error, `cursor` (e.g. `gmail_after`), `last_status`. See [integrations.md](integrations.md) |
 | `schema_migrations` | applied migration names | |
 
 ## What is *not* in Postgres

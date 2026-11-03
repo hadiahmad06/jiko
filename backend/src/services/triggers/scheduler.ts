@@ -4,6 +4,7 @@
 //   - scheduled triggers: next_run_at <= now
 //   - obligation triggers: something is due within the hours_before window
 //   - calendar subscriptions whose refresh window has elapsed
+//   - connected accounts (Google, Canvas) whose refresh period has elapsed
 // Started from index.ts when ENABLE_SCHEDULER=true.
 import cron from 'node-cron';
 import TriggerRepository from '../repositories/TriggerRepository.js';
@@ -15,6 +16,7 @@ import HealthManager from '../../data/HealthManager.js';
 import LocationManager from '../../data/LocationManager.js';
 import { getPool, query } from '../../db/psqlClient.js';
 import { refreshDueCalendars } from '../calendars.js';
+import { refreshDueIntegrations } from '../integrations/index.js';
 import { log } from '../../lib/log.js';
 
 let running = false;
@@ -66,6 +68,11 @@ export async function sweepOnce(now = new Date()): Promise<FiringReport[]> {
       }
     } catch (err) {
       log.fail('calendar refresh failed', err, { event: 'calendar_refresh' });
+    }
+    try {
+      await refreshDueIntegrations(now); // logs its own outcomes
+    } catch (err) {
+      log.fail('integration refresh failed', err, { event: 'integration_refresh' });
     }
 
     // scheduled

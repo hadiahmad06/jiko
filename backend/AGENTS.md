@@ -19,6 +19,8 @@
 - `src/services/repositories/*` one module per table. All SQL lives here.
 - `src/services/triggers/*` the engine: `engine.ts` (match -> cooldown -> condition -> execute -> record), `condition.ts`, `execute.ts`, `scheduler.ts`, `presets.ts`.
 - `src/services/messaging/*` outbox (budget + quiet hours), delivery adapters, talk-back, optional Claude voice.
+- `src/services/integrations/*` connected accounts (Google OAuth, Canvas token) synced into obligations; credentials sealed with `src/lib/secretBox.ts`. Never return `secret_enc`/`access_token_enc`; use `toPublic()`.
+- `public/*` the static web setup page served at `/setup`.
 - `src/types/*` Zod schemas. Types are inferred from schemas; never hand-write an interface that duplicates a schema.
 - `db/migrations/*.sql` applied in order by `src/db/migrate.ts`. Add a new numbered file; never edit an applied one.
 

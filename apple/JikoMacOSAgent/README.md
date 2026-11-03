@@ -7,7 +7,7 @@ A menu-bar app. It watches which app is in front, syncs that to the backend once
 1. Backend up: `cd backend && npm run localdb && npm run dev` (defaults to `http://localhost:3000`).
 2. Open `apple/JikoMacOSAgent/JikoMacOSAgent.xcodeproj` in Xcode 16+, run the `JikoMacOSAgent` scheme.
 3. Click the lotus in the menu bar → **Sign in…** → create an account (server field defaults to localhost).
-4. Answer the three onboarding questions. That labels your distracting apps, adds one obligation, sets strictness, and turns on `deadline_drift`, `doomscroll`, `nightly_summary`, `deadline_reminder`.
+4. Go through onboarding (five short steps). It labels your distracting apps, adds one obligation, offers to connect Google and Canvas, sets strictness and how messages arrive, and turns on `deadline_drift`, `doomscroll`, `nightly_summary`, `deadline_reminder` (skipping any already on). If you set up on the web first (`/setup` on the server), onboarding still runs once on the Mac for the app labels.
 5. Use your Mac. Within a minute the Today tab shows usage; when a rule fires, a notification arrives. Reply to it ("snooze 30", "done", "status") without opening anything.
 
 Command line:
@@ -28,8 +28,9 @@ xcodebuild -project JikoMacOSAgent.xcodeproj -scheme JikoMacOSAgent -destination
 | `JikoAPI.swift` | `actor` around `URLSession`. Bearer auth, refresh-on-401, tokens in Keychain, base URL in `UserDefaults`. |
 | `Notifier.swift` | `UNUserNotificationCenter` with a text-input **Reply** action and a **Snooze 30 min** action. |
 | `JikoMenu.swift` | The popover: today in one line, budget, last message, reply box, quick-add box, pause. |
-| `Views/MainWindow.swift` | Sign in, Chat, Today, Rules (presets on/off), Apps (labels), Settings (strictness, voice, quiet hours). |
-| `Views/OnboardingView.swift` | Three questions in Jiko's voice. |
+| `Views/MainWindow.swift` | Sign in, Chat, Today, Rules (presets on/off), Apps (labels), Settings (connected accounts, strictness, voice, quiet hours). |
+| `Views/ConnectedAccountsView.swift` | Google (opens the browser, then watches for the account to appear) and Canvas (address + token). Used in onboarding and Settings. |
+| `Views/OnboardingView.swift` | Five steps in Jiko's voice: apps, what's due, connected accounts, strictness, delivery. |
 | `Models.swift` | Codable mirrors of the backend JSON; field names match the API. |
 
 The app is sandboxed with `network.client`. It never reads window titles or keystrokes, only which app is frontmost and for how long.

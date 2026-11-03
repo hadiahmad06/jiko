@@ -390,3 +390,50 @@ public struct CalendarImportResponse: Codable, Equatable {
   public var subscription: CalendarSubscription
   public var `import`: ImportResult
 }
+
+// MARK: - connected accounts
+
+/// A connected Google or Canvas account. Credentials never leave the server; this is status only.
+public struct Integration: Codable, Identifiable, Equatable {
+  public var id: String { provider }
+  public var provider: String            // "google" | "canvas"
+  public var account: String?
+  public var base_url: String?
+  public var scopes: [String]
+  public var status: String              // "active" | "needs_reauth" | "error"
+  public var enabled: Bool
+  public var last_synced_at: String?
+  public var last_status: String?        // "ok" | "partial" | "error"
+  public var last_error: String?
+  public var last_created: Int
+  public var last_updated: Int
+
+  public var needsReconnect: Bool { status == "needs_reauth" }
+}
+
+public struct IntegrationsResponse: Codable, Equatable {
+  public struct Available: Codable, Equatable {
+    public var google: Bool
+    public var canvas: Bool
+  }
+  public var integrations: [Integration]
+  public var available: Available
+
+  public func connected(_ provider: String) -> Integration? { integrations.first { $0.provider == provider } }
+}
+
+public struct IntegrationSyncResult: Codable, Equatable {
+  public var provider: String
+  public var status: String              // "ok" | "partial" | "error" | "needs_reauth"
+  public var created: Int
+  public var updated: Int
+  public var completed: Int?
+  public var error: String?
+}
+
+public struct IntegrationSyncResponse: Codable, Equatable {
+  public var integration: Integration
+  public var sync: IntegrationSyncResult
+}
+
+struct ConnectURL: Codable { var url: String }

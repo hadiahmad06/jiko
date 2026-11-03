@@ -21,6 +21,8 @@ final class AppState: ObservableObject {
   @Published var presets: [TriggerPreset] = []
   @Published var places: [Place] = []
   @Published var activities: [Activity] = []
+  @Published var integrations: IntegrationsResponse?
+  @Published var integrationProblem: String?
 
   @Published var lastSyncAt: Date?
   @Published var lastSyncError: String?
@@ -95,7 +97,7 @@ final class AppState: ObservableObject {
     pollTimer?.invalidate(); healthTimer?.invalidate()
     location.stop()
     await api.signOut()
-    isAuthenticated = false; me = nil; messages = []; budget = nil; upcoming = []
+    isAuthenticated = false; me = nil; messages = []; budget = nil; upcoming = []; integrations = nil
   }
 
   func updateBaseURL(_ s: String) async { baseURL = s; await api.setBaseURL(s) }
@@ -164,6 +166,7 @@ final class AppState: ObservableObject {
     presets = (try? await p) ?? []
     places = (try? await pl) ?? []
     activities = (try? await a) ?? []
+    integrations = try? await api.integrations()
     await pollMessages()
   }
 
@@ -244,5 +247,45 @@ final class AppState: ObservableObject {
     await pollMessages()
     if let last = health.lastRead, Date().timeIntervalSince(last) < Self.healthInterval { return }
     await syncHealth()
+  }
+
+  // MARK: - connected accounts
+
+  func refreshIntegrations() async { integrations = try? await api.integrations() }
+
+  /// Google's consent page. Google redirects to the server, so the app picks the
+  /// account up when it comes back to the foreground (see ConnectedAccountsView).
+  func googleConnectURL() async -> URL? {
+    integrationProblem = nil
+    do { return try await api.googleConnectURL() } catch { integrationProblem = Self.serverMessage(error); return nil }
+  }
+
+  func connectCanvas(baseURL: String, token: String) async -> Bool {
+    integrationProblem = nil
+    do {
+      let r = try await api.connectCanvas(baseURL: baseURL, token: token)
+      if r.sync.status != "ok" { integrationProblem = r.sync.error ?? "Connected, but the first sync failed." }
+      await refreshIntegrations()
+      upcoming = (try? await api.upcoming()) ?? upcoming
+      return true
+    } catch { integrationProblem = Self.serverMessage(error); return false }
+  }
+
+  func syncIntegration(_ provider: String) async {
+    integrationProblem = nil
+    do { let r = try await api.syncIntegration(provider); if let e = r.sync.error { integrationProblem = e } }
+    catch { integrationProblem = Self.serverMessage(error) }
+    await refreshIntegrations()
+    upcoming = (try? await api.upcoming()) ?? upcoming
+  }
+
+  func disconnectIntegration(_ provider: String) async {
+    do { try await api.disconnectIntegration(provider) } catch { integrationProblem = Self.serverMessage(error) }
+    await refreshIntegrations()
+  }
+
+  static func serverMessage(_ error: Error) -> String {
+    if case APIError.http(_, let msg) = error, !msg.isEmpty { return msg }
+    return error.localizedDescription
   }
 }

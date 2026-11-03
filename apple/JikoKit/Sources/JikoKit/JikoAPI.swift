@@ -188,6 +188,22 @@ public actor JikoAPI {
   }
   public func refreshCalendar(_ id: String) async throws -> CalendarImportResponse { try await request("POST", "calendars/\(id)/refresh") }
   public func deleteCalendar(_ id: String) async throws { let _: Empty = try await request("DELETE", "calendars/\(id)") }
+
+  // MARK: - connected accounts (Google, Canvas)
+
+  public func integrations() async throws -> IntegrationsResponse { try await request("GET", "integrations") }
+  /// The Google consent page to open in a browser. Google redirects back to the server, not the app;
+  /// poll `integrations()` afterwards to see the account appear.
+  public func googleConnectURL() async throws -> URL {
+    let r: ConnectURL = try await request("POST", "integrations/google/start", body: ["return": "app"])
+    guard let u = URL(string: r.url) else { throw APIError.notSent("Server returned a bad sign-in link") }
+    return u
+  }
+  public func connectCanvas(baseURL: String, token: String) async throws -> IntegrationSyncResponse {
+    try await request("POST", "integrations/canvas", body: ["base_url": baseURL, "token": token])
+  }
+  public func syncIntegration(_ provider: String) async throws -> IntegrationSyncResponse { try await request("POST", "integrations/\(provider)/sync") }
+  public func disconnectIntegration(_ provider: String) async throws { let _: Empty = try await request("DELETE", "integrations/\(provider)") }
 }
 
 public struct Empty: Codable {

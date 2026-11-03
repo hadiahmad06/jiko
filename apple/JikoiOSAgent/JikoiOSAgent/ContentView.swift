@@ -256,6 +256,14 @@ struct SettingsView: View {
             .font(.caption).foregroundStyle(.tertiary)
         }
 
+        Section {
+          ConnectedAccountsView()
+        } header: {
+          Text("Connected accounts")
+        } footer: {
+          Text("Where \"due\" comes from. Read-only.")
+        }
+
         Section("Last seen") {
           LabeledContent("Messages", value: state.lastSyncAt?.formatted(date: .omitted, time: .standard) ?? "never")
           LabeledContent("Location", value: state.lastLocationAt?.formatted(date: .omitted, time: .standard) ?? "never")
