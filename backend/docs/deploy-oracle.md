@@ -90,7 +90,7 @@ Steady state after the retune: jiko 40 MB, postgres 69 MB, caddy 25 MB, with
 ## Backups
 
 `jiko-backup.timer` runs `scripts/backup.sh` nightly into `/opt/jiko/backups`,
-keeping 14. `BACKUP_S3_BUCKET` is unset, so dumps are local only — they survive
+keeping 14. `S3_BUCKET` is unset, so dumps are local only — they survive
 a bad migration, not a lost instance. Set `S3_BUCKET` in `/opt/jiko/jiko.env`
 and give the box credentials to change that.
 
